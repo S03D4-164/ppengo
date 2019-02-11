@@ -1,0 +1,23 @@
+#register_form.modal(role="dialog")
+  .modal-dialog
+  .modal-content(style="width:50%;margin:auto;")
+    .modal-header
+      button.close(type="button", data-dismiss="modal") &times
+      h4.modal-title Register URL
+    .modal-body
+      form(method="post" action="/")
+        label(for="url") url: 
+        br
+        textarea(id="url", name="url", rows=5, cols=50) http://
+        br
+        label(for="proxy") proxy: 
+        br
+        input(type="text" name="proxy", id="proxy", placeholder="ip:port")
+        br
+        label(for="user-agent") user-agent: 
+        br
+        input(type="text" name="user-agent", id="user-agent", value="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36")
+        br
+        input(type="hidden" name="_csrf", value=csrfToken)
+        br
+        input(type="submit" name="submit", value="submit")
