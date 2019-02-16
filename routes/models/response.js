@@ -3,16 +3,31 @@ const mongoose = require('mongoose');
 const responseSchema = new mongoose.Schema({
     url: {
       type: String,
-      trim: true,
     },
     status: {
-        type: String,
-        trim: true,
+        type: Number,
     },
     payload: {
       type: Buffer,
     },
-    created_at: {
+    statusText: {
+      type: String,
+    },
+    ok: {
+      type: Boolean,
+    },
+    remoteAddress: {
+      ip: {type: String},
+      port: {type: Number}
+    },
+    securityDetails: {
+      issuer: {type: String},
+      protocol: {type: String},
+      subjectName: {type: String},
+      validFrom: {type: Number},
+      validTo: {type: Number},
+    },
+    createdAt: {
       type: Date,
       default: Date.now
     },

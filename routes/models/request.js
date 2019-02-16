@@ -3,17 +3,26 @@ const mongoose = require('mongoose');
 const requestSchema = new mongoose.Schema({
   url: {
     type: String,
-    trim: true,
   },
   method: {
     type: String,
-    trim: true,
+  },
+  resourceType: {
+    type: String,
+  },
+  isNavigationRequest:{
+    type:Boolean,
+  },
+  postData: {
+    type: String,
+  },
+  failure:{
+    errorText:{type:String},
   },
   status: {
     type: String,
-    trim: true,
   },
-  created_at: {
+  createdAt: {
     type: Date,
     default: Date.now
   },

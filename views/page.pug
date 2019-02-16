@@ -1,38 +1,9 @@
 extends layout
 
 block content
-    .jumbotoron.text-center
-      h3= title
+    h1= title
     #table.col-md-12
-      if webpages
-        if webpages.length
-          table.table.table-striped.table-bordered.table-hover.table-sm
-            tr.thead-dark
-              th createdAt
-              th url
-              th title
-              th size
-              th thumbnail
-            each webpage in webpages
-              tr
-                td= webpage.createdAt
-                td
-                  if webpage.input
-                    p= webpage.input + " -> "
-                  if webpage.url
-                    a(href="/" + model + "/" +webpage._id) #{webpage.url}
-                td
-                  if webpage.title
-                    p= webpage.title
-                td
-                  if webpage.content
-                    p= webpage.content.length
-                td
-                  if webpage.thumbnail     
-                    a.colorbox(href="data:image/png;base64," + webpage.screenshot)
-                      img(src="data:image/png;base64," + webpage.thumbnail)
-
-      else if webpage
+      if webpage
         div.col-md-6
           p #{webpage.createdAt}              
           h1
@@ -59,6 +30,32 @@ block content
             pre.prettyprint.linenums(style="white-space: pre-wrap") #{webpage.content}
           else if webpage.payload
             pre.prettyprint.linenums(style="white-space: pre-wrap") #{webpage.payload}
+      else if webpages
+        if webpages.length
+          table.table.table-striped(width="50%")
+            tr
+              th createdAt
+              th url
+            each webpage in webpages
+              tr
+                td= webpage.createdAt
+                td
+                  if webpage.input
+                    p= webpage.input + " -> "
+                  if webpage.url
+                    a(href="/" + model + "/" +webpage._id) #{webpage.url}
+                  if webpage.title
+                    p= webpage.title
+                  if webpage.method
+                    p= webpage.method
+                  if webpage.status
+                    p= webpage.status
+                  if webpage.thumbnail     
+                    a.colorbox(href="data:image/png;base64," + webpage.screenshot)
+                      img(src="data:image/png;base64," + webpage.thumbnail)
+                  if webpage.webpage
+                    p from page: 
+                      a(href="/page/"+webpage.webpage) #{webpage.webpage}
       else
         div.alert.alert-warning
           p No data

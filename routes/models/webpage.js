@@ -14,16 +14,14 @@ const webpageSchema = new mongoose.Schema({
   },
   screenshot: {
     type: String,
-    trim: true,
   },
   thumbnail: {
     type: String,
-    trim: true,
   },
   content: {
     type: String,
   },
-  created_at: {
+  createdAt: {
     type: Date,
     default: Date.now
   },

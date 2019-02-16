@@ -1,0 +1,49 @@
+extends layout
+
+block content
+    p= title
+    #table.col-md-12
+      if webpage
+        div.col-md-6
+          p #{webpage.createdAt}              
+          h1
+            a(href="/"+model+"/"+webpage._id) #{webpage.url}
+          if webpage.webpage
+            h2= webpage.method
+            h3
+              a(href="/page/"+webpage.webpage) from #{webpage.webpage}  
+        div.col-md-6
+          p= webpage.method
+          p= webpage.resourceType
+          p= webpage.isNavigationRequest
+        div.col-md-12
+          hr
+          if webpage.content
+            pre.prettyprint.linenums(style="white-space: pre-wrap") #{webpage.content}
+          else if webpage.payload
+            pre.prettyprint.linenums(style="white-space: pre-wrap") #{webpage.payload}
+      else if webpages
+        if webpages.length
+          p= "total:" + webpages.length
+          table.table.table-striped(width="50%")
+            tr
+              th createdAt
+              th url
+              th status
+              th statusText
+              th ok
+              th remoteAddress
+              th securityDetails
+            each webpage in webpages
+              tr
+                td= webpage.createdAt
+                td
+                  a(href="/" + model + "/" +webpage._id) #{webpage.url}
+                td= webpage.status
+                td= webpage.statusText
+                td= webpage.ok
+                td= webpage.remoteAddress
+                td= webpage.securityDetails
+      else
+        div.alert.alert-warning
+          p No data
