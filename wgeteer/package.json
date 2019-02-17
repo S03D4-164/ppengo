@@ -1,0 +1,14 @@
+{
+  "name": "wgeteer",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./worker.js"
+  },
+  "dependencies": {
+    "image-thumbnail": "^1.0.2",
+    "kue": "^0.11.6",
+    "mongoose": "^5.4.10",
+    "puppeteer": "^1.12.1"
+  }
+}

@@ -1,13 +1,14 @@
 extends layout
 
 block content
-    p= title
+    .jumbotoron.text-center
+      h3= title
     #table.col-md-12
       if webpages
         if webpages.length
           p= "total: "+webpages.length 
-          table.table.table-striped(width="50%")
-            tr
+          table.table.table-striped.table-bordered.table-hover.table-sm
+            tr.thead-dark
               th createdAt
               th url
               th method

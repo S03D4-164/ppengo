@@ -1,0 +1,29 @@
+extends layout
+
+block content
+    p= title
+    .row
+      if webpage
+        div.col-md-6
+          p #{webpage.createdAt}              
+          h1
+            a(href="/"+model+"/"+webpage._id) #{webpage.url}
+          h2
+            a(href="/page/"+webpage.webpage) (from #{webpage.webpage})  
+        div.col-md-6
+          p= "status: " + webpage.status
+          p= "statusText: " + webpage.statusText
+          p= "ok: " + webpage.ok
+          p= "remoteAddress: " + webpage.remoteAddress
+          p= "securityDetails: " + webpage.securityDetails
+        div.col-md-12
+          hr
+          if webpage.payload
+            p size: #{webpage.payload.length}
+            button.btn.btn-primary(onclick="prettyPrint()") prettyPrint
+            pre.prettyprint.linenums(style="white-space: pre-wrap") #{webpage.payload}
+          else
+            p No Content.
+      else
+        div.alert.alert-warning
+          p No data

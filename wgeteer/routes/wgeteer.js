@@ -3,17 +3,11 @@ const imageThumbnail = require('image-thumbnail');
 
 const mongoose = require('mongoose');
 
-mongoose.connect('mongodb://localhost:27018/wgeteer', { useNewUrlParser: true });
+mongoose.connect('mongodb://localhost:27017/wgeteer', { useNewUrlParser: true });
 mongoose.Promise = global.Promise;
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 var ObjectId = require('mongodb').ObjectID;
-
-/*
-const Webpage = mongoose.model('Webpage');
-const Request = mongoose.model('Request');
-const Response = mongoose.model('Response');
-*/
 
 const Webpage = require('./models/webpage');
 const Request = require('./models/request');
@@ -26,6 +20,9 @@ module.exports = {
     console.log(option);
     const userAgent = option['user-agent'];
     const proxy = option['proxy'];
+    const referer = option['referer'];
+    //const timeout = option['timeout'];
+
     const lang = '--lang=ja';
     const chromiumArgs= [
       '--no-sandbox',
@@ -71,13 +68,11 @@ module.exports = {
 
     const webpage = new Webpage({
       input: inputUrl,
-      /*
-      url:page.url(),
-      title:pageTitle,
-      content:pageContent,
-      screenshot: b64screenshot,
-      thumbnail: thumbnail,
-      */
+    });
+    webpage.save(function (err, success){
+      if(err) {
+        console.log(err);
+      }      
     });
 
     page.on('console', msg => console.log('[Console] ', msg.text()));
@@ -85,7 +80,7 @@ module.exports = {
     page.on('domcontentloaded', () => console.log('DOM content loaded!'));
   
     page.on('requestfailed', request => {
-      console.log('[Request] failed=>', request.url() + ' ' + request.failure().errorText);
+      console.log('[Request] failed=>', request.url() + ' ' + request.failure());
     });
 
     /*
@@ -140,14 +135,25 @@ module.exports = {
         interceptedResponse.remoteAddress(),
         interceptedResponse.url(),
       );
-      console.log(interceptedResponse.securityDetails());
-      console.log(interceptedResponse.headers());
+      //console.log(interceptedResponse.securityDetails());
+      //console.log(interceptedResponse.headers());
       var responseBuffer = null;
+      
       if (interceptedResponse.status() < 300
-       && interceptedResponse.status() >= 400){
+       || interceptedResponse.status() >= 400){
             responseBuffer = await interceptedResponse.buffer();
       }
-        
+      
+      var securityDetails = {};
+      if (interceptedResponse.securityDetails()){
+        securityDetails = {
+          issuer: interceptedResponse.securityDetails().issuer(),
+          protocol: interceptedResponse.securityDetails().protocol(),
+          subjectName: interceptedResponse.securityDetails().subjectName(),
+          validFrom: interceptedResponse.securityDetails().validFrom(),
+          validTo: interceptedResponse.securityDetails().validTo(),
+        }
+      }
       const response = new Response({
         webpage: webpage._id,
         url:interceptedResponse.url(),
@@ -156,7 +162,7 @@ module.exports = {
         statusText: interceptedResponse.statusText(),
         ok: interceptedResponse.ok(),
         remoteAddress: interceptedResponse.remoteAddress(),
-        securityDetails: interceptedResponse.securityDetails(),
+        securityDetails: securityDetails,
       });
       response.save(function (err){
         //if(err) {console.log(err);}
@@ -175,8 +181,8 @@ module.exports = {
 
     //await page.tracing.start({path: 'trace.json'});
     const finalResponse = await page.goto(url,{
-      timeout:30000,
-      //referer:'https://www.google.com',
+      timeout:60000,
+      referer:referer,
       waitUntil: 'networkidle2',
     });
     //await page.tracing.stop();
@@ -222,16 +228,6 @@ module.exports = {
     //webpage.content = bodyHTML;
     //console.log(pageTitle, page.url());
 
-    /*
-    const webpage = new Webpage({
-      url:page.url(),
-      title:pageTitle,
-      content:pageContent,
-      screenshot: b64screenshot,
-      thumbnail: thumbnail,
-    });
-    console.log("pageId",webpage._id);
-    */
     webpage.save(function (err, success){
       if(err) {
         console.log(err);
@@ -252,6 +248,9 @@ module.exports = {
 
     }catch(error){
       console.log(error);
+      webpage.title = error.message;
+      webpage.content = error;
+
     }
     browser.close();
   })();

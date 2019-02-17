@@ -1,0 +1,12 @@
+version: "3"
+services:
+  wgeteer:
+    build: .
+    environment:
+      - NODE_ENV=development
+    tty: true
+    command: /bin/bash
+    container_name: wgeteer
+    volumes:
+      - ./routes:/var/www/app/routes
+    network_mode: "host"
