@@ -1,29 +1,28 @@
 extends layout
 
-block content
-    p= title
-    .row
-      if webpage
-        div.col-md-6
-          p #{webpage.createdAt}              
-          h1
-            a(href="/"+model+"/"+webpage._id) #{webpage.url}
+block content 
+    if webpage
+      h3
+        a(href=rootPath+"page/responses/"+webpage.webpage) << Responses #{webpage.webpage}
+      h1
+        a(href=rootPath+model+"/"+webpage._id) #{webpage.url}
+      .row
+        div.col-md-5
           h2
-            a(href="/page/"+webpage.webpage) (from #{webpage.webpage})  
-        div.col-md-6
+            a(href=rootPath+"page/"+webpage.webpage) (from #{webpage.webpage})
+          p #{webpage.createdAt}
           p= "status: " + webpage.status
           p= "statusText: " + webpage.statusText
           p= "ok: " + webpage.ok
           p= "remoteAddress: " + webpage.remoteAddress
           p= "securityDetails: " + webpage.securityDetails
-        div.col-md-12
-          hr
+        div.col-md-7
           if webpage.payload
             p size: #{webpage.payload.length}
             button.btn.btn-primary(onclick="prettyPrint()") prettyPrint
             pre.prettyprint.linenums(style="white-space: pre-wrap") #{webpage.payload}
           else
             p No Content.
-      else
-        div.alert.alert-warning
-          p No data
+    else
+      div.alert.alert-warning
+        p No data

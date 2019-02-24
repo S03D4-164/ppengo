@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./worker.js"
+    "start": "node ./routes/worker.js"
   },
   "dependencies": {
     "image-thumbnail": "^1.0.2",

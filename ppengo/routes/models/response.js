@@ -27,6 +27,9 @@ const responseSchema = new mongoose.Schema({
       validFrom: {type: Number},
       validTo: {type: Number},
     },
+    headers: {
+      type: Object,
+    },
     createdAt: {
       type: Date,
       default: Date.now

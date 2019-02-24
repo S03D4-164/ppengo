@@ -1,32 +1,31 @@
 extends layout
 
 block content
-    h3= title
+  if webpage
+    .jumbotoron
+      h1= "Page"
+    h1
+      a(href=rootPath+model+"/"+webpage._id) #{webpage.url}
     .row
-      if webpage
-        div.col-md-6
+        div.col-md-5
+          h2 Title: #{webpage.title}
+          h3 (from input: #{webpage.input})
           p #{webpage.createdAt}              
-          h1
-            a(href="/"+model+"/"+webpage._id) #{webpage.url}
-          if webpage.input
-            h2 Title: #{webpage.title}
-            h3 (from input: #{webpage.input})
-            h4
-              a(href="/"+model+"/requests/"+webpage._id) Requests
-            h4
-              a(href="/"+model+"/responses/"+webpage._id) Responses
-        div.col-md-6
+          h4
+            a(href=rootPath+model+"/requests/"+webpage._id) Requests
+          h4
+            a(href=rootPath+model+"/responses/"+webpage._id) Responses
           if webpage.screenshot
-            a.colorbox(href="data:image/png;base64," + webpage.screenshot)
-              img(width="100%",src="data:image/png;base64," + webpage.screenshot)
-        div.col-md-12
-          hr
+            //a.colorbox(href="data:image/png;base64," + webpage.screenshot)
+            a.colorbox(href=rootPath + "page/screenshot/" + webpage._id)
+              img(src="data:image/png;base64," + webpage.thumbnail)
+        div.col-md-7
           if webpage.content
             p size: #{webpage.content.length}
             button.btn.btn-primary(onclick="prettyPrint()") prettyPrint
             pre.prettyprint.linenums(style="white-space: pre-wrap") #{webpage.content}
           else
             p No Content.
-      else
-        div.alert.alert-warning
-          p No data
+  else
+    div.alert.alert-warning
+      p No data

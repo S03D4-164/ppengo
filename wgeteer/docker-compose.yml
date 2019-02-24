@@ -5,8 +5,10 @@ services:
     environment:
       - NODE_ENV=development
     tty: true
-    command: /bin/bash
     container_name: wgeteer
     volumes:
-      - ./routes:/var/www/app/routes
+      - ./routes:/home/node/app
     network_mode: "host"
+    working_dir: /home/node/app
+    #command: /bin/sh
+    command: node worker

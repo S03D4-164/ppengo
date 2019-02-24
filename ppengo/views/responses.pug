@@ -1,31 +1,31 @@
 extends layout
 
 block content
-    .jumbotoron.text-center
-      h3= title
-    #table.col-md-12
-      if webpages
-        if webpages.length
-          p= "total:" + webpages.length
-          table.table.table-striped.table-bordered.table-hover.table-sm
-            tr.thead-dark
-              th createdAt
-              th url
-              th status
-              th size
-              th remoteAddress
-              th securityDetails
-            each webpage in webpages
-              tr
-                td= webpage.createdAt
-                td
-                  a(href="/" + model + "/" +webpage._id) #{webpage.url}
-                td= webpage.status
-                td
-                  if webpage.payload
-                    #{webpage.payload.length}
-                td= webpage.remoteAddress
-                td= webpage.securityDetails
-      else
-        div.alert.alert-warning
-          p No data
+  .jumbotoron
+    h1 Responses:
+      a(href=rootPath+"page/"+pageId) #{pageId}
+  if webpages
+    if webpages.length
+      h2= "total:" + webpages.length
+      table.table.table-striped.table-bordered.table-hover.table-sm
+        tr.thead-light.d-flex
+          th.col-3 createdAt
+          th.col-3 url
+          th.col-1 status
+          th.col-1 size
+          th.col-2 remoteAddress
+          th.col-2 securityDetails
+        each webpage in webpages
+          tr.d-flex
+            td.col-3= moment(webpage.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+            td.col-3
+              a(href=rootPath + model + "/" +webpage._id) #{webpage.url}
+            td.col-1= webpage.status
+            td.col-1
+              if webpage.payload
+                #{webpage.payload.length}
+            td.col-2= webpage.remoteAddress
+            td.col-2= webpage.securityDetails
+  else
+    div.alert.alert-warning
+      p No data

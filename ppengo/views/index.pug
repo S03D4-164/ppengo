@@ -1,64 +1,37 @@
 extends layout
 
 block content
-    .jumbotoron.text-center
-      h3= title
-    #table.col-md-12
+      .jumbotoron
+        h3= title
       if webpages
         if webpages.length
           table.table.table-striped.table-bordered.table-hover.table-sm
-            tr.thead-dark
-              th createdAt
-              th url
-              th title
-              th size
-              th thumbnail
+            tr.thead-light.d-flex.text-center
+              th.col-3 createdAt
+              th.col-5 url
+              th.col-1 size
+              th.col-3 page
             each webpage in webpages
-              tr
-                td= webpage.createdAt
-                td
+              tr.d-flex.hoge(value=webpage._id)
+                td.col-3= moment(webpage.createdAt).format('YYYY-MM-DD HH:mm:ss.SSS Z')
+                td.col-5
                   if webpage.input
-                    p= webpage.input + " -> "
+                    p= webpage.input
+                    a(href=rootPath + "search/input/" + encodeURIComponent(webpage.input)) ->  
+                    br
+                    br
                   if webpage.url
-                    a(href="/" + model + "/" +webpage._id) #{webpage.url}
-                td
-                  if webpage.title
-                    p= webpage.title
-                td
+                    a(href=rootPath + model + "/" +webpage._id) #{webpage.url}
+                  else
+                    a(href=rootPath + model + "/" +webpage._id) #{webpage._id}
+                td.col-1
                   if webpage.content
                     p= webpage.content.length
-                td
-                  if webpage.thumbnail     
-                    a.colorbox(href="data:image/png;base64," + webpage.screenshot)
+                td.col-3
+                  if webpage.thumbnail
+                    a(href=rootPath + "search/title/" +webpage.title) #{webpage.title}
+                    a.colorbox(href=rootPath + "page/screenshot/" +webpage._id)
                       img(src="data:image/png;base64," + webpage.thumbnail)
-
-      else if webpage
-        div.col-md-6
-          p #{webpage.createdAt}              
-          h1
-            a(href="/"+model+"/"+webpage._id) #{webpage.url}
-          if webpage.input
-            h2 #{webpage.title}
-            h3 from input: #{webpage.input}
-            h4
-              a(href="/"+model+"/requests/"+webpage._id) Requests
-            h4
-              a(href="/"+model+"/responses/"+webpage._id) Responses
-          if webpage.webpage
-            h2= webpage.method
-            h2= webpage.status
-            h3
-              a(href="/page/"+webpage.webpage) from #{webpage.webpage}  
-        div.col-md-6
-          if webpage.screenshot
-            a.colorbox(href="data:image/png;base64," + webpage.screenshot)
-              img(width="100%",src="data:image/png;base64," + webpage.screenshot)
-        div.col-md-12
-          hr
-          if webpage.content
-            pre.prettyprint.linenums(style="white-space: pre-wrap") #{webpage.content}
-          else if webpage.payload
-            pre.prettyprint.linenums(style="white-space: pre-wrap") #{webpage.payload}
       else
         div.alert.alert-warning
           p No data

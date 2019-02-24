@@ -12,20 +12,26 @@ const Webpage = require('./models/webpage');
 const Request = require('./models/request');
 const Response = require('./models/response');
 
-var kue = require('kue')
-
+var kue = require('kue');
 let queue = kue.createQueue({
-  prefix: 'q', // Can change this value incase you're using multiple apps using same
-               // redis instance.
+  prefix: 'q',
   redis: {
     host: "cache",
     port: 6379 // default
   }
 });
 
-router.get('/', function(req, res, next) {
-  
-  Webpage.find().sort("-createdAt")
+var cookieParser = require('cookie-parser');
+var csrf = require('csurf');
+var bodyParser = require('body-parser');
+var csrfProtection = csrf({ cookie: true });
+var parseForm = bodyParser.urlencoded({ extended: false });
+router.use(cookieParser());
+
+router.get('/',  csrfProtection, function(req, res, next) {
+  Webpage.find()
+    .sort("-createdAt")
+    .limit(100)
     .then((webpages) => {
       res.render(
         'index', {
@@ -35,87 +41,84 @@ router.get('/', function(req, res, next) {
            model:"page",
         });
     })
-    .catch(() => { res.send('Sorry! Something went wrong.'); });
-});
-
-router.post('/', function(req, res, next) {
-  //console.log(req.body);
-
-  const input = req.body['url'];
-  const urls = input.split('\r\n');
-  console.log(urls);
-
-  for (var inputUrl of urls){
-  console.log(inputUrl);
-  const job = queue.create('wgeteer', {  // Job Type
-    url: inputUrl,                    // Job Data
-    options:req.body,
-  }).save( function(err){
-    if( !err ) console.log( job.id );
-  });
-  //console.log(job);
-
-  job.on('complete', function(result){
-    console.log('Job completed with data ', result);
-  }).on('failed attempt', function(errorMessage, doneAttempts){
-    console.log('Job failed');
-  }).on('failed', function(errorMessage){
-    console.log('Job failed');
-  }).on('progress', function(progress, data){
-    console.log('\r  job #' + job.id + ' ' + progress + '% complete with data ', data );
-  });
-
-  }
-
-  Webpage.find().sort("-createdAt")
-    .then((webpages) => {
-      res.render(
-        'index', {
-        webpages, 
-        csrfToken:req.csrfToken(),
-        model:"page" ,
-      });
-    })
-});
-
-router.get('/request', function(req, res, next) {
-  Request.find().sort("-createdAt")
-    .then((requests) => {
-      res.render(
-        'requests', { 
-        title: 'Requests',
-        webpages:requests, 
-        model:"request",
-        csrfToken:req.csrfToken(), 
-      });
-    })
-});
-
-router.get('/response', function(req, res, next) {
-  Response.find().sort("-createdAt")
-    .then((responses) => {
-      //console.log(responses);
-      res.render(
-        'responses', {
-        title: 'Responses', 
-        webpages:responses, 
-        model:"response",
-        csrfToken:req.csrfToken(),
-      });
-    })
-    .catch((err) => {
-      console.log(err); 
+    .catch((err) => { 
+      console.log(err);
+      res.send(err); 
     });
 });
 
-router.get('/page/:id', function(req, res, next) {
+router.post('/', parseForm, csrfProtection, function(req, res, next) {
+  const input = req.body['url'];
+  const urls = input.split('\r\n');
+
+  var ids = [];
+  var webpages = [];
+
+  for (var inputUrl of urls){
+
+    if (inputUrl){
+      const webpage = new Webpage({
+        input: inputUrl,
+      });
+      webpage.save(function (err, success){
+        if(err) {
+          console.log(err);
+        }else{
+          console.log(success);
+        }
+      });
+      ids.push(webpage._id.toString());
+      webpages.push(webpage);
+      //console.log(ids);
+      const job = queue.create('wgeteer', {
+        pageId: webpage._id,
+        options:req.body,
+      }).save( function(err){
+        if( !err ) console.log( job.id );
+      });
+      //console.log(job);
+
+      job.on('complete', function(result){
+        console.log('Job completed with data ', result);
+      }).on('failed attempt', function(errorMessage, doneAttempts){
+        console.log('Job failed');
+      }).on('failed', function(errorMessage){
+        console.log('Job failed');
+      }).on('progress', function(progress, data){
+        console.log('\r  job #' + job.id + ' ' + progress + '% complete with data ', data );
+      });
+    } else {
+      console.log(inputUrl);
+    }
+  }
+  console.log(ids);
+  res.render(
+    'progress', {
+    webpages, 
+    ids:String(ids),
+    csrfToken:req.csrfToken(),
+  });
+});
+
+router.post('/progress', parseForm, csrfProtection, function(req, res, next) {
+  const ids = req.body["pageId[]"];
+  Webpage
+    .where('_id')
+    .in(ids)
+    .then((webpages) => {
+      res.render(
+        'progress', {
+        webpages, 
+        csrfToken:req.csrfToken(),
+    });
+  });
+});
+
+router.get('/page/:id', csrfProtection, function(req, res, next) {
   const id = req.params.id;
-  //console.log(id);
   Webpage.findById(id)
     .then((webpage) => {
-      res.render(
-        'page', { 
-        title: webpage.input, 
+      res.render('page', { 
         webpage,
         csrfToken:req.csrfToken(), 
         model:"page",
@@ -123,13 +126,27 @@ router.get('/page/:id', function(req, res, next) {
     });
 });
 
-router.get('/page/requests/:id', function(req, res, next) {
+router.get('/page/screenshot/:id', csrfProtection, function(req, res, next) {
   const id = req.params.id;
-  Request.find({"webpage":id}).sort("createdAt")
+  Webpage.findById(id)
+    .then((webpage) => {
+      var img = new Buffer(webpage.screenshot, 'base64');  
+      res.writeHead(200, {
+        'Content-Type': 'image/png',
+        'Content-Length': img.length
+      });
+      res.end(img); 
+    });
+});
+
+router.get('/page/requests/:id', csrfProtection, function(req, res, next) {
+  const id = req.params.id;
+  Request.find({"webpage":id})
+    .sort("createdAt")
     .then((webpages) => {
       res.render(
         'requests', { 
-        title: 'Requests <= ' + id, 
+        pageId: id, 
         webpages:webpages,
         csrfToken:req.csrfToken(),
         model:"request", 
@@ -137,7 +154,7 @@ router.get('/page/requests/:id', function(req, res, next) {
     });
 });
 
-router.get('/response/:id', function(req, res, next) {
+router.get('/response/:id', csrfProtection, function(req, res, next) {
   const id = req.params.id;
   Response.findById(id)
     .then((webpage) => {
@@ -156,13 +173,13 @@ router.get('/response/:id', function(req, res, next) {
     });
 });
 
-router.get('/page/responses/:id', function(req, res, next) {
+router.get('/page/responses/:id', csrfProtection, function(req, res, next) {
   const id = req.params.id;
   Response.find({"webpage":id})
     .then((webpages) => {
       res.render(
         'responses', { 
-        title: 'Response <= ' + id, 
+        pageId: id, 
         webpages:webpages,
         csrfToken:req.csrfToken(),
         model:"response", 
@@ -170,12 +187,13 @@ router.get('/page/responses/:id', function(req, res, next) {
     });
 });
 
-router.get('/request/:id', function(req, res, next) {
+router.get('/request/:id', csrfProtection, function(req, res, next) {
   const id = req.params.id;
   Request.findById(id)
     .then((webpage) => {
+      //console.log(webpage);
       res.render(
-        'requests', { 
+        'request', { 
         title: "Request", 
         webpage:webpage,
         csrfToken:req.csrfToken(),
@@ -184,5 +202,32 @@ router.get('/request/:id', function(req, res, next) {
     });
 });
 
-module.exports = router;
+router.get('/search/title/:title', csrfProtection, function(req, res, next) {
+  const title = req.params.title;
+  Webpage.find({"title":title})
+  .sort("-createdAt")
+  .then((webpage) => {
+      res.render('index', { 
+        title: "Title: " + title,
+        webpages:webpage,
+        csrfToken:req.csrfToken(),
+        model:'page',
+      });
+    });
+});
 
+router.get('/search/input/:input', csrfProtection, function(req, res, next) {
+  const input = req.params.input
+  Webpage.find({"input":input})
+  .sort("-createdAt")
+  .then((webpage) => {
+      res.render('index', { 
+        title: "Input: " + input,
+        webpages:webpage,
+        csrfToken:req.csrfToken(),
+        model:'page',
+      });
+    });
+});
+
+module.exports = router;

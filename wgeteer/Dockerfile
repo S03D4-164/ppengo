@@ -1,10 +1,15 @@
 FROM node:latest
 
-WORKDIR /var/www/app
+RUN apt-get update && \
+    apt-get install -y chromium libatk-bridge2.0-0 libgtk-3-0 fonts-monapo \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get purge --auto-remove -y curl \
+    && rm -rf /src/*.deb
 
-RUN apt-get install -y chromium libatk-bridge2.0-0 libgtk-3-0 fonts-monapo
+USER node
 
-COPY package.json .
+WORKDIR /home/node
+
+COPY package.json ./
 
 RUN yarn install
-

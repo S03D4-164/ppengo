@@ -20,6 +20,9 @@ const responseSchema = new mongoose.Schema({
       ip: {type: String},
       port: {type: Number}
     },
+    headers: {
+      type: Object,
+    },
     securityDetails: {
       issuer: {type: String},
       protocol: {type: String},

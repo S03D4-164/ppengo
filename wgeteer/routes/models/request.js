@@ -22,6 +22,9 @@ const requestSchema = new mongoose.Schema({
   status: {
     type: String,
   },
+  headers: {
+    type: Object,
+  },
   createdAt: {
     type: Date,
     default: Date.now

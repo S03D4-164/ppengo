@@ -1,16 +1,18 @@
 doctype html
+include include/config.pug
 html
   head
     title= title
     include include/head.pug
 
   body
-    div.container
+    div.container-fluid
+      include include/footer.pug
+
       include include/nav.pug
 
       include include/modal.pug
 
       block content
 
-      include include/footer.pug
 

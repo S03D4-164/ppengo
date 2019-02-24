@@ -1,6 +1,7 @@
 version: "3"
+volumes:
+  mongodata:
 services:
-
   mongodb:
     image: mongo
     environment:
@@ -20,7 +21,7 @@ services:
 
   ppengo:
     build: "ppengo"
-    container_name: ppengo
+    container_name: ppengo_alpine
     environment:
       - NODE_ENV=development
       - PORT=3000
@@ -36,13 +37,10 @@ services:
     depends_on:
       - mongodb
       - redis
-    command: npm start
     volumes:
       - ./ppengo/public:/var/www/app/public
       - ./ppengo/routes:/var/www/app/routes
       - ./ppengo/views:/var/www/app/views
       - ./ppengo/bin:/var/www/app/bin
-    #network_mode: "host"
-
-volumes:
-  mongodata:
+    #command: npm start
+    command: /bin/sh

@@ -1,14 +1,11 @@
-#register_form.modal(role="dialog")
+#register_form.modal.col-12(role="dialog")
   .modal-dialog.modal-dialog-centered
     .modal-content
-      .modal-header
-        p.modal-title Register URL
-        button.close(type="button", data-dismiss="modal") &times
       .modal-body
-        form(method="post" action="/")
+        form(method="post" action=rootPath)
           label(for="url") URL: 
           br
-          textarea(id="url", name="url", rows=3, cols=50) http://
+          textarea.col-12(id="url", name="url", rows=2) http://
           br
           label(for="user-agent") User-Agent: 
           br
@@ -17,6 +14,10 @@
           label(for="referer") Referer: 
           br
           input(type="text" name="referer", id="referer")
+          br
+          label(for="timeout") Timeout(s): 
+          br
+          input.col-2(type="number" name="timeout", id="timeout", max="300", min="30", step="30", value="30")
           br
           label(for="proxy") Proxy: 
           br

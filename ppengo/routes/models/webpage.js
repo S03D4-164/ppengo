@@ -28,5 +28,6 @@ const webpageSchema = new mongoose.Schema({
   //requests : [{ type: mongoose.Schema.Types.ObjectId, ref: 'Request' }],
   //responses : [{ type: mongoose.Schema.Types.ObjectId, ref: 'Response' }],
 });
-  
+
+webpageSchema.index({createdAt:-1});
 module.exports = mongoose.model('Webpage', webpageSchema);

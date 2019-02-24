@@ -50,7 +50,7 @@ queue.process('wgeteer', 4, (job, done) => {
 
 const getWeb = (job, done) => {
   //console.log(job);
-  wgeteer.wget(job.data.url, job.data.options);
+  wgeteer.wget(job.data.pageId, job.data.options);
   //.then((success) => {
   done();
   //});*/

@@ -1,0 +1,58 @@
+extends layout
+
+
+block content
+    meta(name="csrf-token", content=csrfToken)
+    script.
+        function progress(){
+            var ids= $(".hoge").map(function() {
+                return $(this).attr("value");
+            }).get();
+            var token = document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            //console.log(ids);
+            $.ajax({
+                type: 'POST',
+                url: 'progress',
+                headers: {  
+                    'CSRF-Token': token
+                     // <-- is the csrf token as a header
+                },  
+                data: {
+                   pageId: ids
+                }
+            }).then(function(result){
+                $('#progress').replaceWith($('#progress', result));;
+            });
+        };
+        setInterval(function () {progress()}, 1000);
+    .jumbotoron.text-center
+        h3= "Progress"
+    #progress
+      if webpages
+        if webpages.length
+          table.table.table-striped.table-bordered.table-hover.table-sm
+            tr.thead-light.d-flex
+              th.col-3 createdAt
+              th.col-3 url
+              th.col-2 title
+              th.col-1 size
+              th.col-3 thumbnail
+            each webpage in webpages
+              tr.d-flex.hoge(value=webpage._id)
+                td.col-3= moment(webpage.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+                td.col-3
+                  if webpage.input
+                    p= webpage.input + " -> "
+                  if webpage.url
+                    a(href=rootPath + "page/" +webpage._id) #{webpage.url}
+                  else
+                    a(href=rootPath + "page/" +webpage._id) #{webpage._id}
+                td.col-2
+                  if webpage.title
+                    p= webpage.title
+                td.col-1
+                  if webpage.content
+                    p= webpage.content.length
+                td.col-3
+                  if webpage.thumbnail     
+                    img(src="data:image/png;base64," + webpage.thumbnail)
