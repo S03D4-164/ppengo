@@ -1,6 +1,10 @@
 FROM node:alpine
 
-WORKDIR /var/www/app
+#WORKDIR /var/www/app
+
+WORKDIR /home/node
+
+USER node
 
 COPY app.js package.json ./
 

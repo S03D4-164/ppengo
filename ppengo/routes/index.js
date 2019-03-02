@@ -6,7 +6,7 @@ mongoose.connect('mongodb://mongodb/wgeteer', { useNewUrlParser: true });
 mongoose.Promise = global.Promise;
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
-var ObjectId = require('mongodb').ObjectID;
+//var ObjectId = require('mongodb').ObjectID;
 
 const Webpage = require('./models/webpage');
 const Request = require('./models/request');
@@ -17,7 +17,7 @@ let queue = kue.createQueue({
   prefix: 'q',
   redis: {
     host: "cache",
-    port: 6379 // default
+    port: 6379
   }
 });
 
@@ -114,16 +114,35 @@ router.post('/progress', parseForm, csrfProtection, function(req, res, next) {
   });
 });
 
-router.get('/page/:id', csrfProtection, function(req, res, next) {
+router.get('/page/:id', csrfProtection, async function(req, res, next) {
   const id = req.params.id;
-  Webpage.findById(id)
-    .then((webpage) => {
-      res.render('page', { 
+
+  var webpage = await Webpage.findById(id).then((document) => {
+      console.log(document);
+      return document;
+    });
+  
+  var requests = await Request.find({"webpage":id})
+    .sort("createdAt").exec().then((document) => {
+      return document;
+    });
+
+  var responses = await Response.find({"webpage":id})
+    .sort("createdAt").then((document) => {
+      return document;
+    });
+  //console.log(webpage);
+  //console.log(requests);
+  //console.log(responses);
+  //  .then((webpage) => {
+  res.render('page', { 
         webpage,
+        requests,
+        responses,
         csrfToken:req.csrfToken(), 
         model:"page",
-      });
-    });
+  });
+  //  });
 });
 
 router.get('/page/screenshot/:id', csrfProtection, function(req, res, next) {

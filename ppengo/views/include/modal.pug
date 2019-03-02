@@ -4,27 +4,23 @@
       .modal-body
         form(method="post" action=rootPath)
           label(for="url") URL: 
-          br
           textarea.col-12(id="url", name="url", rows=2) http://
           br
-          label(for="user-agent") User-Agent: 
+          label.col-2(for="user-agent") User-Agent: 
+          input.col-10(type="text" name="user-agent", id="user-agent", value="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36")
           br
-          input(type="text" name="user-agent", id="user-agent", value="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36")
+          label.col-2(for="referer") Referer: 
+          input.col-10(type="text" name="referer", id="referer")
           br
-          label(for="referer") Referer: 
+          label.col-2(for="proxy") Proxy: 
+          input.col-10(type="text" name="proxy", id="proxy", placeholder="ip:port")
           br
-          input(type="text" name="referer", id="referer")
-          br
-          label(for="timeout") Timeout(s): 
-          br
+          label.col-3(for="timeout") Timeout(s): 
           input.col-2(type="number" name="timeout", id="timeout", max="300", min="30", step="30", value="30")
-          br
-          label(for="proxy") Proxy: 
-          br
-          input(type="text" name="proxy", id="proxy", placeholder="ip:port")
-          br
-          //label(for="disableScript") Disable JavaScript
-          //input(type="checkbox", name="disableScript", id="disableScript" value="")
+          label.col-2(for="delay") Delay(s): 
+          input.col-2(type="number" name="delay", id="delay", max="60", min="0", step="10", value="0")
+          label.col-2(for="disableScript") Disable Script
+          input.col-1(type="checkbox", name="disableScript", id="disableScript" value="")
           //br
           //label(for="postData") Post Data: 
           //br

@@ -4,6 +4,7 @@ services:
     build: .
     environment:
       - NODE_ENV=development
+      - DEBUG="puppeteer:*"
     tty: true
     container_name: wgeteer
     volumes:
@@ -11,4 +12,4 @@ services:
     network_mode: "host"
     working_dir: /home/node/app
     #command: /bin/sh
-    command: node worker
+    command: dumb-init -- node --optimize_for_size --gc_interval=100 --max-old-space-size=2048 worker
