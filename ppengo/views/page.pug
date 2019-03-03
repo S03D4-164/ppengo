@@ -2,41 +2,50 @@ extends layout
 
 block content
   if webpage
-    .jumbotoron
+    .jumbotoron.text-center
       h1= "Page"
     .row
-        div.col-md-6
-          h1
-            a(href=rootPath+model+"/"+webpage._id) #{webpage.url}
-          h2
-            a(href=rootPath + "search/?title=" + webpage.title) Title: #{webpage.title}
-          h3 
-            a(href=rootPath + "search/?input=" + webpage.input) (from input: #{webpage.input})
-          //h4
-            a(href=rootPath+model+"/requests/"+webpage._id) Requests
-          //h4
-            a(href=rootPath+model+"/responses/"+webpage._id) Responses
-        div.col-md-6
+        div.col-md-3
           if webpage.screenshot
             //a.colorbox(href="data:image/png;base64," + webpage.screenshot)
             a.colorbox(href=rootPath + "page/screenshot/" + webpage._id)
               img(src="data:image/png;base64," + webpage.thumbnail)
+
+        div.col-md-9
+          h1
+            a(href=rootPath + "search/page?url=" + webpage.url) #{webpage.url}
+          h2
+            a(href=rootPath + "search/page?title=" + webpage.title) Title: #{webpage.title}
+          h3 
+            a(href=rootPath + "search/page?input=" + webpage.input) (from input: #{webpage.input})
+          p #{webpage.createdAt}
+          //h4
+            a(href=rootPath+model+"/requests/"+webpage._id) Requests
+          //h4
+            a(href=rootPath+model+"/responses/"+webpage._id) Responses
     .row
-        div.col-md-5
+        div.col-md-12
           if requests
             if requests.length
               h3= "Requests: "+ requests.length 
               table.table.table-striped.table-bordered.table-hover.table-sm
                 tr.thead-light.d-flex
-                  th.col-5 createdAt
-                  th.col-6 url
-                  th.col-1 met
+                  th.col-2 createdAt
+                  th.col-3 url
+                  th.col-1 method
                   //th.col-1 resourceType
                   //th.col-1 Navigation
+                  th.col-1 status
+                  th.col-1 size
+                  th.col-2 remoteAddress
+                  th.col-2 securityDetails
                 each request in requests
-                  tr.d-flex(class={"table-primary":request.isNavigationRequest===true})
-                    td.col-5= moment(request.createdAt).format('YYYY-MM-DDTHH:mm:ss.SS')
-                    td.col-6
+                  tr.d-flex(class={
+                      "table-primary":request.isNavigationRequest===true,
+                      "table-danger":request.url===webpage.url,
+                      })
+                    td.col-2= moment(request.createdAt).format('YYYY-MM-DDTHH:mm:ss.SS')
+                    td.col-3
                       if request.url.length > 100
                         a(href=rootPath + "request/" + request._id) #{request.url.slice(0,100)}(truncated)
                       else
@@ -44,33 +53,42 @@ block content
                     td.col-1= request.method
                     //td.col-1= request.resourceType
                     //td.col-1= request.isNavigationRequest
-        div.col-md-7
+                    each response in responses
+                      if request.url===response.url
+                        td.col-1= response.status
+                        td.col-1
+                          if response.payload
+                            a(href=rootPath + "response/" + response._id) #{response.payload.length}
+                          else
+                            a(href=rootPath + "response/" + response._id) -
+                        td.col-2= response.remoteAddress.ip
+                        td.col-2= response.securityDetails.issuer
+        div.col-md-12(hidden)
           if responses
             if responses.length
               h3= "Responses: " + responses.length
               table.table.table-striped.table-bordered.table-hover.table-sm
                 tr.thead-light.d-flex
                   th.col-3 createdAt
-                  th.col-4 url
+                  th.col-3 url
                   th.col-1 status
-                  th.col-2 size
+                  th.col-1 size
                   th.col-2 remoteAddress
-                  //th.col-2 securityDetails
+                  th.col-2 securityDetails
                 each response in responses
                   tr.d-flex(class={"table-primary":response.url===webpage.url})
                     td.col-3= moment(response.createdAt).format('YYYY-MM-DDTHH:mm:ss.SS')
-                    td.col-4
+                    td.col-3
                       if response.url.length > 100
                         a(href=rootPath + "response/" + response._id) #{response.url.slice(0,100)}(truncated)
                       else
                         a(href=rootPath + "response/" + response._id) #{response.url}
-
                     td.col-1= response.status
-                    td.col-2
+                    td.col-1
                       if response.payload
                         #{response.payload.length}
                     td.col-2= response.remoteAddress.ip
-                    //td.col-2= response.securityDetails
+                    td.col-2= response.securityDetails
     .row
         if webpage.content
           div.col-md-12
@@ -78,7 +96,6 @@ block content
           div.col-md-1
             h3= "Content"
             p= "size: " + webpage.content.length
-            //p #{webpage.createdAt}              
             button.btn.btn-primary(onclick="prettyPrint()") prettyPrint
           div.col-md-10
             pre.prettyprint.linenums(style="white-space: pre-wrap") #{webpage.content}

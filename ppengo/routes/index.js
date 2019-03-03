@@ -91,7 +91,7 @@ router.post('/', parseForm, csrfProtection, function(req, res, next) {
       console.log(inputUrl);
     }
   }
-  console.log(ids);
+  //console.log(ids);
   res.render(
     'progress', {
     webpages, 
@@ -106,9 +106,16 @@ router.post('/progress', parseForm, csrfProtection, function(req, res, next) {
     .where('_id')
     .in(ids)
     .then((webpages) => {
+      var completed = true;
+      for(let i in webpages){
+        if (!webpages[i].url && !webpages[i].title){
+          completed = false;
+        }
+      }
       res.render(
         'progress', {
         webpages, 
+        completed: completed,
         csrfToken:req.csrfToken(),
     });
   });
@@ -118,7 +125,7 @@ router.get('/page/:id', csrfProtection, async function(req, res, next) {
   const id = req.params.id;
 
   var webpage = await Webpage.findById(id).then((document) => {
-      console.log(document);
+      //console.log(document);
       return document;
     });
   
@@ -131,10 +138,6 @@ router.get('/page/:id', csrfProtection, async function(req, res, next) {
     .sort("createdAt").then((document) => {
       return document;
     });
-  //console.log(webpage);
-  //console.log(requests);
-  //console.log(responses);
-  //  .then((webpage) => {
   res.render('page', { 
         webpage,
         requests,
@@ -142,7 +145,6 @@ router.get('/page/:id', csrfProtection, async function(req, res, next) {
         csrfToken:req.csrfToken(), 
         model:"page",
   });
-  //  });
 });
 
 router.get('/page/screenshot/:id', csrfProtection, function(req, res, next) {
@@ -221,13 +223,23 @@ router.get('/request/:id', csrfProtection, function(req, res, next) {
     });
 });
 
-router.get('/search/title/:title', csrfProtection, function(req, res, next) {
-  const title = req.params.title;
-  Webpage.find({"title":title})
+router.get('/search/page', csrfProtection, function(req, res, next) {
+  var search = []
+  if(typeof req.query.input !== 'undefined' && req.query.input !== null){
+    search.push({"input":req.query.input});
+  }
+  if(typeof req.query.title !== 'undefined' && req.query.title !== null){
+    search.push({"title":req.query.title});
+  }
+  if(typeof req.query.url !== 'undefined' && req.query.url !== null){
+    search.push({"url":req.query.url});
+  }
+  Webpage.find()
+  .or(search)
   .sort("-createdAt")
   .then((webpage) => {
       res.render('index', { 
-        title: "Title: " + title,
+        title: "Search: "+ JSON.stringify(req.query),
         webpages:webpage,
         csrfToken:req.csrfToken(),
         model:'page',
