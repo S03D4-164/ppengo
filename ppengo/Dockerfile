@@ -1,7 +1,5 @@
 FROM node:alpine
 
-#WORKDIR /var/www/app
-
 WORKDIR /home/node
 
 USER node

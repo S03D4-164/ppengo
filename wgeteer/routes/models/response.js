@@ -5,16 +5,19 @@ const responseSchema = new mongoose.Schema({
       type: String,
     },
     status: {
-        type: Number,
-    },
-    payload: {
-      type: Buffer,
+      type: Number,
     },
     statusText: {
       type: String,
     },
     ok: {
       type: Boolean,
+    },
+    text: {
+      type: String,
+    },
+    payload: {
+      type: Buffer,
     },
     remoteAddress: {
       ip: {type: String},
@@ -35,6 +38,9 @@ const responseSchema = new mongoose.Schema({
       default: Date.now
     },
     webpage : { type: mongoose.Schema.Types.ObjectId, ref: 'Webpage' },
+    request : { type: mongoose.Schema.Types.ObjectId, ref: 'Request' },
   });
+
+ responseSchema.index({text:'text'});
 
 module.exports = mongoose.model('Response', responseSchema);

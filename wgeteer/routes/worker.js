@@ -44,14 +44,13 @@ queue.on( 'error', function( err ) {
   console.log( 'Oops... ', err );
 });
 
-queue.process('wgeteer', 4, (job, done) => {
+queue.process('wgeteer', 2, (job, done) => {
   getWeb(job, done);
 });
 
-const getWeb = (job, done) => {
-  //console.log(job);
-  wgeteer.wget(job.data.pageId, job.data.options);
-  //.then((success) => {
-  done();
-  //});*/
+const getWeb = async (job, done) => {
+  await wgeteer.wget(job.data.pageId, job.data.options)
+  .then((success) => {
+    done();
+  });
 }

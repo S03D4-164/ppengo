@@ -21,7 +21,7 @@ services:
 
   ppengo:
     build: "ppengo"
-    container_name: ppengo_alpine
+    container_name: ppengo
     environment:
       - NODE_ENV=development
       - PORT=3000
@@ -40,6 +40,7 @@ services:
     volumes:
       - ./ppengo/public:/home/node/public
       - ./ppengo/routes:/home/node/routes
+      - ./wgeteer/routes/models:/home/node/routes/models
       - ./ppengo/views:/home/node/views
       - ./ppengo/bin:/home/node/bin
     command: npm start

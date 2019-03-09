@@ -17,11 +17,10 @@ const requestSchema = new mongoose.Schema({
     type: String,
   },
   failure:{
-    errorText:{type:String},
+    //errorText:{type:String},
+    type: Object,
   },
-  status: {
-    type: String,
-  },
+  //status: {  type: String,  },
   headers: {
     type: Object,
   },
@@ -30,6 +29,7 @@ const requestSchema = new mongoose.Schema({
     default: Date.now
   },
   webpage : { type: mongoose.Schema.Types.ObjectId, ref: 'Webpage' },
+  response : { type: mongoose.Schema.Types.ObjectId, ref: 'Response' },
 });
 
 module.exports = mongoose.model('Request', requestSchema);

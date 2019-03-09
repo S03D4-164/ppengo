@@ -2,15 +2,18 @@ var express = require('express');
 var router = express.Router();
 
 const mongoose = require('mongoose');
-mongoose.connect('mongodb://mongodb/wgeteer', { useNewUrlParser: true });
+mongoose.connect('mongodb://mongodb/wgeteer', {
+  useNewUrlParser: true,
+  useCreateIndex: true,
+ });
 mongoose.Promise = global.Promise;
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
-//var ObjectId = require('mongodb').ObjectID;
 
 const Webpage = require('./models/webpage');
 const Request = require('./models/request');
 const Response = require('./models/response');
+const Screenshot = require('./models/screenshot');
 
 var kue = require('kue');
 let queue = kue.createQueue({
@@ -29,6 +32,7 @@ var parseForm = bodyParser.urlencoded({ extended: false });
 router.use(cookieParser());
 
 router.get('/',  csrfProtection, function(req, res, next) {
+  //const now = date.now();
   Webpage.find()
     .sort("-createdAt")
     .limit(100)
@@ -50,46 +54,47 @@ router.get('/',  csrfProtection, function(req, res, next) {
 router.post('/', parseForm, csrfProtection, function(req, res, next) {
   const input = req.body['url'];
   const urls = input.split('\r\n');
+  const options = req.body;
 
   var ids = [];
   var webpages = [];
 
+  const queJob = (inputUrl, options) =>{
+    inputUrl = inputUrl
+    .replace(/\[:\]/, ':')
+    .replace(/\[.\]/, '.')
+    .replace(/^hxxp/, 'http');
+    const webpage = new Webpage({
+      input: inputUrl,
+    });
+    webpage.save(function (err, success){
+      if(err) console.log(err);
+    });
+    ids.push(webpage._id.toString());
+    webpages.push(webpage);
+    //console.log(ids);
+    const job = queue.create('wgeteer', {
+      pageId: webpage._id,
+      options:options,
+    }).ttl(100000).save(function(err){
+      if( !err ) console.log( job.id );
+    });
+    //console.log(job);
+    job.on('complete', function(result){
+      console.log('Job completed with data ', result);
+    }).on('failed attempt', function(errorMessage, doneAttempts){
+      console.log('Job failed');
+    }).on('failed', function(errorMessage){
+      console.log('Job failed');
+    }).on('progress', function(progress, data){
+      console.log('\r  job #' + job.id + ' ' + progress + '% complete with data ', data );
+    });
+  }
+
   for (var inputUrl of urls){
-
     if (inputUrl){
-      const webpage = new Webpage({
-        input: inputUrl,
-      });
-      webpage.save(function (err, success){
-        if(err) {
-          console.log(err);
-        }else{
-          console.log(success);
-        }
-      });
-      ids.push(webpage._id.toString());
-      webpages.push(webpage);
-      //console.log(ids);
-      const job = queue.create('wgeteer', {
-        pageId: webpage._id,
-        options:req.body,
-      }).save( function(err){
-        if( !err ) console.log( job.id );
-      });
-      //console.log(job);
-
-      job.on('complete', function(result){
-        console.log('Job completed with data ', result);
-      }).on('failed attempt', function(errorMessage, doneAttempts){
-        console.log('Job failed');
-      }).on('failed', function(errorMessage){
-        console.log('Job failed');
-      }).on('progress', function(progress, data){
-        console.log('\r  job #' + job.id + ' ' + progress + '% complete with data ', data );
-      });
-    } else {
-      console.log(inputUrl);
-    }
+      queJob(inputUrl, options);
+    }      
   }
   //console.log(ids);
   res.render(
@@ -128,11 +133,12 @@ router.get('/page/:id', csrfProtection, async function(req, res, next) {
       //console.log(document);
       return document;
     });
-  
+  //console.log(webpage);
   var requests = await Request.find({"webpage":id})
     .sort("createdAt").exec().then((document) => {
       return document;
     });
+  //console.log(requests);
 
   var responses = await Response.find({"webpage":id})
     .sort("createdAt").then((document) => {
@@ -147,10 +153,12 @@ router.get('/page/:id', csrfProtection, async function(req, res, next) {
   });
 });
 
-router.get('/page/screenshot/:id', csrfProtection, function(req, res, next) {
+router.get('/screenshot/:id', csrfProtection, function(req, res, next) {
   const id = req.params.id;
-  Webpage.findById(id)
-    .then((webpage) => {
+  //console.log(id);
+  Screenshot.findById(id)
+  .then((webpage) => {
+      //console.log(webpage);
       var img = new Buffer(webpage.screenshot, 'base64');  
       res.writeHead(200, {
         'Content-Type': 'image/png',
@@ -178,7 +186,10 @@ router.get('/page/requests/:id', csrfProtection, function(req, res, next) {
 router.get('/response/:id', csrfProtection, function(req, res, next) {
   const id = req.params.id;
   Response.findById(id)
+    //.populate('request')
+    //.populate('webpage')
     .then((webpage) => {
+      //console.log(webpage);
       var payload = null;
       if (webpage.payload){
         payload = webpage.payload.toString();

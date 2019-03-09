@@ -14,9 +14,10 @@ block content
               th.col-3 page
             each webpage in webpages
               tr.d-flex(value=webpage._id)
-                td.col-3= moment(webpage.createdAt).format('YYYY-MM-DD HH:mm:ss Z')
+                //td.col-3= moment(webpage.createdAt).format('YYYY-MM-DD HH:mm:ss Z')
+                td.col-3= moment(webpage.createdAt).fromNow()
                 td.col-3
-                  a(href=rootPath + "search/page?input=" + encodeURIComponent(webpage.input)) Input
+                  a(href=rootPath + "search/page?input=" + encodeURIComponent(webpage.input)) Input🔍
                   p= webpage.input
                   if webpage.url
                     //a(href=rootPath + "search/page?url=" + webpage.url)
@@ -33,7 +34,7 @@ block content
                     p= webpage.content.length
                 td.col-3
                   if webpage.thumbnail
-                    a.colorbox(href=rootPath + "page/screenshot/" +webpage._id)
+                    a.colorbox(href=rootPath + "screenshot/" +webpage.screenshot)
                       img(src="data:image/png;base64," + webpage.thumbnail)
       else
         div.alert.alert-warning

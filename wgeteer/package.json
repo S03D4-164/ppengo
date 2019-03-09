@@ -6,9 +6,12 @@
     "start": "node ./routes/worker.js"
   },
   "dependencies": {
+    "axios": "^0.18.0",
     "image-thumbnail": "^1.0.2",
     "kue": "^0.11.6",
     "mongoose": "^5.4.10",
-    "puppeteer": "^1.12.1"
+    "node-xwhois": "^2.0.9",
+    "puppeteer": "^1.12.1",
+    "wappalyzer": "^5.6.3"
   }
 }

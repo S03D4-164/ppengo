@@ -1,54 +1,61 @@
 const puppeteer = require('puppeteer');
-const {TimeoutError} = require('puppeteer/Errors');
+//const {TimeoutError} = require('puppeteer/Errors');
 const imageThumbnail = require('image-thumbnail');
+const crypto = require("crypto");
 
 const mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost:27017/wgeteer', { useNewUrlParser: true });
 mongoose.Promise = global.Promise;
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
-//var ObjectId = require('mongodb').ObjectID;
 
 const Webpage = require('./models/webpage');
 const Request = require('./models/request');
 const Response = require('./models/response');
+const Screenshot = require('./models/screenshot');
+const Payload = require('./models/payload');
 
 module.exports = {
 
-  wget (pageId, option){
-    (async() => {
+  async wget (pageId, option){
 
       //console.log(pageId);
-      var webpage = null;
-      var url = null;
-      await Webpage.findById(pageId)
-      .then((doc) => {
-          webpage = doc;
-          console.log(webpage);
-          url = webpage.input;
-      });
+
       console.log(option);
       var userAgent = option['user-agent'];
       var referer = option['referer'];
-
       var timeout = option['timeout'];
       if (timeout >= 30 && timeout <= 300){
         timeout = timeout * 1000;
       }else{
         timeout = 30000;
       }
-
       var delay = option['delay'];
       if (delay > 0 && delay <= 60){
         delay = delay * 1000;
       }else{
         delay = 0;
       }
+      var jsEnabled = true;
+      if (!option['jsEnabled']){
+        var jsEnabled = false;
+      }
+  
+      var exHeaders = {};
+      if (option['headers']){
+        const headers = option['headers'];
+        for (let line of headers.split('\r\n')){
+          var match  = line.match(/^([^:]+):(.+)$/);
+          if(match.length===2){
+            exheaders[match[1].trim()] = match[2].trim();
+          }
+        }
+      }
+      var lang = option['lang'];
+      if (lang){
+        exHeaders["Accept-Language"] = lang;
+      }
 
-      var headers = {"Accept-Language":"ja"};
-      //var headers = option['headers'];
-
-      //const lang = '--lang=ja';
       var chromiumArgs= [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -58,9 +65,12 @@ module.exports = {
       ];
 
       var proxy = option['proxy'];
-      if (proxy.match(/^(\d{0,3}\.){3}\d{0,3}:\d{1,5}$/)){
-        chromiumArgs.push('--proxy-server='+proxy);
+      if (proxy){
+        if (proxy.match(/^\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}:\d{1,5}$/)){
+          chromiumArgs.push('--proxy-server='+proxy);
+        }
       }
+      console.log(chromiumArgs);
 
       const browserFetcher = puppeteer.createBrowserFetcher();
       const localChromiums = await browserFetcher.localRevisions();
@@ -80,24 +90,30 @@ module.exports = {
           dumpio:true,
           args: chromiumArgs,
       });
-      //const browserVersion = await browser.version();
-      //console.log(browserVersion);
+      const browserVersion = await browser.version();
+      console.log(browserVersion);
       browser.on('disconnected', () => console.log('[Browser] disconnected.'));
+      /*
       browser.on('targetchanged', async tgt => console.log('[Browser] taget changed: ', tgt));
       browser.on('targetcreated', async tgt => console.log('[Browser] taget created: ', tgt));
       browser.on('targetdestroyed', async tgt => console.log('[Browser taget destroyed: ', tgt));
       
       const context = await browser.createIncognitoBrowserContext();
-      /*
-      context.on('targetchanged', async tgt => console.log('[BrowserContext] taget changed: ', tgt));
-      context.on('targetcreated', async tgt => console.log('[BrowserContext] taget created: ', tgt));
-      context.on('targetdestroyed', async tgt => console.log('[BrowserContext] taget destroyed: ', tgt));
-      */
-
       const page = await context.newPage();
-      await page.setUserAgent(userAgent);
-      await page.setExtraHTTPHeaders(headers);
-      await page.setJavaScriptEnabled(true);
+      */
+      const page = await browser.newPage();
+      if(userAgent){
+        await page.setUserAgent(userAgent);
+      }
+      if(exHeaders){
+        await page.setExtraHTTPHeaders(exHeaders);
+      }
+      await page.setJavaScriptEnabled(jsEnabled);
+      const client = await page.target().createCDPSession();
+      await client.send('Page.setDownloadBehavior', {
+        behavior: 'allow',
+        downloadPath: '/home/node/download',
+      });
 
       page.on('dialog', async dialog => {
         console.log('[Page] dialog: ', dialog.type(), dialog.message());
@@ -124,15 +140,44 @@ module.exports = {
       page.on('framedetached', frm => console.log('[Frame] detached: ', frm));
       page.on('framenavigateed', frm => console.log('[Frame] navigated: ', frm));
 
+      //var webpage = null;
+      const webpage = await Webpage.findById(pageId)
+      .then(doc => {
+        return doc;
+      })
+      .catch(err =>{
+        return console.log(err);
+      });
+      console.log(webpage);
+      const url = webpage.input;
+
       var request_seq = [];
       var response_seq = [];
 
-      async function saveResponse(interceptedResponse){
-        try{
+      async function saveResponse(interceptedResponse, request){
+          console.log(request._id);
           var responseBuffer = null;
+          var text = null;
           if (interceptedResponse.status() < 300
           || interceptedResponse.status() >= 400){
+            try{
               responseBuffer = await interceptedResponse.buffer();
+              var md5Hash = crypto.createHash('md5').update(responseBuffer).digest('hex');
+
+              const payload = new Payload({
+                payload: responseBuffer,
+                hash: {
+                  md5: md5Hash,
+                }
+              })
+              payload.save(function (err){
+                if(err) console.log(err);
+              });
+
+              text = await interceptedResponse.text();
+            }catch(error){
+              console.log(error);
+            }    
           }
           var securityDetails = {};
           if (interceptedResponse.securityDetails()){
@@ -144,7 +189,7 @@ module.exports = {
               validTo: interceptedResponse.securityDetails().validTo(),
             }
           }
-          for (let i in response_seq){
+          /*for (let i in response_seq){
             if (response_seq[i].url===interceptedResponse.url()
               && response_seq[i].headers===interceptedResponse.headers()){
                 console.log("response_seq", i);
@@ -153,30 +198,30 @@ module.exports = {
                   'headers':undefined,
                 }
             }
-          }
+          }*/
           const response = new Response({
             webpage: webpage._id,
             url:interceptedResponse.url(),
             status:interceptedResponse.status(),
             payload:responseBuffer,
+            text:text,
             statusText: interceptedResponse.statusText(),
             ok: interceptedResponse.ok(),
             remoteAddress: interceptedResponse.remoteAddress(),
             securityDetails: securityDetails,
             headers: interceptedResponse.headers(),
+            request: request._id,
           });
-          response.save(
-          /*  function (err){
-              //if(err){console.log(err);}else {console.log("response saved.");}
-            }*/
-          );
-        }catch(error){
-          console.log(error);
-        }
+          response.save(function (err){
+              if(err) console.log(err);
+              //else console.log(response);
+          });
+          console.log(response.request)
+          return  response;
       }
 
       async function saveRequest(interceptedRequest, result){
-        for (let i in request_seq){
+       /* for (let i in request_seq){
           if (request_seq[i].url===interceptedRequest.url()
             && request_seq[i].headers===interceptedRequest.headers()){
               console.log("request_seq", i);
@@ -185,6 +230,12 @@ module.exports = {
                 'headers':undefined,
               }
           }
+        }*/
+        const chain = interceptedRequest.redirectChain();
+        if(chain){
+          for(let seq in chain){
+            console.log("[Chain]", chain[seq]);
+          }  
         }
         const request = new Request({
           webpage: webpage._id,
@@ -194,6 +245,7 @@ module.exports = {
           isNavigationRequest:interceptedRequest.isNavigationRequest(),
           postData: interceptedRequest.postData(), 
           headers: interceptedRequest.headers(),
+          failure: interceptedRequest.failure(),
         });
         request.save(function (err){
           if(err) {console.log(err);} 
@@ -201,9 +253,10 @@ module.exports = {
         });
         if (result==='finished'){
           const response = interceptedRequest.response();
-          saveResponse(response);
+          const res = saveResponse(response, request);
         }else if(result==='failed'){
-
+          const response = interceptedRequest.response();
+          const res = saveResponse(response, request);
         }
         return request
       }
@@ -221,7 +274,6 @@ module.exports = {
         console.log('[Request] finished: ', request.method(), request.url());
         try{
           saveRequest(request, 'finished');
-
         }catch(error){
           console.log(error);
         }
@@ -240,20 +292,6 @@ module.exports = {
             'url':interceptedRequest.url(),
             'headers': interceptedRequest.headers(),
           });
-          /*
-          const request = new Request({
-            webpage: webpage._id,
-            url:interceptedRequest.url(),
-            method:interceptedRequest.method(),
-            resourceType: interceptedRequest.resourceType(),
-            isNavigationRequest:interceptedRequest.isNavigationRequest(),
-            postData: interceptedRequest.postData(), 
-            headers: interceptedRequest.headers(),
-          });
-          request.save(function (err){
-            if(err) {console.log(err);} 
-            //else {console.log("request saved.");}
-          });*/
         }catch(error){
           console.log(error);
         }
@@ -275,59 +313,22 @@ module.exports = {
           'headers': interceptedResponse.headers(),
         });
 
-        /*var responseBuffer = null;
-        if (interceptedResponse.status() < 300
-         || interceptedResponse.status() >= 400){
-            responseBuffer = await interceptedResponse.buffer();
-        }
-        var securityDetails = {};
-        if (interceptedResponse.securityDetails()){
-          securityDetails = {
-            issuer: interceptedResponse.securityDetails().issuer(),
-            protocol: interceptedResponse.securityDetails().protocol(),
-            subjectName: interceptedResponse.securityDetails().subjectName(),
-            validFrom: interceptedResponse.securityDetails().validFrom(),
-            validTo: interceptedResponse.securityDetails().validTo(),
-          }
-        }
-        const response = new Response({
-          webpage: webpage._id,
-          url:interceptedResponse.url(),
-          status:interceptedResponse.status(),
-          payload:responseBuffer,
-          statusText: interceptedResponse.statusText(),
-          ok: interceptedResponse.ok(),
-          remoteAddress: interceptedResponse.remoteAddress(),
-          securityDetails: securityDetails,
-          headers: interceptedResponse.headers(),
-        });
-        response.save(
-         function (err){
-            //if(err){console.log(err);}else {console.log("response saved.");}
-          }
-        );*/
       }catch(error){
         console.log(error);
       }
     });
 
     try{
-
       const finalResponse = await page.goto(url,{
         timeout:timeout,
         referer:referer,
         waitUntil: 'networkidle2',
       });
       await page.waitFor(delay);      
-      /*
-      function pageDelay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-      };
-      await pageDelay(delay);
-     */
 
+      /*
       const tree = await page._client.send('Page.getResourceTree');
-      /*for (const resource of tree.frameTree.resources) {
+      for (const resource of tree.frameTree.resources) {
         console.log("[Tree]", resource);
       }
       
@@ -358,13 +359,22 @@ module.exports = {
         fullPage: true,
         encoding: 'base64',
       });
-      webpage.screenshot = fullscreenshot;
+      //webpage.screenshot = fullscreenshot;
 
+      async function saveScreenshot(fullscreenshot){
+        const ss = new Screenshot({
+          screenshot: fullscreenshot,
+        });
+        ss.save(function (err, success){
+          if(err) console.log(err);
+          //else if(success) console.log(ss);
+        });
+        return ss;
+      }
+      const ss = await saveScreenshot(fullscreenshot);
+      webpage.screenshot = ss._id;
+      //webpage.response = finalResponse._id;
       /*
-      webpage.save(function (err, success){
-        if(err) {console.log(err);}      
-      });
-
       function dumpFrameTree(frame, indent) {
         console.log(
           indent,
@@ -380,15 +390,12 @@ module.exports = {
       }catch(error){
         console.log(error);
         webpage.title = error.message;
-        /*webpage.save(function (err, success){
-          if(err) {console.log(err);}      
-        });*/
       }finally{
-        webpage.save(function (err, success){
-          if(err) {console.log(err);}      
-        });  
+        await webpage.save(function (err, success){
+          if(err) console.log(err);      
+        });
+        console.log(webpage);
         await browser.close();
       }
-    })();
   },
 };

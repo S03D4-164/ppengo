@@ -4,11 +4,12 @@ services:
     build: .
     environment:
       - NODE_ENV=development
-      - DEBUG="puppeteer:*"
+      #- DEBUG="puppeteer:*"
     tty: true
     container_name: wgeteer
     volumes:
       - ./routes:/home/node/app
+      - ./download:/home/node/download
     network_mode: "host"
     working_dir: /home/node/app
     #command: /bin/sh
