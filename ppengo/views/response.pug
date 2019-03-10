@@ -1,42 +1,68 @@
 extends layout
 
 block content
+    //.jumbotron
+    h1 Response
     if webpage
-      //h3
-        a(href=rootPath+"page/responses/"+webpage.webpage) << Responses #{webpage.webpage}
-      h1
-        a(href=rootPath + "search/response?url=" + webpage.url) #{webpage.url}
+      .row.col-md-12
+        h2 #{webpage.url}
+        a(href=rootPath + "search/response?url=" + webpage.url) 🔍
       if webpage.request
-        h2= webpage.request.length
-          a(href=rootPath+"request/"+webpage.request._id) request: #{webpage.request}
+        h3
+          a Request:  
+          a(href=rootPath+"request/"+webpage.request._id) #{webpage.request.method}
       if webpage.webpage
-        h2
-          a(href=rootPath+"page/"+webpage.webpage._id) input: #{webpage.webpage}
+        h3
+          a Page:  
+          a(href=rootPath+"page/"+webpage.webpage._id) #{webpage.webpage._id}
       .row
-        div.col-md-5
-          p #{webpage.createdAt}
-          p= "status: " + webpage.status
-          p= "statusText: " + webpage.statusText
-          //p= "ok: " + webpage.ok
-          p= "remoteAddress: " + webpage.remoteAddress
-          p= "securityDetails: " + webpage.securityDetails
-              |
+        div.col-md-6
+            p #{webpage.createdAt}
+            p= "status: " + webpage.status + " " + webpage.statusText
+            //p= "ok: " + webpage.ok
+            p= "ip: " + webpage.remoteAddress.ip
+            p= "port: " + webpage.remoteAddress.port
 
-        div.col-md-7
-          h3 header:
-          button.btn.btn-primary(onclick="prettyPrint()") prettyPrint
+        div.col-md-6
+          h4 securityDetails
+          if webpage.securityDetails.issuer
+            p= "issuer: " + webpage.securityDetails.issuer
+            p= "protocol: " + webpage.securityDetails.protocol
+            p= "subjectName: " + webpage.securityDetails.subjectName
+            - const from = webpage.securityDetails.validFrom
+            p= "validFrom: " + moment.unix(from).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(from).fromNow()
+            - const to = webpage.securityDetails.validTo
+            p= "validTo: " + moment.unix(to).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(to).fromNow()
+          else
+            p empty
+      .row
+        .col-md-12
+          hr
+
+        div.col-md-1
+          h3 Header:
+        div.col-md-9
           pre.prettyprint.linenums(style="white-space: pre-wrap")
             each value, key in webpage.headers
               | #{key}: #{value}
               |
-          h3 content:
+        div.col-md-2
+          button.btn.btn-primary(onclick="prettyPrint()") prettyPrint
+      .row
+        .col-md-12
+          hr              
+        div.col-md-1
+          h3 Content:
+        div.col-md-9
           if webpage.text
               //p size: #{webpage.payload.length}
-              p size: #{webpage.text.length}
               //pre.prettyprint.linenums(style="white-space: pre-wrap") #{webpage.payload}
               pre.prettyprint.linenums(style="white-space: pre-wrap") #{webpage.text}
           else
-            p No Content.
+            h3 No Content.
+        div.col-md-2
+          if webpage.text
+            p size: #{webpage.text.length}        
     else
       div.alert.alert-warning
         p No data

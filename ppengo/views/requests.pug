@@ -2,11 +2,11 @@ extends layout
 
 block content
   .jumbotoron
-    h1 Requests:
-      a(href=rootPath+"page/"+pageId) #{pageId}
+    h1 Requests
+      //a(href=rootPath+"page/"+pageId) #{pageId}
   if webpages
       if webpages.length
-          h2= "total: "+webpages.length 
+          //h2= "total: "+webpages.length 
           table.table.table-striped.table-bordered.table-hover.table-sm
             tr.thead-light.d-flex
               th.col-3 createdAt
@@ -18,7 +18,7 @@ block content
                 tr.d-flex(class={"table-primary":webpage.isNavigationRequest===true})
                   td.col-3= moment(webpage.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
                   td.col-6
-                    a(href=rootPath + model + "/" +webpage._id) #{webpage.url}
+                    a(href=rootPath + "request/" +webpage._id) #{webpage.url}
                   td.col-1= webpage.method
                   td.col-1= webpage.resourceType
                   td.col-1= webpage.isNavigationRequest

@@ -33,16 +33,12 @@ router.use(cookieParser());
 
 router.get('/',  csrfProtection, function(req, res, next) {
   //const now = date.now();
-  Webpage.find()
-    .sort("-createdAt")
-    .limit(100)
+  Webpage.find().sort("-createdAt").limit(100)
     .then((webpages) => {
       res.render(
         'index', {
-           title: "Pages",
            webpages, 
            csrfToken:req.csrfToken(),
-           model:"page",
         });
     })
     .catch((err) => { 
@@ -51,51 +47,116 @@ router.get('/',  csrfProtection, function(req, res, next) {
     });
 });
 
-router.post('/', parseForm, csrfProtection, function(req, res, next) {
-  const input = req.body['url'];
-  const urls = input.split('\r\n');
-  const options = req.body;
+router.get('/request',  csrfProtection, function(req, res, next) {
+  //const now = date.now();
+  Request.find().sort("-createdAt").limit(100)
+    .then((webpages) => {
+      res.render(
+        'requests', {
+           webpages, 
+           csrfToken:req.csrfToken(),
+        });
+    })
+    .catch((err) => { 
+      console.log(err);
+      res.send(err); 
+    });
+});
 
-  var ids = [];
-  var webpages = [];
+router.get('/response',  csrfProtection, function(req, res, next) {
+  //const now = date.now();
+  Response.find().sort("-createdAt").limit(100)
+    .then((webpages) => {
+      //console.log(webpages);
+      res.render(
+        'responses', {
+           webpages, 
+           csrfToken:req.csrfToken(),
+        });
+    })
+    .catch((err) => { 
+      console.log(err);
+      res.send(err); 
+    });
+});
 
-  const queJob = (inputUrl, options) =>{
+router.post('/', parseForm, csrfProtection, async function(req, res, next) {
+
+  async function queJob(webpage){
+    const job = await queue.create('wgeteer', {
+      pageId: webpage._id,
+      options:webpage.option,
+    }).ttl(100000);
+    await job.save(function(err){
+      if( err ) console.log( job.id, err);
+      //else console.log( job.id, option);
+    });
+    job.on('complete', function(result){
+      console.log('Job completed with data ', result);
+    }).on('failed attempt', function(errorMessage, doneAttempts){
+      console.log('Job failed', errorMessage);
+    }).on('failed', function(errorMessage){
+      console.log('Job failed', errorMessage);
+    }).on('progress', function(progress, data){
+      console.log('\r  job #' + job.id + ' ' + progress + '% complete with data ', data );
+    });
+    return job;
+  }
+
+  async function saveInput(inputUrl, option){
+    //console.log("options", option);
     inputUrl = inputUrl
     .replace(/\[:\]/, ':')
     .replace(/\[.\]/, '.')
     .replace(/^hxxp/, 'http');
-    const webpage = new Webpage({
+    const webpage = await new Webpage({
       input: inputUrl,
+      option: option,
     });
-    webpage.save(function (err, success){
+    await webpage.save(function (err, success){
       if(err) console.log(err);
+      //else console.log(webpage);
     });
-    ids.push(webpage._id.toString());
-    webpages.push(webpage);
+    //console.log("webpage.option", webpage.option);
+    return webpage;
     //console.log(ids);
-    const job = queue.create('wgeteer', {
-      pageId: webpage._id,
-      options:options,
-    }).ttl(100000).save(function(err){
-      if( !err ) console.log( job.id );
-    });
-    //console.log(job);
-    job.on('complete', function(result){
-      console.log('Job completed with data ', result);
-    }).on('failed attempt', function(errorMessage, doneAttempts){
-      console.log('Job failed');
-    }).on('failed', function(errorMessage){
-      console.log('Job failed');
-    }).on('progress', function(progress, data){
-      console.log('\r  job #' + job.id + ' ' + progress + '% complete with data ', data );
-    });
   }
 
+  const input = req.body['url'];
+  const urls = input.split('\r\n');
+
+  var ids = [];
+  var webpages = [];
+ 
   for (var inputUrl of urls){
-    if (inputUrl){
-      queJob(inputUrl, options);
-    }      
+    var lang = req.body['lang'];
+    if (typeof lang === 'string'){
+      lang = [lang];
+    }
+    var userAgent = req.body['userAgent'];
+    if (typeof userAgent === 'string'){
+      userAgent = [userAgent];
+    }
+    for (var lkey in lang){
+      for (var ukey in userAgent){
+        var options = {};
+        options['referer'] = req.body['referer'];
+        options['proxy'] = req.body['proxy'];
+        options['timeout'] = req.body['timeout'];
+        options['delay'] = req.body['delay'];
+        options['exheader'] = req.body['exheader'];     
+        options['lang'] = lang[lkey];
+        options['userAgent'] = userAgent[ukey];
+        //console.log(options);
+        const webpage = await saveInput(inputUrl, options);
+        console.log(webpage);
+        ids.push(webpage._id.toString());
+        webpages.push(webpage);  
+        const job = await queJob(webpage);
+      }      
+    }
   }
+
   //console.log(ids);
   res.render(
     'progress', {
@@ -186,8 +247,8 @@ router.get('/page/requests/:id', csrfProtection, function(req, res, next) {
 router.get('/response/:id', csrfProtection, function(req, res, next) {
   const id = req.params.id;
   Response.findById(id)
-    //.populate('request')
-    //.populate('webpage')
+    .populate('request')
+    .populate('webpage')
     .then((webpage) => {
       //console.log(webpage);
       var payload = null;
@@ -237,13 +298,13 @@ router.get('/request/:id', csrfProtection, function(req, res, next) {
 router.get('/search/page', csrfProtection, function(req, res, next) {
   var search = []
   if(typeof req.query.input !== 'undefined' && req.query.input !== null){
-    search.push({"input":req.query.input});
+    search.push({"input": new RegExp(req.query.input)});
   }
   if(typeof req.query.title !== 'undefined' && req.query.title !== null){
-    search.push({"title":req.query.title});
+    search.push({"title": new RegExp(req.query.title)});
   }
   if(typeof req.query.url !== 'undefined' && req.query.url !== null){
-    search.push({"url":req.query.url});
+    search.push({"url": new RegExp(req.query.url)});
   }
   Webpage.find()
   .or(search)
@@ -254,6 +315,31 @@ router.get('/search/page', csrfProtection, function(req, res, next) {
         webpages:webpage,
         csrfToken:req.csrfToken(),
         model:'page',
+      });
+    });
+});
+
+
+router.get('/search/response', csrfProtection, function(req, res, next) {
+  var search = []
+  if(typeof req.query.ip !== 'undefined' && req.query.ip !== null){
+    search.push({"remoteAddress.ip":new RegExp(req.query.ip)});
+  }
+  if(typeof req.query.issuer !== 'undefined' && req.query.issuer !== null){
+    search.push({"securityDetails.issuer":new RegExp(req.query.issuer)});
+  }
+  if(typeof req.query.url !== 'undefined' && req.query.url !== null){
+    search.push({"url":new RegExp(req.query.url)});
+  }
+  Response.find()
+  .or(search)
+  .sort("-createdAt")
+  .then((webpage) => {
+      res.render('responses', { 
+        title: "Search: "+ JSON.stringify(req.query),
+        webpages:webpage,
+        csrfToken:req.csrfToken(),
+        //model:'page',
       });
     });
 });

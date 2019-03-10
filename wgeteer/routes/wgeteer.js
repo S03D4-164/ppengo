@@ -20,9 +20,19 @@ module.exports = {
   async wget (pageId, option){
 
       //console.log(pageId);
+      const webpage = await Webpage.findById(pageId)
+      .then(doc => {
+        return doc;
+      })
+      .catch(err =>{
+        return console.log(err);
+      });
+      console.log(webpage);
+      const url = webpage.input;
+      var option = webpage.option;
 
-      console.log(option);
-      var userAgent = option['user-agent'];
+      //console.log(option);
+      var userAgent = option['userAgent'];
       var referer = option['referer'];
       var timeout = option['timeout'];
       if (timeout >= 30 && timeout <= 300){
@@ -36,14 +46,15 @@ module.exports = {
       }else{
         delay = 0;
       }
+      /*
       var jsEnabled = true;
       if (!option['jsEnabled']){
         var jsEnabled = false;
       }
-  
+      */
       var exHeaders = {};
-      if (option['headers']){
-        const headers = option['headers'];
+      if (option['exHeaders']){
+        const headers = option['exHeaders'];
         for (let line of headers.split('\r\n')){
           var match  = line.match(/^([^:]+):(.+)$/);
           if(match.length===2){
@@ -108,7 +119,7 @@ module.exports = {
       if(exHeaders){
         await page.setExtraHTTPHeaders(exHeaders);
       }
-      await page.setJavaScriptEnabled(jsEnabled);
+      await page.setJavaScriptEnabled(true);
       const client = await page.target().createCDPSession();
       await client.send('Page.setDownloadBehavior', {
         behavior: 'allow',
@@ -141,21 +152,12 @@ module.exports = {
       page.on('framenavigateed', frm => console.log('[Frame] navigated: ', frm));
 
       //var webpage = null;
-      const webpage = await Webpage.findById(pageId)
-      .then(doc => {
-        return doc;
-      })
-      .catch(err =>{
-        return console.log(err);
-      });
-      console.log(webpage);
-      const url = webpage.input;
 
       var request_seq = [];
       var response_seq = [];
 
       async function saveResponse(interceptedResponse, request){
-          console.log(request._id);
+          //console.log(request._id);
           var responseBuffer = null;
           var text = null;
           if (interceptedResponse.status() < 300
@@ -189,16 +191,6 @@ module.exports = {
               validTo: interceptedResponse.securityDetails().validTo(),
             }
           }
-          /*for (let i in response_seq){
-            if (response_seq[i].url===interceptedResponse.url()
-              && response_seq[i].headers===interceptedResponse.headers()){
-                console.log("response_seq", i);
-                response_seq[i] = {
-                  'url':undefined,
-                  'headers':undefined,
-                }
-            }
-          }*/
           const response = new Response({
             webpage: webpage._id,
             url:interceptedResponse.url(),
@@ -216,21 +208,11 @@ module.exports = {
               if(err) console.log(err);
               //else console.log(response);
           });
-          console.log(response.request)
+          //console.log(response.request)
           return  response;
       }
 
       async function saveRequest(interceptedRequest, result){
-       /* for (let i in request_seq){
-          if (request_seq[i].url===interceptedRequest.url()
-            && request_seq[i].headers===interceptedRequest.headers()){
-              console.log("request_seq", i);
-              request_seq[i] = {
-                'url':undefined,
-                'headers':undefined,
-              }
-          }
-        }*/
         const chain = interceptedRequest.redirectChain();
         if(chain){
           for(let seq in chain){
@@ -327,10 +309,6 @@ module.exports = {
       await page.waitFor(delay);      
 
       /*
-      const tree = await page._client.send('Page.getResourceTree');
-      for (const resource of tree.frameTree.resources) {
-        console.log("[Tree]", resource);
-      }
       
       const chain = finalResponse.request().redirectChain();
       for (var c in chain){
@@ -374,19 +352,6 @@ module.exports = {
       const ss = await saveScreenshot(fullscreenshot);
       webpage.screenshot = ss._id;
       //webpage.response = finalResponse._id;
-      /*
-      function dumpFrameTree(frame, indent) {
-        console.log(
-          indent,
-          frame.name(),
-          frame.url(),
-        );
-        for (let child of frame.childFrames())
-          dumpFrameTree(child, indent + '  ');
-      }
-      dumpFrameTree(page.mainFrame(), '[Frame] ');
-      */
-
       }catch(error){
         console.log(error);
         webpage.title = error.message;
@@ -394,7 +359,7 @@ module.exports = {
         await webpage.save(function (err, success){
           if(err) console.log(err);      
         });
-        console.log(webpage);
+        //console.log(webpage);
         await browser.close();
       }
   },

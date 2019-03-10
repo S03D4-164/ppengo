@@ -1,3 +1,8 @@
+- var win10Chrome = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'
+- var win10Edge = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134'
+- var winFirefox = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:62.0) Gecko/20100101 Firefox/62.0'
+- var winIE11 = 'Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko'
+
 #register_form.modal.col-12(role="dialog")
   .modal-dialog.modal-dialog-centered(style="max-width:50%;")
     .modal-content
@@ -11,8 +16,10 @@
               label.col-12(for="userAgent") User-Agent: 
               //input.col-10(type="text" name="user-agent", id="user-agent", value="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36")
               select.col-12(name='userAgent' id='userAgent' multiple)
-                option(value='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36', selected= true) win10-chrome
-                option(value='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134') win10-edge
+                option(value=win10Chrome, selected= true) win10-chrome
+                option(value=winFirefox) win-Firefox
+                option(value=win10Edge) win10-edge
+                option(value=winIE11) win-IE11
             div.col-6
               label.col-12(for="lang") Browser Language: 
               select.col-12(name='lang' id='lang' multiple)
@@ -29,8 +36,8 @@
           input.col-2(type="number" name="timeout", id="timeout", max="300", min="30", step="30", value="30")
           label.col-2(for="delay") Delay(s): 
           input.col-2(type="number" name="delay", id="delay", max="60", min="0", step="10", value="0")
-          label.col-2(for="disableScript") Disable Script
-          input.col-1(type="checkbox", name="disableScript", id="disableScript" value="")
+          //label.col-2(for="disableScript") Disable Script
+          //input.col-1(type="checkbox", name="disableScript", id="disableScript" value="")
           br
           label(for="exheader") Extra Headers: 
           textarea.col-12(id="exheader", name="exheader", rows=2)

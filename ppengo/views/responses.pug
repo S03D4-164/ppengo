@@ -2,7 +2,7 @@ extends layout
 
 block content
   .jumbotoron
-    h1 Responses:
+    h1 Responses
       a(href=rootPath+"page/"+pageId) #{pageId}
   if webpages
     if webpages.length
@@ -19,13 +19,18 @@ block content
           tr.d-flex
             td.col-3= moment(webpage.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
             td.col-3
-              a(href=rootPath + model + "/" +webpage._id) #{webpage.url}
+              a(href=rootPath + "response/" +webpage._id) #{webpage.url}
             td.col-1= webpage.status
             td.col-1
               if webpage.payload
-                #{webpage.payload.length}
-            td.col-2= webpage.remoteAddress
-            td.col-2= webpage.securityDetails
+                p= webpage.payload.length
+              //if webpage.text
+                p= "text: " + webpage.text.length
+            td.col-2
+              a(href=rootPath + "search/response?ip=" +webpage.remoteAddress.ip) #{webpage.remoteAddress.ip}
+            td.col-2
+              a(href=rootPath + "search/response?issuer=" +webpage.securityDetails.issuer) #{webpage.securityDetails.issuer}
+
   else
     div.alert.alert-warning
       p No data

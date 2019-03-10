@@ -4,6 +4,7 @@ block content
   if webpage
     .jumbotoron.text-center
       h1= "Page"
+    //.jumbotoron
     .row
         div.col-md-3
           if webpage.thumbnail
@@ -11,14 +12,22 @@ block content
               img(src="data:image/png;base64," + webpage.thumbnail)
 
         div.col-md-9
-          h1
-            a(href=rootPath + "search/page?url=" + webpage.url) #{webpage.url}
-          h2
-            a(href=rootPath + "search/page?title=" + webpage.title) Title: #{webpage.title}
-          h3 
-            a(href=rootPath + "search/page?input=" + webpage.input) (from input: #{webpage.input})
+          h2 Url: 
+            a(href=rootPath + "search/page?url=" + webpage.url) #{webpage.url} 
+          h3 Title: 
+            a(href=rootPath + "search/page?title=" + webpage.title) #{webpage.title}
+          h3 from input: 
+            a(href=rootPath + "search/page?input=" + webpage.input) #{webpage.input}
           p #{webpage.createdAt}
-
+    .row
+      .col-2
+        h3 Option
+      .col-10
+          each value, key in webpage.option
+            if value
+              .row
+                .col-2= key
+                .col-10= value
           //h4
             a(href=rootPath+model+"/requests/"+webpage._id) Requests
           //h4
@@ -39,7 +48,7 @@ block content
                   th.col-2 securityDetails
                 each request in requests
                   tr.d-flex(class={
-                      "table-primary":request.isNavigationRequest===true,
+                      "table-info":request.isNavigationRequest===true,
                       "table-danger":request.url===webpage.url,
                       "table-warning":request.failure,
                       })
@@ -47,12 +56,18 @@ block content
                     td.col-3
                       if request.url.length > 100
                         a(href=rootPath + "request/" + request._id) #{request.url.slice(0,100)}(truncated)
+                        //a #{request.url.slice(0,100)}(truncated)
                       else
                         a(href=rootPath + "request/" + request._id) #{request.url}
-                    td.col-1= request.method
+                        //a #{request.url}
+
+                    td.col-1
+                      a(href=rootPath + "request/" + request._id) #{request.method}
                     each response in responses
                       if request.url===response.url
-                        td.col-1= response.status
+                        td.col-1
+                          if response.status
+                            a(href=rootPath + "response/" + response._id) #{response.status}
                         td.col-1
                           if request.failure
                             a(href=rootPath + "response/" + response._id) #{request.failure.errorText}
@@ -98,12 +113,14 @@ block content
           div.col-md-2
             h3= "Content"
             p= "size: " + webpage.content.length
-            button.btn.btn-primary(onclick="prettyPrint()") prettyPrint
           div.col-md-8
             pre.prettyprint.linenums(style="white-space: pre-wrap") #{webpage.content}
+          div.col-md-2
+            button.btn.btn-primary(onclick="prettyPrint()") prettyPrint
+
         else
           div.col-md-12
-            p No Content.
+            h6 No Content.
   else
     div.alert.alert-warning
       p No data
