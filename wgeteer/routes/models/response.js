@@ -16,12 +16,13 @@ const responseSchema = new mongoose.Schema({
     text: {
       type: String,
     },
-    payload: {
-      type: Buffer,
-    },
+    //payload: {      type: Buffer,    },
     remoteAddress: {
       ip: {type: String},
-      port: {type: Number}
+      port: {type: Number},
+      reverse: {type: [String]},
+      bgp: {type: [Object]},
+      whois: {type: String},
     },
     headers: {
       type: Object,
@@ -39,8 +40,11 @@ const responseSchema = new mongoose.Schema({
     },
     webpage : { type: mongoose.Schema.Types.ObjectId, ref: 'Webpage' },
     request : { type: mongoose.Schema.Types.ObjectId, ref: 'Request' },
+    payload : { type: mongoose.Schema.Types.ObjectId, ref: 'Payload' },
+
   });
 
- responseSchema.index({text:'text'});
+  responseSchema.index({createdAt:-1});
+  responseSchema.index({text:'text'});
 
 module.exports = mongoose.model('Response', responseSchema);

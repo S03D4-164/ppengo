@@ -53,8 +53,9 @@ router.get('/request',  csrfProtection, function(req, res, next) {
     .then((webpages) => {
       res.render(
         'requests', {
-           webpages, 
-           csrfToken:req.csrfToken(),
+          title:"Page",
+          webpages,
+          csrfToken:req.csrfToken(),
         });
     })
     .catch((err) => { 
@@ -106,8 +107,10 @@ router.post('/', parseForm, csrfProtection, async function(req, res, next) {
   async function saveInput(inputUrl, option){
     //console.log("options", option);
     inputUrl = inputUrl
-    .replace(/\[:\]/, ':')
-    .replace(/\[.\]/, '.')
+    .replace(/^ */, '')
+    .replace(/\[:\]/g, ':')
+    .replace(/\[.\]/g, '.')
+    .replace(/^hXXp/, 'http')
     .replace(/^hxxp/, 'http');
     const webpage = await new Webpage({
       input: inputUrl,
@@ -129,6 +132,7 @@ router.post('/', parseForm, csrfProtection, async function(req, res, next) {
   var webpages = [];
  
   for (var inputUrl of urls){
+    if(inputUrl){
     var lang = req.body['lang'];
     if (typeof lang === 'string'){
       lang = [lang];
@@ -155,6 +159,7 @@ router.post('/', parseForm, csrfProtection, async function(req, res, next) {
         const job = await queJob(webpage);
       }      
     }
+  }
   }
 
   //console.log(ids);
@@ -306,6 +311,10 @@ router.get('/search/page', csrfProtection, function(req, res, next) {
   if(typeof req.query.url !== 'undefined' && req.query.url !== null){
     search.push({"url": new RegExp(req.query.url)});
   }
+  if(typeof req.query.content !== 'undefined' && req.query.content !== null){
+    search.push({"content": new RegExp(req.query.content)});
+  }
+
   Webpage.find()
   .or(search)
   .sort("-createdAt")
@@ -331,6 +340,10 @@ router.get('/search/response', csrfProtection, function(req, res, next) {
   if(typeof req.query.url !== 'undefined' && req.query.url !== null){
     search.push({"url":new RegExp(req.query.url)});
   }
+  if(typeof req.query.text !== 'undefined' && req.query.text !== null){
+    search.push({"text":new RegExp(req.query.text)});
+  }
+
   Response.find()
   .or(search)
   .sort("-createdAt")

@@ -1,7 +1,4 @@
 const puppeteer = require('puppeteer');
-//const {TimeoutError} = require('puppeteer/Errors');
-const imageThumbnail = require('image-thumbnail');
-const crypto = require("crypto");
 
 const mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost:27017/wgeteer', { useNewUrlParser: true });
@@ -14,6 +11,14 @@ const Request = require('./models/request');
 const Response = require('./models/response');
 const Screenshot = require('./models/screenshot');
 const Payload = require('./models/payload');
+
+const imageThumbnail = require('image-thumbnail');
+const crypto = require("crypto");
+const atob = require('atob');
+const btoa = require('btoa');
+
+//const ipInfo = require('./ipInfo')
+const whois = require('node-xwhois');
 
 module.exports = {
 
@@ -35,17 +40,9 @@ module.exports = {
       var userAgent = option['userAgent'];
       var referer = option['referer'];
       var timeout = option['timeout'];
-      if (timeout >= 30 && timeout <= 300){
-        timeout = timeout * 1000;
-      }else{
-        timeout = 30000;
-      }
+      timeout = (timeout >= 30 && timeout <= 300) ? timeout * 1000 : 30000; 
       var delay = option['delay'];
-      if (delay > 0 && delay <= 60){
-        delay = delay * 1000;
-      }else{
-        delay = 0;
-      }
+      delay = (delay > 0 && delay <= 60) ? delay * 1000 : 0;
       /*
       var jsEnabled = true;
       if (!option['jsEnabled']){
@@ -63,9 +60,7 @@ module.exports = {
         }
       }
       var lang = option['lang'];
-      if (lang){
-        exHeaders["Accept-Language"] = lang;
-      }
+      if (lang) exHeaders["Accept-Language"] = lang;
 
       var chromiumArgs= [
         '--no-sandbox',
@@ -113,17 +108,52 @@ module.exports = {
       const page = await context.newPage();
       */
       const page = await browser.newPage();
-      if(userAgent){
-        await page.setUserAgent(userAgent);
-      }
-      if(exHeaders){
-        await page.setExtraHTTPHeaders(exHeaders);
-      }
+      if (userAgent) await page.setUserAgent(userAgent);
+      if (exHeaders) await page.setExtraHTTPHeaders(exHeaders);
       await page.setJavaScriptEnabled(true);
       const client = await page.target().createCDPSession();
+      /*
       await client.send('Page.setDownloadBehavior', {
         behavior: 'allow',
         downloadPath: '/home/node/download',
+      });
+      */
+      await client.send('Network.enable');
+      //const requestCache = new Map();
+      const urlPatterns = [
+        '*.zip', '*.exe',
+      ]
+      await client.send('Network.setRequestInterception', { 
+        patterns: urlPatterns.map(pattern => ({
+          urlPattern: pattern,
+          //resourceType: 'Document',
+          interceptionStage: 'HeadersReceived'
+        }))
+      });
+      var responseCache = {};
+      client.on('Network.requestIntercepted',
+        async ({ interceptionId, request, responseHeaders, resourceType }) => {
+        console.log(`[Intercepted] ${request.url} {interception id: ${interceptionId}}`);
+        console.log(responseHeaders);    
+        const response = await client.send('Network.getResponseBodyForInterception', {interceptionId});
+        console.log(response.body);    
+        const contentTypeHeader = Object.keys(responseHeaders).find(k => k.toLowerCase() === 'content-type');
+        //let newBody, contentType = responseHeaders[contentTypeHeader];
+    
+        const newBody = response.base64Encoded ? atob(response.body) : response.body;
+        console.log(newBody.length);
+        responseCache[request.url] = newBody;
+
+        const newHeaders = [];
+        for (var header in responseHeaders){
+          newHeaders.push(header+": "+responseHeaders[header])
+        }
+        console.log(`Continuing interception ${interceptionId}`)
+        client.send('Network.continueInterceptedRequest', {
+          interceptionId,
+          rawResponse: btoa('HTTP/1.1 200 OK' + '\r\n' + newHeaders.join('\r\n') + '\r\n\r\n' + newBody)
+        })
+
       });
 
       page.on('dialog', async dialog => {
@@ -151,37 +181,46 @@ module.exports = {
       page.on('framedetached', frm => console.log('[Frame] detached: ', frm));
       page.on('framenavigateed', frm => console.log('[Frame] navigated: ', frm));
 
-      //var webpage = null;
-
-      var request_seq = [];
-      var response_seq = [];
-
       async function saveResponse(interceptedResponse, request){
-          //console.log(request._id);
-          var responseBuffer = null;
-          var text = null;
+        console.log(request._id);
+        var responseBuffer = null;
+        var payloadId = null;
+        var text = null;    
+        try{
+
           if (interceptedResponse.status() < 300
           || interceptedResponse.status() >= 400){
-            try{
+            if(interceptedResponse.url() in responseCache){
+              responseBuffer = responseCache[interceptedResponse.url()];
+              text = responseCache[interceptedResponse.url()];
+
+            }else{
               responseBuffer = await interceptedResponse.buffer();
-              var md5Hash = crypto.createHash('md5').update(responseBuffer).digest('hex');
-
-              const payload = new Payload({
-                payload: responseBuffer,
-                hash: {
-                  md5: md5Hash,
-                }
-              })
-              payload.save(function (err){
-                if(err) console.log(err);
-              });
-
-              text = await interceptedResponse.text();
-            }catch(error){
-              console.log(error);
-            }    
+            }
+            var md5Hash = crypto.createHash('md5').update(responseBuffer).digest('hex');
+            const payload = new Payload({
+              payload: responseBuffer,
+              hash: {
+                md5: md5Hash,
+              }
+            })
+            await payload.save(function (err){
+              if(err) console.log(err);
+            });
+            payloadId = payload._id;
           }
-          var securityDetails = {};
+        }catch(error){
+          console.log(error);
+        }
+
+        try{
+          if(!text) text = await interceptedResponse.text();
+        }catch(error){
+          console.log(error);
+        }    
+          
+        var securityDetails = {};
+        try{
           if (interceptedResponse.securityDetails()){
             securityDetails = {
               issuer: interceptedResponse.securityDetails().issuer(),
@@ -191,11 +230,16 @@ module.exports = {
               validTo: interceptedResponse.securityDetails().validTo(),
             }
           }
+        }catch(error){
+          console.log(error);
+        }
+
+        try{
           const response = new Response({
             webpage: webpage._id,
             url:interceptedResponse.url(),
             status:interceptedResponse.status(),
-            payload:responseBuffer,
+            payload:payloadId,
             text:text,
             statusText: interceptedResponse.statusText(),
             ok: interceptedResponse.ok(),
@@ -204,21 +248,52 @@ module.exports = {
             headers: interceptedResponse.headers(),
             request: request._id,
           });
-          response.save(function (err){
-              if(err) console.log(err);
-              //else console.log(response);
+          if (response.remoteAddress){
+            const host = response.remoteAddress.ip;
+            if (host){
+              const hostnames = await whois.reverse(host);
+              var bgp = [];
+              try{
+                  bgp = await whois.bgpInfo(host);
+              }catch(error){
+                  console.log(error);
+              }
+            //const whois = await ipInfo.getIpinfo(response.remoteAddress.ip);
+            //response.remoteAddress.whois = whois.whois;
+            response.remoteAddress.reverse = hostnames;
+            response.remoteAddress.bgp = bgp;
+            //response.save();
+            }
+          }
+          
+          await response.save(function (err){
+            if(err) console.log(err);
+            else console.log(response);
           });
-          //console.log(response.request)
-          return  response;
+
+          return response;
+
+        }catch(error){
+          console.log(error);
+        }
+  
+        return;
       }
 
       async function saveRequest(interceptedRequest, result){
-        const chain = interceptedRequest.redirectChain();
-        if(chain){
-          for(let seq in chain){
-            console.log("[Chain]", chain[seq]);
-          }  
+        var redirectChain = [];
+        try{
+          const chain = interceptedRequest.redirectChain();
+          if(chain){
+            for(let seq in chain){
+              console.log("[Chain]", interceptedRequest.url(),  chain[seq].url());
+              redirectChain.push(chain[seq].url());
+            }  
+          }
+        }catch(error){
+          console.log(error);
         }
+        
         const request = new Request({
           webpage: webpage._id,
           url:interceptedRequest.url(),
@@ -228,19 +303,30 @@ module.exports = {
           postData: interceptedRequest.postData(), 
           headers: interceptedRequest.headers(),
           failure: interceptedRequest.failure(),
+          redirectChain:redirectChain,
         });
-        request.save(function (err){
-          if(err) {console.log(err);} 
-          //else {console.log("request saved.");}
+
+        //if (result==='finished'){
+        const response = interceptedRequest.response();
+        if (response) {
+          const res = await saveResponse(response, request);
+          if(res){
+            request.response = res.id;
+            //request.save();
+          }
+        }
+        await request.save(function (err){
+          if(err) console.log(err); 
+          else console.log(request);
         });
-        if (result==='finished'){
-          const response = interceptedRequest.response();
-          const res = saveResponse(response, request);
+        
+        /*
         }else if(result==='failed'){
           const response = interceptedRequest.response();
           const res = saveResponse(response, request);
         }
-        return request
+        */
+        return request;
       }
 
       page.on('requestfailed', request => {
@@ -270,10 +356,6 @@ module.exports = {
             interceptedRequest.resourceType(),
             interceptedRequest.url(),
           );
-          request_seq.push({
-            'url':interceptedRequest.url(),
-            'headers': interceptedRequest.headers(),
-          });
         }catch(error){
           console.log(error);
         }
@@ -290,11 +372,6 @@ module.exports = {
           //interceptedResponse.securityDetails(),
           //interceptedResponse.headers(),
         );
-        response_seq.push({
-          'url':interceptedResponse.url(),
-          'headers': interceptedResponse.headers(),
-        });
-
       }catch(error){
         console.log(error);
       }
@@ -306,10 +383,9 @@ module.exports = {
         referer:referer,
         waitUntil: 'networkidle2',
       });
-      await page.waitFor(delay);      
+      await page.waitFor(delay);    
 
       /*
-      
       const chain = finalResponse.request().redirectChain();
       for (var c in chain){
         console.log("[Chain]", chain)
@@ -337,24 +413,24 @@ module.exports = {
         fullPage: true,
         encoding: 'base64',
       });
-      //webpage.screenshot = fullscreenshot;
 
       async function saveScreenshot(fullscreenshot){
         const ss = new Screenshot({
           screenshot: fullscreenshot,
         });
-        ss.save(function (err, success){
+        await ss.save(function (err, success){
           if(err) console.log(err);
-          //else if(success) console.log(ss);
         });
         return ss;
       }
       const ss = await saveScreenshot(fullscreenshot);
       webpage.screenshot = ss._id;
-      //webpage.response = finalResponse._id;
-      }catch(error){
+
+    }catch(error){
         console.log(error);
-        webpage.title = error.message;
+        //webpage.title = error.message;
+        webpage.error = error.message;
+
       }finally{
         await webpage.save(function (err, success){
           if(err) console.log(err);      

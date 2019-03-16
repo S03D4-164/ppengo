@@ -24,6 +24,9 @@ const requestSchema = new mongoose.Schema({
   headers: {
     type: Object,
   },
+  redirectChain: {
+    type:[String],
+  },
   createdAt: {
     type: Date,
     default: Date.now

@@ -28,23 +28,18 @@ block content
               .row
                 .col-2= key
                 .col-10= value
-          //h4
-            a(href=rootPath+model+"/requests/"+webpage._id) Requests
-          //h4
-            a(href=rootPath+model+"/responses/"+webpage._id) Responses
     .row
         div.col-md-12
           if requests
             if requests.length
-              h3= "Requests: "+ requests.length 
+              h3= "Requests: "+ requests.length + " / Responses: " + responses.length
               table.table.table-striped.table-bordered.table-hover.table-sm
                 tr.thead-light.d-flex
                   th.col-2 createdAt
                   th.col-3 url
-                  th.col-1 method
-                  th.col-1 status
-                  th.col-1 size
-                  th.col-2 remoteAddress
+                  th.col-2 request
+                  th.col-2 response
+                  th.col-1 ipAddress
                   th.col-2 securityDetails
                 each request in requests
                   tr.d-flex(class={
@@ -55,27 +50,24 @@ block content
                     td.col-2= moment(request.createdAt).format('YYYY-MM-DDTHH:mm:ss.SS')
                     td.col-3
                       if request.url.length > 100
-                        a(href=rootPath + "request/" + request._id) #{request.url.slice(0,100)}(truncated)
-                        //a #{request.url.slice(0,100)}(truncated)
+                        a(href=rootPath + "search/request?url=" + request.url) #{request.url.slice(0,100)}(truncated)
                       else
-                        a(href=rootPath + "request/" + request._id) #{request.url}
-                        //a #{request.url}
+                        a(href=rootPath + "search/request?url=" + request.url) #{request.url}
 
-                    td.col-1
-                      a(href=rootPath + "request/" + request._id) #{request.method}
+                    td.col-2
+                      a(href=rootPath + "request/" + request._id) #{request.method} (#{request.resourceType})
+                      if request.failure
+                        a= " -> " + request.failure.errorText
                     each response in responses
                       if request.url===response.url
-                        td.col-1
+                        td.col-2
                           if response.status
                             a(href=rootPath + "response/" + response._id) #{response.status}
-                        td.col-1
-                          if request.failure
-                            a(href=rootPath + "response/" + response._id) #{request.failure.errorText}
-                          else if response.payload
-                            a(href=rootPath + "response/" + response._id) #{response.payload.length}
+                          if response.text
+                            a(href=rootPath + "response/" + response._id) (#{response.text.length}bytes)
                           else
-                            a(href=rootPath + "response/" + response._id) -
-                        td.col-2= response.remoteAddress.ip
+                            a(href=rootPath + "response/" + response._id) (-)
+                        td.col-1= response.remoteAddress.ip
                         td.col-2= response.securityDetails.issuer
                         - response.url = undefined
                         - break

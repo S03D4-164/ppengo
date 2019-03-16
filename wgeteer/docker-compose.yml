@@ -1,4 +1,4 @@
-version: "3"
+version: "2"
 services:
   wgeteer:
     build: .
@@ -14,3 +14,5 @@ services:
     working_dir: /home/node/app
     #command: /bin/sh
     command: dumb-init -- node --optimize_for_size --gc_interval=100 --max-old-space-size=2048 worker
+    mem_limit: 2g
+    

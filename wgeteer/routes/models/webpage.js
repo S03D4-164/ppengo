@@ -15,6 +15,9 @@ const webpageSchema = new mongoose.Schema({
   title: {
     type: String,
   },
+  error: {
+    type: String,
+  },
   //screenshot: {    type: String,  },
   thumbnail: {
     type: String,
@@ -32,6 +35,7 @@ const webpageSchema = new mongoose.Schema({
   screenshot : { type: mongoose.Schema.Types.ObjectId, ref: 'Screenshot' },
 });
 
+webpageSchema.index({createdAt:-1});
 webpageSchema.index({content:'text'});
 
 module.exports = mongoose.model('Webpage', webpageSchema);

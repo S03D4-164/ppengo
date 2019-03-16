@@ -1,4 +1,4 @@
-version: "3"
+version: "2"
 volumes:
   mongodata:
 services:
@@ -12,7 +12,9 @@ services:
     volumes:
       - mongodata:/data/db
     container_name: mongodb
-
+    command: --wiredTigerCacheSizeGB 2
+    mem_limit: 2g
+    
   redis:
     image: redis:alpine
     container_name: cache
