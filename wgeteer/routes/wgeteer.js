@@ -121,7 +121,8 @@ module.exports = {
       await client.send('Network.enable');
       //const requestCache = new Map();
       const urlPatterns = [
-        '*.zip', '*.exe',
+        '*',
+        //'*.zip', '*.exe',
       ]
       await client.send('Network.setRequestInterception', { 
         patterns: urlPatterns.map(pattern => ({
@@ -130,19 +131,23 @@ module.exports = {
           interceptionStage: 'HeadersReceived'
         }))
       });
-      var responseCache = {};
+      //var responseCache = {};
+      var responseCache = [];
       client.on('Network.requestIntercepted',
         async ({ interceptionId, request, responseHeaders, resourceType }) => {
         console.log(`[Intercepted] ${request.url} {interception id: ${interceptionId}}`);
         console.log(responseHeaders);    
         const response = await client.send('Network.getResponseBodyForInterception', {interceptionId});
-        console.log(response.body);    
-        const contentTypeHeader = Object.keys(responseHeaders).find(k => k.toLowerCase() === 'content-type');
+        //console.log(response.body);    
+        //const contentTypeHeader = Object.keys(responseHeaders).find(k => k.toLowerCase() === 'content-type');
         //let newBody, contentType = responseHeaders[contentTypeHeader];
-    
         const newBody = response.base64Encoded ? atob(response.body) : response.body;
         console.log(newBody.length);
-        responseCache[request.url] = newBody;
+        //responseCache[request.url] = newBody;
+        var cache = {};
+        cache[request.url] = newBody;
+        responseCache.push(cache);
+        //console.log(responseCache);
 
         const newHeaders = [];
         for (var header in responseHeaders){
@@ -151,7 +156,7 @@ module.exports = {
         console.log(`Continuing interception ${interceptionId}`)
         client.send('Network.continueInterceptedRequest', {
           interceptionId,
-          rawResponse: btoa('HTTP/1.1 200 OK' + '\r\n' + newHeaders.join('\r\n') + '\r\n\r\n' + newBody)
+          //rawResponse: btoa('HTTP/1.1 200 OK' + '\r\n' + newHeaders.join('\r\n') + '\r\n\r\n' + newBody)
         })
 
       });
@@ -182,19 +187,31 @@ module.exports = {
       page.on('framenavigateed', frm => console.log('[Frame] navigated: ', frm));
 
       async function saveResponse(interceptedResponse, request){
-        console.log(request._id);
+        /*
         var responseBuffer = null;
         var payloadId = null;
-        var text = null;    
+        var text = null;
+        */
+        var responseBuffer, payloadId, text;  
+
         try{
 
           if (interceptedResponse.status() < 300
           || interceptedResponse.status() >= 400){
-            if(interceptedResponse.url() in responseCache){
-              responseBuffer = responseCache[interceptedResponse.url()];
-              text = responseCache[interceptedResponse.url()];
-
-            }else{
+            for(let seq in responseCache){
+            //if(interceptedResponse.url() in responseCache){
+            if(interceptedResponse.url() in responseCache[seq]){
+              //responseBuffer = responseCache[interceptedResponse.url()];
+              //text = responseCache[interceptedResponse.url()];
+              var cache = responseCache[seq];
+              responseBuffer = cache[interceptedResponse.url()];
+              text = cache[interceptedResponse.url()];
+              responseCache.splice(seq, 1);
+              break;
+            }
+            }
+            //}else{
+            if(!responseBuffer){
               responseBuffer = await interceptedResponse.buffer();
             }
             var md5Hash = crypto.createHash('md5').update(responseBuffer).digest('hex');
@@ -268,7 +285,7 @@ module.exports = {
           
           await response.save(function (err){
             if(err) console.log(err);
-            else console.log(response);
+            //else console.log(response);
           });
 
           return response;
@@ -385,12 +402,6 @@ module.exports = {
       });
       await page.waitFor(delay);    
 
-      /*
-      const chain = finalResponse.request().redirectChain();
-      for (var c in chain){
-        console.log("[Chain]", chain)
-      }
-      */
       
       webpage.url = page.url();
       const pageTitle = await page.title()

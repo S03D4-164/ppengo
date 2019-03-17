@@ -32,7 +32,6 @@ block content
       if completed===true
         button.btn.btn-success
           span#completed completed
-        //h3#completed completed
       else
         button.btn.btn-danger Loading..
           span#completed.spinner-border.spinner-border-sm
@@ -48,7 +47,7 @@ block content
                 td.col-5
                   .row
                     .col-12
-                      h5 url: 
+                      h6 url: 
                         a(href=rootPath + "search/page?input=" + encodeURIComponent(webpage.input)) 🔍 #{webpage.input}
 
                   .row
@@ -83,6 +82,12 @@ block content
                     .col-10
                       if webpage.content
                         a= webpage.content.length
+                  .row
+                    .col-2 error
+                    .col-10
+                      if webpage.error
+                        a= webpage.error
+
                 td.col-3
                   if webpage.thumbnail
                     a.colorbox(href=rootPath + "screenshot/" +webpage.screenshot)

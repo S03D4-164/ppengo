@@ -3,19 +3,19 @@ extends layout
 block content
     h1 Request
     if webpage
-      //h3
-        a(href=rootPath+"page/requests/"+webpage.webpage) << Requests #{webpage.webpage}
       h2
+        a Url: 
         a(href=rootPath+model+"/"+webpage._id) #{webpage.url}
       if webpage.webpage
         h3
-          a Page: 
-          a(href=rootPath+"page/"+webpage.webpage._id) #{webpage.webpage}
+          a(href=rootPath+"page/"+webpage.webpage._id) (Page: #{webpage.webpage.input})
       .row
         .col-5
           p #{webpage.createdAt}
           p= "method: " + webpage.method
           p= "resourceType: " + webpage.resourceType
+          p= "Failure: " + webpage.failure
+          p= "redirectChain: " + webpage.redirectChain
           p= "isNavigationRequest: " + webpage.isNavigationRequest
         .col-7
           a Headers:
@@ -24,6 +24,7 @@ block content
               each value, key in webpage.headers
                 | #{key}: #{value}
                 |
+      
     else
       div.alert.alert-warning
         p No data

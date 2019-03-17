@@ -1,68 +1,88 @@
 extends layout
 
 block content
-    //.jumbotron
-    h1 Response
-    if webpage
-      .row.col-md-12
-        h2 #{webpage.url}
-        a(href=rootPath + "search/response?url=" + webpage.url) 🔍
-      if webpage.request
-        h3
-          a Request:  
-          a(href=rootPath+"request/"+webpage.request._id) #{webpage.request.method}
-      if webpage.webpage
-        h3
-          a Page:  
-          a(href=rootPath+"page/"+webpage.webpage._id) #{webpage.webpage._id}
-      .row
-        div.col-md-6
-            p #{webpage.createdAt}
-            p= "status: " + webpage.status + " " + webpage.statusText
-            //p= "ok: " + webpage.ok
-            p= "ip: " + webpage.remoteAddress.ip
-            p= "port: " + webpage.remoteAddress.port
+  if webpage
+    h3
+      a(href=rootPath+"page/"+webpage._id) goto Page: #{webpage.input}
+    .row
+      .col-5
+        if request
+          .row.col-md-12
+            h4 Request: #{request.url}
+            a(href=rootPath + "search/request?url=" + request.url) 🔍
+          p= "createdAt: " + moment(request.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+          .row
+            .col-6
+              h5= request.method  + " " + request.resourceType
+              p= "Failure: " + JSON.stringify(request.failure)
+              p= "isNavigationRequest: " + request.isNavigationRequest
+            .col-6
+              h5= "redirectChain:"
+               each chain in request.redirectChain
+                 h6= chain
+                
 
-        div.col-md-6
-          h4 securityDetails
-          if webpage.securityDetails.issuer
-            p= "issuer: " + webpage.securityDetails.issuer
-            p= "protocol: " + webpage.securityDetails.protocol
-            p= "subjectName: " + webpage.securityDetails.subjectName
-            - const from = webpage.securityDetails.validFrom
-            p= "validFrom: " + moment.unix(from).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(from).fromNow()
-            - const to = webpage.securityDetails.validTo
-            p= "validTo: " + moment.unix(to).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(to).fromNow()
-          else
-            p empty
-      .row
-        .col-md-12
-          hr
-
-        div.col-md-1
-          h3 Header:
-        div.col-md-9
-          pre.prettyprint.linenums(style="white-space: pre-wrap")
-            each value, key in webpage.headers
-              | #{key}: #{value}
-              |
-        div.col-md-2
-          button.btn.btn-primary(onclick="prettyPrint()") prettyPrint
-      .row
+      .col-7
+        if response
+          .row.col-md-12
+            h4 Response: #{response.url}
+            a(href=rootPath + "search/response?url=" + response.url) 🔍
+        p= "createdAt: " + moment(response.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+        h5= "status: " + response.status + " " + response.statusText
+        //p= "ok: " + webpage.ok
+        .row
+          .col-6
+            h6 remoteAddress
+            p= "ip:port: " + response.remoteAddress.ip + ":" + response.remoteAddress.port
+            p= "reverse: " + response.remoteAddress.reverse
+            p= "bgp: " + JSON.stringify(response.remoteAddress.bgp, null, ' ')
+          .col-6
+            h6 securityDetails
+            - var securityDetails = response.securityDetails
+            if securityDetails.issuer
+              p= "issuer: " + securityDetails.issuer
+              p= "protocol: " + securityDetails.protocol
+              p= "subjectName: " + securityDetails.subjectName
+              - const from = securityDetails.validFrom
+              p= "validFrom: " + moment.unix(from).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(from).fromNow()
+              - const to = securityDetails.validTo
+              p= "validTo: " + moment.unix(to).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(to).fromNow()
+            else
+              p empty
+    .row
+        .col-5
+          h6 Headers:
+          if request.headers
+            pre.prettyprint.linenums(style="white-space: pre-wrap")
+              each value, key in request.headers
+                | #{key}: #{value}
+                |
+        .col-7
+          h6 Headers: 
+            pre.prettyprint.linenums(style="white-space: pre-wrap")
+              each value, key in response.headers
+                | #{key}: #{value}
+                |
+        
         .col-md-12
           hr              
-        div.col-md-1
-          h3 Content:
-        div.col-md-9
-          if webpage.text
+        div.col-md-2
+          h5 Content:
+          if response.text
+            p size: #{response.text.length}
+          if response.payload
+            a(href=rootPath+"payload/"+response.payload) Payload
+
+        div.col-md-8
+          if response.text
               //p size: #{webpage.payload.length}
               //pre.prettyprint.linenums(style="white-space: pre-wrap") #{webpage.payload}
-              pre.prettyprint.linenums(style="white-space: pre-wrap") #{webpage.text}
+              pre.prettyprint.linenums(style="white-space: pre-wrap") #{response.text}
           else
-            h3 No Content.
+            h5 No Content.
         div.col-md-2
-          if webpage.text
-            p size: #{webpage.text.length}        
-    else
-      div.alert.alert-warning
-        p No data
+          button.btn.btn-primary(onclick="prettyPrint()") prettyPrint
+
+  else
+    div.alert.alert-warning
+      p No data

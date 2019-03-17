@@ -17,10 +17,8 @@ const requestSchema = new mongoose.Schema({
     type: String,
   },
   failure:{
-    //errorText:{type:String},
     type: Object,
   },
-  //status: {  type: String,  },
   headers: {
     type: Object,
   },
