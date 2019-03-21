@@ -26,6 +26,7 @@ block content
       .col-2
         h3 Option
       .col-10
+        if webpage.option
           each value, key in webpage.option
             if value
               .row
@@ -41,8 +42,8 @@ block content
                   th.col-2 createdAt
                   th.col-3 🔍url
                   th.col-2 request
-                  th.col-2 response
-                  th.col-1 ipAddress
+                  th.col-1 response
+                  th.col-2 ipAddress
                   th.col-2 securityDetails
                 each request in requests
                   tr.d-flex(class={
@@ -58,21 +59,26 @@ block content
                         a(href=rootPath + "search/request?url=" + request.url) #{request.url}
 
                     td.col-2
-                      a(href=rootPath + "response/" + request.response._id) #{request.method} / #{request.resourceType}
+                      if request.response
+                        a(href=rootPath + "response/" + request.response._id) #{request.method} / #{request.resourceType}
+                      else
+                        a #{request.method} / #{request.resourceType}
                       if request.redirectChain
                         a= " / chain:" +request.redirectChain.length
                       if request.failure
                         a= " -> " + request.failure.errorText
                     if request.response
-                      td.col-2
+                      td.col-1
                         if request.response.status
                           a.col-6(href=rootPath + "response/" + request.response._id) #{request.response.status}
                         if request.response.text
-                          a.col-6(href=rootPath + "response/" + request.response._id)  (#{request.response.text.length} bytes)
+                          br
+                          a.col-6(href=rootPath + "response/" + request.response._id)  (#{request.response.text.length})
                         else
+                          br
                           a.col-6(href=rootPath + "response/" + request.response._id)  (-)
-                      td.col-1
-                       a= request.response.remoteAddress.ip
+                      td.col-2
+                        a= request.response.remoteAddress.ip
                       td.col-2= request.response.securityDetails.issuer
                     else
                       td.col-5 no response

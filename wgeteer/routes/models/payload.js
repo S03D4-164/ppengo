@@ -4,10 +4,22 @@ const payloadSchema = new mongoose.Schema({
     payload: {
         type: Buffer,
     },
-    hash:{
-        md5: {type: String}
-    }
+    md5: {
+        type: String,
+        unique: true,
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
 });
 
+/*
+payloadSchema.static('findOneOrCreate', async function findOneOrCreate(condition, doc) {
+    const one = await this.findOne(condition);
+    return one || await this.create(doc);
+});
+*/
+
 module.exports = mongoose.model('Payload', payloadSchema);
-    
+ 

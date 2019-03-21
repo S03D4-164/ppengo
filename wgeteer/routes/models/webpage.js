@@ -29,8 +29,29 @@ const webpageSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
-  //requests : [{ type: mongoose.Schema.Types.ObjectId, ref: 'Request' }],
-  //responses : [{ type: mongoose.Schema.Types.ObjectId, ref: 'Response' }],
+  status: {
+    type: Number,
+  },
+  remoteAddress: {
+    ip: {type: String},
+    port: {type: Number},
+    reverse: {type: [String]},
+    bgp: {type: [Object]},
+    whois: {type: String},
+    geoip: {type: [Object]},
+  },
+  headers: {
+    type: Object,
+  },
+  securityDetails: {
+    issuer: {type: String},
+    protocol: {type: String},
+    subjectName: {type: String},
+    validFrom: {type: Number},
+    validTo: {type: Number},
+  },
+  requests : [{ type: mongoose.Schema.Types.ObjectId, ref: 'Request' }],
+  responses : [{ type: mongoose.Schema.Types.ObjectId, ref: 'Response' }],
   //response : { type: mongoose.Schema.Types.ObjectId, ref: 'Response' },
   screenshot : { type: mongoose.Schema.Types.ObjectId, ref: 'Screenshot' },
 });

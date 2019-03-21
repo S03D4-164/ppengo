@@ -22,6 +22,7 @@ const responseSchema = new mongoose.Schema({
       port: {type: Number},
       reverse: {type: [String]},
       bgp: {type: [Object]},
+      geoip: {type: [Object]},
       whois: {type: String},
     },
     headers: {

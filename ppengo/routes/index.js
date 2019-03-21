@@ -15,6 +15,7 @@ const Request = require('./models/request');
 const Response = require('./models/response');
 const Screenshot = require('./models/screenshot');
 const Payload = require('./models/payload');
+const Website = require('./models/website');
 
 var kue = require('kue');
 let queue = kue.createQueue({
@@ -42,6 +43,48 @@ router.get('/',  csrfProtection, function(req, res, next) {
         'index', {
           title: "Page",
           webpages,
+          csrfToken:req.csrfToken(),
+        });
+    })
+    .catch((err) => { 
+      console.log(err);
+      res.send(err); 
+    });
+});
+
+router.get('/website',  csrfProtection, function(req, res, next) {
+  //const now = date.now();
+  Website.find()
+    .sort("-createdAt")
+    .limit(100)
+    .then((websites) => {
+      res.render(
+        'websites', {
+          websites,
+          csrfToken:req.csrfToken(),
+        });
+    })
+    .catch((err) => { 
+      console.log(err);
+      res.send(err); 
+    });
+});
+
+router.get('/drop/payload',  csrfProtection, function(req, res, next) {
+  Payload.collection.drop();
+  res.redirect(req.baseUrl);
+});
+
+router.get('/payload',  csrfProtection, function(req, res, next) {
+  //const now = date.now();
+  Payload.find()
+    .sort("-createdAt")
+    .limit(100)
+    .then((payloads) => {
+      //console.log(websites);
+      res.render(
+        'payloads', {
+          payloads,
           csrfToken:req.csrfToken(),
         });
     })
@@ -116,6 +159,15 @@ router.post('/', parseForm, csrfProtection, async function(req, res, next) {
     .replace(/\[.\]/g, '.')
     .replace(/^hXXp/, 'http')
     .replace(/^hxxp/, 'http');
+
+    const website= await new Website({
+      url: inputUrl,
+    });
+    await website.save(function (err, success){
+      if(err) console.log(err);
+      else console.log(website);
+    });
+
     const webpage = await new Webpage({
       input: inputUrl,
       option: option,
@@ -196,6 +248,41 @@ router.post('/progress', parseForm, csrfProtection, function(req, res, next) {
   });
 });
 
+router.post('/website/:id', parseForm, csrfProtection, async function(req, res, next) {
+  const id = req.params.id;
+  var website = await Website.findById(id)
+  .then((document) => {
+    //console.log(document);
+    return document;
+  });
+  console.log(website);
+  console.log(req.body);
+  var track = {
+    counter: req.body['counter'],
+    period: req.body['period'],
+  }
+  var options = {};
+  options['referer'] = req.body['referer'];
+  options['proxy'] = req.body['proxy'];
+  options['timeout'] = req.body['timeout'];
+  options['delay'] = req.body['delay'];
+  options['exheader'] = req.body['exheader'];     
+  options['lang'] = req.body['lang'];
+  options['userAgent'] = req.body['userAgent'];
+  track.option = options;
+  website.track = track;
+  await website.save()
+  .then((website) => {
+    console.log(website);
+    res.render('website', {
+      website,
+      csrfToken:req.csrfToken(), 
+      //model:"page",
+    });
+
+  })
+});
+
 router.get('/page/:id', csrfProtection, async function(req, res, next) {
   const id = req.params.id;
 
@@ -205,17 +292,16 @@ router.get('/page/:id', csrfProtection, async function(req, res, next) {
       return document;
     });
 
+  /*
   var previous = await Webpage.find({
       "url":webpage.url,
       "createdAt":{$lt: webpage.createdAt}
-  })
-  .sort("createdat")
-  .limit(1)
+  }).sort("createdat").limit(1)
   .then((document) => {
       //console.log(document);
       return document;
     });
-
+  */
   //console.log(webpage);
   var requests = await Request.find({"webpage":id})
     .sort("createdAt")
@@ -263,36 +349,35 @@ router.get('/screenshot/:id', csrfProtection, function(req, res, next) {
 
 router.get('/payload/:id', csrfProtection, function(req, res, next) {
   const id = req.params.id;
-  //console.log(id);
   Payload.findById(id)
-  .then((webpage) => {
-      //console.log(webpage);
-      //payload = webpage.payload.toString();
-      res.render('page', {
-        webpage,
-        csrfToken:req.csrfToken(), 
-        model:"page",
-  });
-
-  });
-});
-
-/*
-router.get('/page/requests/:id', csrfProtection, function(req, res, next) {
-  const id = req.params.id;
-  Request.find({"webpage":id})
-    .sort("createdAt")
-    .then((webpages) => {
-      res.render(
-        'requests', { 
-        pageId: id, 
-        webpages:webpages,
-        csrfToken:req.csrfToken(),
-        model:"request", 
+  .then(async (payload) => {
+    console.log(payload._id);
+    const responses = await Response.find()
+      .where({"payload":payload._id})
+      .then((document)=>{
+        return document;
       });
+      //console.log(responses[0]);
+      res.render('payload', {
+        payload,
+        responses,
+        csrfToken:req.csrfToken(), 
     });
+  });
 });
-*/
+
+router.get('/website/:id', csrfProtection, function(req, res, next) {
+  const id = req.params.id;
+  //console.log(id);
+  Website.findById(id)
+  .then((website) => {
+      res.render('website', {
+        website,
+        csrfToken:req.csrfToken(), 
+    });
+  });
+});
+
 
 router.get('/response/:id', csrfProtection, async function(req, res, next) {
   const id = req.params.id;
@@ -304,6 +389,7 @@ router.get('/response/:id', csrfProtection, async function(req, res, next) {
     });
   const webpage = response.webpage;
   const request = response.request;
+  /*
   const previous = await Response.find({
       "url":response.url,
       "createdAt":{$lt: response.createdAt}
@@ -313,7 +399,6 @@ router.get('/response/:id', csrfProtection, async function(req, res, next) {
       return document;
     });
 
-  /*
   Response.findById(id)
     .populate('request')
     .populate('webpage')
@@ -337,35 +422,18 @@ router.get('/response/:id', csrfProtection, async function(req, res, next) {
   //});
 });
 
-/*
-router.get('/page/responses/:id', csrfProtection, function(req, res, next) {
-  const id = req.params.id;
-  Response.find({"webpage":id})
-    .then((webpages) => {
-      res.render(
-        'responses', { 
-        pageId: id, 
-        webpages:webpages,
-        csrfToken:req.csrfToken(),
-        model:"response", 
-      });
-    });
-});
-*/
 
 router.get('/request/:id', csrfProtection, function(req, res, next) {
   const id = req.params.id;
-  Request.findById(id)
-    .populate('response')
-    .populate('webpage')
+  Request.findById(id).populate('response').populate('webpage')
     .then((webpage) => {
-      console.log(webpage);
+      //console.log(webpage);
       res.render(
         'request', { 
         title: "Request", 
         webpage:webpage,
         csrfToken:req.csrfToken(),
-        model:'request',
+        //model:'request',
       });
     });
 });
@@ -385,15 +453,13 @@ router.get('/search/page', csrfProtection, function(req, res, next) {
     search.push({"content": new RegExp(req.query.content)});
   }
 
-  Webpage.find()
-  .and(search)
-  .sort("-createdAt")
+  Webpage.find().and(search).sort("-createdAt")
   .then((webpage) => {
       res.render('index', { 
         title: "Search: "+ JSON.stringify(req.query),
         webpages:webpage,
         csrfToken:req.csrfToken(),
-        model:'page',
+        //model:'page',
       });
     });
 });
@@ -414,10 +480,7 @@ router.get('/search/response', csrfProtection, function(req, res, next) {
     search.push({"text":new RegExp(req.query.text)});
   }
 
-  Response.find()
-  //.or(search)
-  .and(search)
-  .sort("-createdAt")
+  Response.find().and(search).sort("-createdAt")
   .then((webpage) => {
       res.render('responses', { 
         title: "Search: "+ JSON.stringify(req.query),

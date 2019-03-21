@@ -1,0 +1,26 @@
+extends layout
+
+block content
+  if websites
+      if websites.length
+          h2= "total: "+websites.length 
+          table.table.table-striped.table-bordered.table-hover.table-sm
+            tr.thead-light.d-flex
+              th.col-3 createdAt
+              th.col-3 updatedAt
+              th.col-3 url
+              th.col-1 period
+              th.col-1 counter
+              th.col-1 tag
+            each webpage in websites
+                tr.d-flex(class={"table-primary":webpage.isNavigationRequest===true})
+                  td.col-3= moment(webpage.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+                  td.col-3= moment(webpage.updatedAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+                  td.col-3
+                    a(href=rootPath + "website/" +webpage._id) #{webpage.url}
+                  td.col-1= webpage.track.period
+                  td.col-1= webpage.track.counter
+                  td.col-1= webpage.track.tag
+  else
+    div.alert.alert-warning
+      p No data

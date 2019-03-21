@@ -13,12 +13,14 @@ const Screenshot = require('./models/screenshot');
 const Payload = require('./models/payload');
 
 const imageThumbnail = require('image-thumbnail');
+
 const crypto = require("crypto");
 const atob = require('atob');
-const btoa = require('btoa');
+//const btoa = require('btoa');
 
-//const ipInfo = require('./ipInfo')
-const whois = require('node-xwhois');
+const ipInfo = require('./ipInfo')
+//const whois = require('node-xwhois');
+//const geoip = require('geoip-lite');
 
 module.exports = {
 
@@ -30,7 +32,7 @@ module.exports = {
         return doc;
       })
       .catch(err =>{
-        return console.log(err);
+        console.log(err);
       });
       console.log(webpage);
       const url = webpage.input;
@@ -131,28 +133,30 @@ module.exports = {
           interceptionStage: 'HeadersReceived'
         }))
       });
-      //var responseCache = {};
+
       var responseCache = [];
       client.on('Network.requestIntercepted',
         async ({ interceptionId, request, responseHeaders, resourceType }) => {
         console.log(`[Intercepted] ${request.url} {interception id: ${interceptionId}}`);
-        console.log(responseHeaders);    
-        const response = await client.send('Network.getResponseBodyForInterception', {interceptionId});
-        //console.log(response.body);    
-        //const contentTypeHeader = Object.keys(responseHeaders).find(k => k.toLowerCase() === 'content-type');
-        //let newBody, contentType = responseHeaders[contentTypeHeader];
-        const newBody = response.base64Encoded ? atob(response.body) : response.body;
-        console.log(newBody.length);
-        //responseCache[request.url] = newBody;
-        var cache = {};
-        cache[request.url] = newBody;
-        responseCache.push(cache);
-        //console.log(responseCache);
-
+        console.log(responseHeaders);
+        try{
+          const response = await client.send('Network.getResponseBodyForInterception', {interceptionId});
+          console.log(response.body.length, response.base64Encoded);    
+          //const contentTypeHeader = Object.keys(responseHeaders).find(k => k.toLowerCase() === 'content-type');
+          //let newBody, contentType = responseHeaders[contentTypeHeader];
+          const newBody = response.base64Encoded ? atob(response.body) : response.body;
+          var cache = {};
+          cache[request.url] = newBody;
+          responseCache.push(cache);
+        }catch(error){
+          console.log("[Intercepted] ", error);
+        }
+        /*
         const newHeaders = [];
         for (var header in responseHeaders){
           newHeaders.push(header+": "+responseHeaders[header])
         }
+        */
         console.log(`Continuing interception ${interceptionId}`)
         client.send('Network.continueInterceptedRequest', {
           interceptionId,
@@ -186,52 +190,42 @@ module.exports = {
       page.on('framedetached', frm => console.log('[Frame] detached: ', frm));
       page.on('framenavigateed', frm => console.log('[Frame] navigated: ', frm));
 
+      ipCache = {}
       async function saveResponse(interceptedResponse, request){
-        /*
-        var responseBuffer = null;
-        var payloadId = null;
-        var text = null;
-        */
         var responseBuffer, payloadId, text;  
-
         try{
-
-          if (interceptedResponse.status() < 300
-          || interceptedResponse.status() >= 400){
+          //if (interceptedResponse.status() < 300
+            //|| interceptedResponse.status() >= 400){
             for(let seq in responseCache){
-            //if(interceptedResponse.url() in responseCache){
-            if(interceptedResponse.url() in responseCache[seq]){
-              //responseBuffer = responseCache[interceptedResponse.url()];
-              //text = responseCache[interceptedResponse.url()];
-              var cache = responseCache[seq];
-              responseBuffer = cache[interceptedResponse.url()];
-              text = cache[interceptedResponse.url()];
-              responseCache.splice(seq, 1);
-              break;
+              if(interceptedResponse.url() in responseCache[seq]){
+                var cache = responseCache[seq];
+                responseBuffer = cache[interceptedResponse.url()];
+                text = cache[interceptedResponse.url()].toString('utf-8');
+                responseCache.splice(seq, 1);
+                break;
+              }
             }
-            }
-            //}else{
-            if(!responseBuffer){
-              responseBuffer = await interceptedResponse.buffer();
-            }
+            responseBuffer = await interceptedResponse.buffer();
+            //}
             var md5Hash = crypto.createHash('md5').update(responseBuffer).digest('hex');
             const payload = new Payload({
               payload: responseBuffer,
-              hash: {
-                md5: md5Hash,
-              }
+              md5: md5Hash,
             })
             await payload.save(function (err){
-              if(err) console.log(err);
+              if(err) console.log(err.errmsg);
             });
+
             payloadId = payload._id;
-          }
-        }catch(error){
+            console.log(payload._id, payload.md5);
+
+          }catch(error){
           console.log(error);
         }
 
         try{
-          if(!text) text = await interceptedResponse.text();
+          //if(!text)
+          text = await interceptedResponse.text();
         }catch(error){
           console.log(error);
         }    
@@ -256,31 +250,28 @@ module.exports = {
             webpage: webpage._id,
             url:interceptedResponse.url(),
             status:interceptedResponse.status(),
-            payload:payloadId,
-            text:text,
             statusText: interceptedResponse.statusText(),
             ok: interceptedResponse.ok(),
             remoteAddress: interceptedResponse.remoteAddress(),
-            securityDetails: securityDetails,
             headers: interceptedResponse.headers(),
+            securityDetails: securityDetails,
+            payload:payloadId,
+            text:text,
             request: request._id,
           });
           if (response.remoteAddress){
             const host = response.remoteAddress.ip;
-            if (host){
-              const hostnames = await whois.reverse(host);
-              var bgp = [];
-              try{
-                  bgp = await whois.bgpInfo(host);
-              }catch(error){
-                  console.log(error);
-              }
-            //const whois = await ipInfo.getIpinfo(response.remoteAddress.ip);
-            //response.remoteAddress.whois = whois.whois;
-            response.remoteAddress.reverse = hostnames;
-            response.remoteAddress.bgp = bgp;
-            //response.save();
+            var hostinfo = null
+            if (host in ipCache){
+              hostinfo = ipCache[host]
+            }else{
+              hostinfo = await ipInfo(host);
+              ipCache[host] = hostinfo;
             }
+            console.log(hostinfo);
+            if (hostinfo.reverse) response.remoteAddress.reverse = hostinfo.reverse;
+            if (hostinfo.bgp) response.remoteAddress.bgp = hostinfo.bgp;
+            if (hostinfo.geoip) response.remoteAddress.geoip = hostinfo.geoip;
           }
           
           await response.save(function (err){
@@ -292,8 +283,7 @@ module.exports = {
 
         }catch(error){
           console.log(error);
-        }
-  
+        }  
         return;
       }
 
@@ -334,7 +324,7 @@ module.exports = {
         }
         await request.save(function (err){
           if(err) console.log(err); 
-          else console.log(request);
+          //else console.log(request);
         });
         
         /*
@@ -401,7 +391,6 @@ module.exports = {
         waitUntil: 'networkidle2',
       });
       await page.waitFor(delay);    
-
       
       webpage.url = page.url();
       const pageTitle = await page.title()
@@ -409,6 +398,20 @@ module.exports = {
 
       const pageContent = await page.content();
       webpage.content = pageContent;
+
+      webpage.status = finalResponse.status();
+      webpage.headers = finalResponse.headers();
+
+      webpage.remoteAddress = finalResponse.remoteAddress();
+      if (webpage.remoteAddress){
+        const host = webpage.remoteAddress.ip;
+        const hostinfo = await ipInfo(host);
+        if(hostinfo){
+          webpage.remoteAddress.reverse = hostinfo.reverse;
+          webpage.remoteAddress.bgp = hostinfo.bgp;
+          webpage.remoteAddress.geoip = hostinfo.geoip;  
+        }
+      }
 
       const screenshot = await page.screenshot({
         fullPage: false,
@@ -442,7 +445,7 @@ module.exports = {
         //webpage.title = error.message;
         webpage.error = error.message;
 
-      }finally{
+    }finally{
         await webpage.save(function (err, success){
           if(err) console.log(err);      
         });

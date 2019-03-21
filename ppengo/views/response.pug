@@ -5,26 +5,28 @@ block content
     h3
       a(href=rootPath+"page/"+webpage._id) goto Page: #{webpage.input}
     .row
-      .col-5
+      .col-4
         if request
-          .row.col-md-12
+          .row.col-md-12(style="word-break:break-all;")
             h4 Request: #{request.url}
             a(href=rootPath + "search/request?url=" + request.url) 🔍
           p= "createdAt: " + moment(request.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
           .row
-            .col-6
+            .col-12
               h5= request.method  + " " + request.resourceType
-              p= "Failure: " + JSON.stringify(request.failure)
-              p= "isNavigationRequest: " + request.isNavigationRequest
-            .col-6
+              a= "Failure: " + JSON.stringify(request.failure)
+              br
+              a= "isNavigationRequest: " + request.isNavigationRequest
+              br
               h5= "redirectChain:"
-               each chain in request.redirectChain
-                 h6= chain
-                
-
-      .col-7
+                if request.redirectChain
+                  each chain in request.redirectChain
+                    li= chain
+                else
+                  p empty          
+      .col-8
         if response
-          .row.col-md-12
+          .row.col-md-12(style="word-break:break-all;")
             h4 Response: #{response.url}
             a(href=rootPath + "search/response?url=" + response.url) 🔍
         p= "createdAt: " + moment(response.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
@@ -33,36 +35,49 @@ block content
         .row
           .col-6
             h6 remoteAddress
-            p= "ip:port: " + response.remoteAddress.ip + ":" + response.remoteAddress.port
-            p= "reverse: " + response.remoteAddress.reverse
-            p= "bgp: " + JSON.stringify(response.remoteAddress.bgp, null, ' ')
+            a= "ip:port: " + response.remoteAddress.ip + ":" + response.remoteAddress.port
+            br
+            a= "reverse: " + response.remoteAddress.reverse
+            br
+            if response.remoteAddress.geoip
+              if response.remoteAddress.geoip[0]
+                a= "geoip country: " + response.remoteAddress.geoip[0].country
+                br
+            a= "bgp: " + JSON.stringify(response.remoteAddress.bgp, null, ' ')
+
           .col-6
             h6 securityDetails
             - var securityDetails = response.securityDetails
             if securityDetails.issuer
-              p= "issuer: " + securityDetails.issuer
-              p= "protocol: " + securityDetails.protocol
-              p= "subjectName: " + securityDetails.subjectName
+              a= "issuer: " + securityDetails.issuer
+              br
+              a= "protocol: " + securityDetails.protocol
+              br
+              a= "subjectName: " + securityDetails.subjectName
+              br
               - const from = securityDetails.validFrom
-              p= "validFrom: " + moment.unix(from).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(from).fromNow()
+              a= "validFrom: " + moment.unix(from).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(from).fromNow()
+              br
               - const to = securityDetails.validTo
-              p= "validTo: " + moment.unix(to).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(to).fromNow()
+              a= "validTo: " + moment.unix(to).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(to).fromNow()
             else
               p empty
     .row
-        .col-5
+        .col-4
           h6 Headers:
-          if request.headers
-            pre.prettyprint.linenums(style="white-space: pre-wrap")
-              each value, key in request.headers
-                | #{key}: #{value}
-                |
-        .col-7
+            if request
+              if request.headers
+                pre.prettyprint.linenums(style="white-space: pre-wrap")
+                  each value, key in request.headers
+                    | #{key}: #{value}
+                    |
+        .col-8
           h6 Headers: 
-            pre.prettyprint.linenums(style="white-space: pre-wrap")
-              each value, key in response.headers
-                | #{key}: #{value}
-                |
+            if response.headers
+              pre.prettyprint.linenums(style="white-space: pre-wrap")
+                each value, key in response.headers
+                  | #{key}: #{value}
+                  |
         
         .col-md-12
           hr              
@@ -75,8 +90,6 @@ block content
 
         div.col-md-8
           if response.text
-              //p size: #{webpage.payload.length}
-              //pre.prettyprint.linenums(style="white-space: pre-wrap") #{webpage.payload}
               pre.prettyprint.linenums(style="white-space: pre-wrap") #{response.text}
           else
             h5 No Content.

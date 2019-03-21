@@ -1,0 +1,15 @@
+extends layout
+
+block content
+    h1 Payload
+    if payload
+        p #{payload.md5}
+        p #{payload.payload.length}
+        each response in responses
+            a(href=rootPath + "response/" + response._id)= response.url
+            br
+        pre.prettyprint.linenums(style="white-space: pre-wrap")= payload.payload.toString() 
+      
+    else
+      div.alert.alert-warning
+        p No data

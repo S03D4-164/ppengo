@@ -1,0 +1,15 @@
+extends layout
+
+block content
+  h1 Website
+  if website
+      include include/sitemodal.pug
+      h2= "URL: " +  website.url
+
+      p= "createdAt: " + website.createdAt
+      p= "updatedAt: " + website.updatedAt
+      pre= JSON.stringify(website.track, null , "\t")
+      a.btn.btn-primary(data-toggle="modal",data-target="#update_form", style="cursor:pointer;") update
+  else
+      div.alert.alert-warning
+        p No data

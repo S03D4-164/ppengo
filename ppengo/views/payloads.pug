@@ -1,0 +1,20 @@
+extends layout
+
+block content
+  if payloads
+      if payloads.length
+          h2= "total: "+payloads.length 
+          table.table.table-striped.table-bordered.table-hover.table-sm
+            tr.thead-light.d-flex
+              th.col-3 createdAt
+              th.col-8 md5
+              th.col-1 size
+            each payload in payloads
+                tr.d-flex
+                  td.col-3= moment(payload.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+                  td.col-8= payload.md5
+                  td.col-1
+                    a(href=rootPath + "payload/" + payload._id)= payload.payload.length
+  else 
+    div.alert.alert-warning
+      p No data

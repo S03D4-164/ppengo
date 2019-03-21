@@ -35,11 +35,6 @@ block content
                             a(href=rootPath + "page/" +webpage._id) #{webpage._id}
 
                   .row
-                    .col-2 title
-                    .col-10
-                      if webpage.title
-                        a(href=rootPath + "search/page?title=" +webpage.title) 🔍 #{webpage.title}
-                  .row
                     .col-2 url
                     .col-10
                       if webpage.url
@@ -47,12 +42,26 @@ block content
                           a(href=rootPath + "search/page?url=" + webpage.url) 🔍 #{webpage.url.slice(0,100)}(truncated)
                         else
                           a(href=rootPath + "search/page?url=" + webpage.url) 🔍 #{webpage.url}
+                  .row
+                    .col-2 title
+                    .col-10
+                      if webpage.title
+                        a(href=rootPath + "search/page?title=" +webpage.title) 🔍 #{webpage.title}
 
                   .row
-                    .col-2 size
+                    .col-2 status
                     .col-10
-                      if webpage.content
-                        a= webpage.content.length
+                      if webpage.status
+                        a= webpage.status
+                  .row
+                    .col-2 ip
+                    .col-10
+                      if webpage.remoteAddress
+                        a= webpage.remoteAddress.ip                        
+                      if webpage.remoteAddress.geoip
+                        if webpage.remoteAddress.geoip[0]
+                          a= " (" + webpage.remoteAddress.geoip[0].country + ")"
+
                   .row
                     .col-2 error
                     .col-10
