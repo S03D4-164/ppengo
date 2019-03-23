@@ -28,13 +28,6 @@ const websiteSchema = new mongoose.Schema({
     last : { type: mongoose.Schema.Types.ObjectId, ref: 'Webpage' },
 });
 
-/*
-websiteSchema.static('findOneOrCreate', async function findOneOrCreate(condition, doc) {
-    const one = await this.findOne(condition);
-    return one || this.create(doc);
-});
-*/
-
 websiteSchema.pre('save', function preSave(next){
     var something = this;
     something.updatedAt = Date.now();

@@ -3,12 +3,22 @@ extends layout
 block content
     h1 Payload
     if payload
-        p #{payload.md5}
-        p #{payload.payload.length}
-        each response in responses
-            a(href=rootPath + "response/" + response._id)= response.url
-            br
-        pre.prettyprint.linenums(style="white-space: pre-wrap")= payload.payload.toString() 
+        h2 md5:  #{payload.md5}
+        h3 size: #{payload.payload.length}
+        .row
+          .col-12
+            table.table.table-striped.table-bordered.table-hover.table-sm
+              tr.thead-light.d-flex
+                th.col-4 createdAt
+                th.col-8 url
+              each response in responses
+                tr.d-flex.page
+                  td.col-4
+                    a= response.createdAt
+                  td.col-8
+                    a(href=rootPath + "response/" + response._id)= response.url
+          .col-12
+            pre.prettyprint.linenums(style="white-space: pre-wrap")= payload.payload.toString() 
       
     else
       div.alert.alert-warning

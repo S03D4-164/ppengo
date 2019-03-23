@@ -4,6 +4,7 @@ const webpageSchema = new mongoose.Schema({
   input: {
     type: String,
     trim: true,
+    required: true,
   },
   option:{
     type: Object,
@@ -18,7 +19,6 @@ const webpageSchema = new mongoose.Schema({
   error: {
     type: String,
   },
-  //screenshot: {    type: String,  },
   thumbnail: {
     type: String,
   },

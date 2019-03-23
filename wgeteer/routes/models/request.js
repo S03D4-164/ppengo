@@ -33,6 +33,6 @@ const requestSchema = new mongoose.Schema({
   response : { type: mongoose.Schema.Types.ObjectId, ref: 'Response' },
 });
 
-requestSchema.index({createdAt:-1});
+//requestSchema.index({createdAt:-1});
 
 module.exports = mongoose.model('Request', requestSchema);

@@ -16,7 +16,6 @@ const responseSchema = new mongoose.Schema({
     text: {
       type: String,
     },
-    //payload: {      type: Buffer,    },
     remoteAddress: {
       ip: {type: String},
       port: {type: Number},
@@ -43,9 +42,9 @@ const responseSchema = new mongoose.Schema({
     request : { type: mongoose.Schema.Types.ObjectId, ref: 'Request' },
     payload : { type: mongoose.Schema.Types.ObjectId, ref: 'Payload' },
 
-  });
+});
 
-  responseSchema.index({createdAt:-1});
-  responseSchema.index({text:'text'});
+//responseSchema.index({createdAt:-1});
+responseSchema.index({text:'text'});
 
 module.exports = mongoose.model('Response', responseSchema);

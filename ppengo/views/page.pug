@@ -2,9 +2,10 @@ extends layout
 
 block content
   if webpage
-    .jumbotoron.text-center
-      h1= "Page"
-    .row
+    .p-2
+      .jumbotoron.text-center
+        h2= "Page"
+      .row.p-2.bg-light.shadow-lg
         div.col-md-3
           if webpage.thumbnail
             a.colorbox(href=rootPath + "screenshot/" + webpage.screenshot)
@@ -23,15 +24,50 @@ block content
             p= "Error: none"
           p #{webpage.createdAt}
     .row
-      .col-2
+      .p-2.col-4
+       .p-2.bg-light.shadow-lg
         h3 Option
-      .col-10
         if webpage.option
           each value, key in webpage.option
             if value
               .row
                 .col-2= key
                 .col-10= value
+      .p-2.col-8
+       .p-2.bg-light.shadow-lg
+        h3 finalResponse
+        h5= "status:" + webpage.status
+        .row
+          .col-6
+            h5 remoteAddress
+            if webpage.remoteAddress
+              a= "ip:port: " + webpage.remoteAddress.ip + ":" + webpage.remoteAddress.port
+              br
+              a= "reverse: " + webpage.remoteAddress.reverse
+              br
+              if webpage.remoteAddress.geoip
+                if webpage.remoteAddress.geoip[0]
+                  a= "geoip country: " + webpage.remoteAddress.geoip[0].country
+                  br
+              a= "bgp: " + JSON.stringify(webpage.remoteAddress.bgp, null, ' ')
+
+          //.col-6
+            h6 securityDetails
+            - var securityDetails = response.securityDetails
+            if securityDetails.issuer
+              a= "issuer: " + securityDetails.issuer
+              br
+              a= "protocol: " + securityDetails.protocol
+              br
+              a= "subjectName: " + securityDetails.subjectName
+              br
+              - const from = securityDetails.validFrom
+              a= "validFrom: " + moment.unix(from).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(from).fromNow()
+              br
+              - const to = securityDetails.validTo
+              a= "validTo: " + moment.unix(to).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(to).fromNow()
+            else
+              p empty
     .row
         div.col-md-12
           if requests
@@ -127,17 +163,17 @@ block content
         if webpage.content
           div.col-md-12
             hr
-          div.col-md-2
-            h3= "Content"
+          div.col-md-1
+            h5= "Content"
             p= "size: " + webpage.content.length
-          div.col-md-8
+          div.col-md-10
             pre.prettyprint.linenums(style="white-space: pre-wrap") #{webpage.content}
-          div.col-md-2
-            button.btn.btn-primary(onclick="prettyPrint()") prettyPrint
+          div.col-md-1
+            button.btn.btn-sm.btn-primary(onclick="prettyPrint()") prettyPrint
 
         else
           div.col-md-12
-            h6 No Content.
+            h5 No Content.
   else
     div.alert.alert-warning
       p No data

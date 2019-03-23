@@ -5,7 +5,8 @@ block content
     h3
       a(href=rootPath+"page/"+webpage._id) goto Page: #{webpage.input}
     .row
-      .col-4
+      .p-2.col-6(style="break-word:break-all;")
+       .p-2.bg-light.shadow-lg
         if request
           .row.col-md-12(style="word-break:break-all;")
             h4 Request: #{request.url}
@@ -19,12 +20,13 @@ block content
               a= "isNavigationRequest: " + request.isNavigationRequest
               br
               h5= "redirectChain:"
-                if request.redirectChain
-                  each chain in request.redirectChain
-                    li= chain
-                else
-                  p empty          
-      .col-8
+              if request.redirectChain
+                each chain in request.redirectChain
+                  li= chain
+              else
+                p empty          
+      .p-2.col-6(style="break-word:break-all;")
+       .p-2.bg-light.shadow-lg
         if response
           .row.col-md-12(style="word-break:break-all;")
             h4 Response: #{response.url}
@@ -43,7 +45,7 @@ block content
               if response.remoteAddress.geoip[0]
                 a= "geoip country: " + response.remoteAddress.geoip[0].country
                 br
-            a= "bgp: " + JSON.stringify(response.remoteAddress.bgp, null, ' ')
+            pre= "bgp: " + JSON.stringify(response.remoteAddress.bgp[0], null, ' ')
 
           .col-6
             h6 securityDetails
@@ -55,24 +57,26 @@ block content
               br
               a= "subjectName: " + securityDetails.subjectName
               br
+              a= "valid"
+              br
               - const from = securityDetails.validFrom
-              a= "validFrom: " + moment.unix(from).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(from).fromNow()
+              a= "From: " + moment.unix(from).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(from).fromNow()
               br
               - const to = securityDetails.validTo
-              a= "validTo: " + moment.unix(to).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(to).fromNow()
+              a= "To: " + moment.unix(to).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(to).fromNow()
             else
               p empty
     .row
-        .col-4
-          h6 Headers:
+        .col-6
+          h6 Request Headers:
             if request
               if request.headers
                 pre.prettyprint.linenums(style="white-space: pre-wrap")
                   each value, key in request.headers
                     | #{key}: #{value}
                     |
-        .col-8
-          h6 Headers: 
+        .col-6
+          h6 Response Headers: 
             if response.headers
               pre.prettyprint.linenums(style="white-space: pre-wrap")
                 each value, key in response.headers
@@ -81,20 +85,20 @@ block content
         
         .col-md-12
           hr              
-        div.col-md-2
+        div.col-md-1
           h5 Content:
           if response.text
             p size: #{response.text.length}
           if response.payload
             a(href=rootPath+"payload/"+response.payload) Payload
 
-        div.col-md-8
+        div.col-md-10
           if response.text
               pre.prettyprint.linenums(style="white-space: pre-wrap") #{response.text}
           else
             h5 No Content.
-        div.col-md-2
-          button.btn.btn-primary(onclick="prettyPrint()") prettyPrint
+        div.col-md-1
+          button.btn.btn-sm.btn-primary(onclick="prettyPrint()") prettyPrint
 
   else
     div.alert.alert-warning

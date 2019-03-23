@@ -19,8 +19,6 @@ const atob = require('atob');
 //const btoa = require('btoa');
 
 const ipInfo = require('./ipInfo')
-//const whois = require('node-xwhois');
-//const geoip = require('geoip-lite');
 
 module.exports = {
 
@@ -114,17 +112,11 @@ module.exports = {
       if (exHeaders) await page.setExtraHTTPHeaders(exHeaders);
       await page.setJavaScriptEnabled(true);
       const client = await page.target().createCDPSession();
-      /*
-      await client.send('Page.setDownloadBehavior', {
-        behavior: 'allow',
-        downloadPath: '/home/node/download',
-      });
-      */
+
       await client.send('Network.enable');
       //const requestCache = new Map();
       const urlPatterns = [
         '*',
-        //'*.zip', '*.exe',
       ]
       await client.send('Network.setRequestInterception', { 
         patterns: urlPatterns.map(pattern => ({
@@ -208,14 +200,11 @@ module.exports = {
             responseBuffer = await interceptedResponse.buffer();
             //}
             var md5Hash = crypto.createHash('md5').update(responseBuffer).digest('hex');
-            const payload = new Payload({
-              payload: responseBuffer,
-              md5: md5Hash,
-            })
-            await payload.save(function (err){
-              if(err) console.log(err.errmsg);
-            });
-
+            const payload = await Payload.findOneAndUpdate(
+              {"md5": md5Hash},
+              {"payload": responseBuffer},
+              {"new":true,"upsert":true},
+            );
             payloadId = payload._id;
             console.log(payload._id, payload.md5);
 
@@ -264,11 +253,12 @@ module.exports = {
             var hostinfo = null
             if (host in ipCache){
               hostinfo = ipCache[host]
+              console.log("[ipInfo] cache exists.");
             }else{
               hostinfo = await ipInfo(host);
               ipCache[host] = hostinfo;
+              console.log(hostinfo);
             }
-            console.log(hostinfo);
             if (hostinfo.reverse) response.remoteAddress.reverse = hostinfo.reverse;
             if (hostinfo.bgp) response.remoteAddress.bgp = hostinfo.bgp;
             if (hostinfo.geoip) response.remoteAddress.geoip = hostinfo.geoip;
@@ -327,12 +317,6 @@ module.exports = {
           //else console.log(request);
         });
         
-        /*
-        }else if(result==='failed'){
-          const response = interceptedRequest.response();
-          const res = saveResponse(response, request);
-        }
-        */
         return request;
       }
 
@@ -399,17 +383,19 @@ module.exports = {
       const pageContent = await page.content();
       webpage.content = pageContent;
 
-      webpage.status = finalResponse.status();
-      webpage.headers = finalResponse.headers();
+      if(finalResponse){
 
-      webpage.remoteAddress = finalResponse.remoteAddress();
-      if (webpage.remoteAddress){
-        const host = webpage.remoteAddress.ip;
-        const hostinfo = await ipInfo(host);
-        if(hostinfo){
-          webpage.remoteAddress.reverse = hostinfo.reverse;
-          webpage.remoteAddress.bgp = hostinfo.bgp;
-          webpage.remoteAddress.geoip = hostinfo.geoip;  
+        webpage.status = finalResponse.status();
+        webpage.headers = finalResponse.headers();
+        webpage.remoteAddress = finalResponse.remoteAddress();
+        if (webpage.remoteAddress){
+          const host = webpage.remoteAddress.ip;
+          const hostinfo = await ipInfo(host);
+          if(hostinfo){
+            webpage.remoteAddress.reverse = hostinfo.reverse;
+            webpage.remoteAddress.bgp = hostinfo.bgp;
+            webpage.remoteAddress.geoip = hostinfo.geoip;  
+          }
         }
       }
 
@@ -427,17 +413,26 @@ module.exports = {
         fullPage: true,
         encoding: 'base64',
       });
-
       async function saveScreenshot(fullscreenshot){
+        let buff = new Buffer(fullscreenshot, 'base64');
+        var md5Hash = crypto.createHash('md5').update(buff).digest('hex');
+        const ss = await Screenshot.findOneAndUpdate(
+          {"md5": md5Hash},
+          {"screenshot": fullscreenshot},
+          {"new":true,"upsert":true},
+        );
+        /*
         const ss = new Screenshot({
           screenshot: fullscreenshot,
         });
         await ss.save(function (err, success){
           if(err) console.log(err);
         });
+        */
         return ss;
       }
       const ss = await saveScreenshot(fullscreenshot);
+
       webpage.screenshot = ss._id;
 
     }catch(error){
