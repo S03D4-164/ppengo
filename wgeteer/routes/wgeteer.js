@@ -259,9 +259,11 @@ module.exports = {
               ipCache[host] = hostinfo;
               console.log(hostinfo);
             }
-            if (hostinfo.reverse) response.remoteAddress.reverse = hostinfo.reverse;
-            if (hostinfo.bgp) response.remoteAddress.bgp = hostinfo.bgp;
-            if (hostinfo.geoip) response.remoteAddress.geoip = hostinfo.geoip;
+            if(hostinfo){
+              if (hostinfo.reverse) response.remoteAddress.reverse = hostinfo.reverse;
+              if (hostinfo.bgp) response.remoteAddress.bgp = hostinfo.bgp;
+              if (hostinfo.geoip) response.remoteAddress.geoip = hostinfo.geoip;
+            }
           }
           
           await response.save(function (err){
@@ -414,7 +416,7 @@ module.exports = {
         encoding: 'base64',
       });
       async function saveScreenshot(fullscreenshot){
-        let buff = new Buffer(fullscreenshot, 'base64');
+        let buff = new Buffer.from(fullscreenshot, 'base64');
         var md5Hash = crypto.createHash('md5').update(buff).digest('hex');
         const ss = await Screenshot.findOneAndUpdate(
           {"md5": md5Hash},

@@ -12,14 +12,8 @@ const payloadSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
-});
-
-/*
-payloadSchema.static('findOneOrCreate', async function findOneOrCreate(condition, doc) {
-    const one = await this.findOne(condition);
-    return one || await this.create(doc);
-});
-*/
+},{timestamps:true},
+);
 
 module.exports = mongoose.model('Payload', payloadSchema);
  

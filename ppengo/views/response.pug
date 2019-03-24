@@ -94,12 +94,30 @@ block content
 
         div.col-md-10
           if response.text
-              pre.prettyprint.linenums(style="white-space: pre-wrap") #{response.text}
+              pre#content.prettyprint.linenums(style="white-space: pre-wrap") #{response.text}
           else
             h5 No Content.
         div.col-md-1
-          button.btn.btn-sm.btn-primary(onclick="prettyPrint()") prettyPrint
+          p
+            button.btn.btn-sm.btn-primary(onclick="prettyPrint()") prettyPrint
+          p
+            if request.resourceType === "script"
+              button.btn.btn-sm.btn-primary(onclick="beautify(\"script\")") beautify
+            else if request.resourceType === "stylesheet"
+              button.btn.btn-sm.btn-primary(onclick="beautify(\"stylesheet\")") beautify
+            else
+              button.btn.btn-sm.btn-primary(onclick="beautify(\"html\")") beautify
 
+          script.
+              function beautify(type){
+                //console.log(type);
+                var content=$("#content").text();
+                var beautified;
+                if (type==="script") beautified = js_beautify(content);
+                else if (type==="stylesheet") beautified = css_beautify(content);
+                else beautified = html_beautify(content);
+                $('pre#content').text(beautified);
+              };
   else
     div.alert.alert-warning
       p No data

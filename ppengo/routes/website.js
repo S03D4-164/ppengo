@@ -1,18 +1,8 @@
 var express = require('express');
 var router = express.Router();
 
-/*
-const mongoose = require('mongoose');
-mongoose.connect('mongodb://mongodb/wgeteer', {
-  useNewUrlParser: true,
-  useCreateIndex: true,
- });
-mongoose.Promise = global.Promise;
-var db = mongoose.connection;
-db.on('error', console.error.bind(console, 'MongoDB connection error:'));
-*/
-
 const Website = require('./models/website');
+const Webpage = require('./models/webpage');
 
 var cookieParser = require('cookie-parser');
 var csrf = require('csurf');
@@ -24,9 +14,11 @@ router.use(cookieParser());
 router.get('/',  csrfProtection, function(req, res, next) {
   //const now = date.now();
   Website.find()
-    .sort("-createdAt")
+    .sort("-updatedAt")
     .limit(100)
+    .populate('last')
     .then((websites) => {
+      //console.log(websites);
       res.render(
         'websites', {
           websites,
@@ -38,27 +30,26 @@ router.get('/',  csrfProtection, function(req, res, next) {
       res.send(err); 
     });
 });
-  
-router.get('/:id', csrfProtection, function(req, res, next) {
+
+router.get('/:id', csrfProtection, async function(req, res, next) {
     const id = req.params.id;
     //console.log(id);
-    Website.findById(id)
-    .then((website) => {
-        res.render('website', {
-          website,
+    const website = await Website.findById(id)
+      .then((document)=>{return document});
+    const webpages = await Webpage.find()
+      .where({"input":website.url}).sort("-createdAt")
+      .then((document)=>{return document});
+    res.render('website', {
+          website, webpages,
           csrfToken:req.csrfToken(), 
-      });
     });
 });
-  
+
 router.post('/:id', parseForm, csrfProtection, async function(req, res, next) {
     const id = req.params.id;
     var website = await Website.findById(id)
-    .then((document) => {
-      //console.log(document);
-      return document;
-    });
-    console.log(website);
+    .then((document) => {return document;});
+    //console.log(website);
     console.log(req.body);
     var track = {
       counter: req.body['counter'],
@@ -74,16 +65,15 @@ router.post('/:id', parseForm, csrfProtection, async function(req, res, next) {
     options['userAgent'] = req.body['userAgent'];
     track.option = options;
     website.track = track;
-    await website.save()
-    .then((website) => {
-      console.log(website);
-      res.render('website', {
-        website,
-        csrfToken:req.csrfToken(), 
-        //model:"page",
-      });
-  
-    })
+    await website.save();
+
+    const webpages = await Webpage.find()
+      .where({"input":website.url}).sort("-createdAt")
+      .then((document)=>{return document});
+    res.render('website', {
+          website, webpages,
+          csrfToken:req.csrfToken(), 
+    });
 });
 
 module.exports = router;

@@ -24,7 +24,7 @@ block content
             p= "Error: none"
           p #{webpage.createdAt}
     .row
-      .p-2.col-4
+      .p-2.col-5
        .p-2.bg-light.shadow-lg
         h3 Option
         if webpage.option
@@ -33,7 +33,7 @@ block content
               .row
                 .col-2= key
                 .col-10= value
-      .p-2.col-8
+      .p-2.col-7
        .p-2.bg-light.shadow-lg
         h3 finalResponse
         h5= "status:" + webpage.status
@@ -115,10 +115,13 @@ block content
                           a.col-6(href=rootPath + "response/" + request.response._id)  (-)
                       td.col-2
                         a= request.response.remoteAddress.ip
+                        if request.response.remoteAddress.geoip
+                          if request.response.remoteAddress.geoip[0]
+                            a= " - " + request.response.remoteAddress.geoip[0].country
+
                       td.col-2= request.response.securityDetails.issuer
                     else
                       td.col-5 no response
-
                     each response in responses
                       if request.url===response.url
                         td.col-2
@@ -167,10 +170,18 @@ block content
             h5= "Content"
             p= "size: " + webpage.content.length
           div.col-md-10
-            pre.prettyprint.linenums(style="white-space: pre-wrap") #{webpage.content}
+            pre#content.prettyprint.linenums(style="white-space: pre-wrap") #{webpage.content}
           div.col-md-1
-            button.btn.btn-sm.btn-primary(onclick="prettyPrint()") prettyPrint
-
+            p
+              button.btn.btn-sm.btn-primary(onclick="prettyPrint()") prettyPrint
+            p
+              button.btn.btn-sm.btn-primary(onclick="beautify()") beautify
+            script.
+              function beautify(){
+                var content=$("#content").text();
+                var beautified = html_beautify(content);
+                $('pre#content').text(beautified);
+              };
         else
           div.col-md-12
             h5 No Content.

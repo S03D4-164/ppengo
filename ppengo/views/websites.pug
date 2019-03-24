@@ -6,20 +6,45 @@ block content
           h2= "total: "+websites.length 
           table.table.table-striped.table-bordered.table-hover.table-sm
             tr.thead-light.d-flex
-              th.col-3 createdAt
-              th.col-3 updatedAt
+              th.col-2 timestamps
               th.col-3 url
-              th.col-1 period
-              th.col-1 counter
+              th.col-3 last
+              th.col-3 capture
               th.col-1 tag
             each webpage in websites
                 tr.d-flex(class={"table-primary":webpage.isNavigationRequest===true})
-                  td.col-3= moment(webpage.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
-                  td.col-3= moment(webpage.updatedAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+                  td.col-2
+                    a= "created: " + moment(webpage.createdAt).fromNow()
+                    br
+                    a= "updated: " + moment(webpage.updatedAt).fromNow()
+                    if webpage.track
+                      br
+                      a= "counter: " + webpage.track.counter
+                      br
+                      a= "period: " + webpage.track.period
+                      //br
+                      //a= "option: " + JSON.stringify(webpage.track.option, null, ' ')
+
                   td.col-3
                     a(href=rootPath + "website/" +webpage._id) #{webpage.url}
-                  td.col-1= webpage.track.period
-                  td.col-1= webpage.track.counter
+                  td.col-3
+                    if webpage.last
+                      a= "status: " + webpage.last.status
+                      br
+                      a= "error: " + webpage.last.error
+                      br
+                      a= "title: " + webpage.last.title
+                      br
+                      if webpage.last.content
+                        a= "size: " + webpage.last.content.length
+                        br
+                      a(href=rootPath + "page/" + webpage.last._id)= webpage.last.url
+                  td.col-3
+                    if webpage.last
+                      if webpage.last.thumbnail
+                        a.colorbox(href=rootPath + "screenshot/" +webpage.last.screenshot)
+                          img(src="data:image/png;base64," + webpage.last.thumbnail)
+
                   td.col-1= webpage.track.tag
   else
     div.alert.alert-warning

@@ -16,7 +16,11 @@ block content
                   td.col-4
                     a= response.createdAt
                   td.col-8
-                    a(href=rootPath + "response/" + response._id)= response.url
+                    if response.url.length > 100
+                      a(href=rootPath + "response/" + response._id) #{response.url.slice(0,100)}(truncated)
+                    else
+                      a(href=rootPath + "response/" + response._id) #{response.url}
+
           .col-12
             pre.prettyprint.linenums(style="white-space: pre-wrap")= payload.payload.toString() 
       

@@ -54,6 +54,6 @@ mixin sitemodal-include(url, id, counter=0, period=0)
           //br
           input(type="hidden" name="_csrf", value=csrfToken)
           br
-          input(type="submit" name="submit", value="submit")
+          input(type="submit" name="submit", value="track")
 
 +sitemodal-include(website.url, website.id, website.track.counter, website.track.period)

@@ -52,64 +52,15 @@ router.get('/',  csrfProtection, function(req, res, next) {
     });
 });
 
-router.get('/website',  csrfProtection, function(req, res, next) {
-  //const now = date.now();
-  Website.find()
-    .sort("-createdAt")
-    .limit(100)
-    .then((websites) => {
-      res.render(
-        'websites', {
-          websites,
-          csrfToken:req.csrfToken(),
-        });
-    })
-    .catch((err) => { 
-      console.log(err);
-      res.send(err); 
-    });
-});
 
 router.get('/drop/payload',  csrfProtection, function(req, res, next) {
+
   Payload.collection.drop();
+  Screenshot.collection.drop();
+
   res.redirect(req.baseUrl);
 });
 
-router.get('/payload',  csrfProtection, function(req, res, next) {
-  //const now = date.now();
-  Payload.find()
-    .sort("-createdAt")
-    .limit(100)
-    .then((payloads) => {
-      //console.log(websites);
-      res.render(
-        'payloads', {
-          payloads,
-          csrfToken:req.csrfToken(),
-        });
-    })
-    .catch((err) => { 
-      console.log(err);
-      res.send(err); 
-    });
-});
-
-router.get('/request',  csrfProtection, function(req, res, next) {
-  //const now = date.now();
-  Request.find().sort("-createdAt").limit(100)
-    .then((webpages) => {
-      res.render(
-        'requests', {
-          title:"Page",
-          webpages,
-          csrfToken:req.csrfToken(),
-        });
-    })
-    .catch((err) => { 
-      console.log(err);
-      res.send(err); 
-    });
-});
 
 router.get('/response',  csrfProtection, function(req, res, next) {
   //const now = date.now();
@@ -160,14 +111,6 @@ router.post('/', parseForm, csrfProtection, async function(req, res, next) {
     .replace(/^hXXp/, 'http')
     .replace(/^hxxp/, 'http');
 
-    const website= await new Website({
-      url: inputUrl,
-    });
-    await website.save(function (err, success){
-      if(err) console.log(err);
-      else console.log(website);
-    });
-
     const webpage = await new Webpage({
       input: inputUrl,
       option: option,
@@ -177,6 +120,21 @@ router.post('/', parseForm, csrfProtection, async function(req, res, next) {
       //else console.log(webpage);
     });
     //console.log("webpage.option", webpage.option);
+
+    const website = await Website.findOneAndUpdate(
+      {"url": inputUrl},
+      {"last": webpage._id},
+      {"new":true,"upsert":true},
+    );
+    /*
+    const website= await new Website({
+      url: inputUrl,
+    });
+    await website.save(function (err, success){
+      if(err) console.log(err);
+      else console.log(website);
+    });
+    */
     return webpage;
     //console.log(ids);
   }
@@ -248,40 +206,6 @@ router.post('/progress', parseForm, csrfProtection, function(req, res, next) {
   });
 });
 
-router.post('/website/:id', parseForm, csrfProtection, async function(req, res, next) {
-  const id = req.params.id;
-  var website = await Website.findById(id)
-  .then((document) => {
-    //console.log(document);
-    return document;
-  });
-  console.log(website);
-  console.log(req.body);
-  var track = {
-    counter: req.body['counter'],
-    period: req.body['period'],
-  }
-  var options = {};
-  options['referer'] = req.body['referer'];
-  options['proxy'] = req.body['proxy'];
-  options['timeout'] = req.body['timeout'];
-  options['delay'] = req.body['delay'];
-  options['exheader'] = req.body['exheader'];     
-  options['lang'] = req.body['lang'];
-  options['userAgent'] = req.body['userAgent'];
-  track.option = options;
-  website.track = track;
-  await website.save()
-  .then((website) => {
-    console.log(website);
-    res.render('website', {
-      website,
-      csrfToken:req.csrfToken(), 
-      //model:"page",
-    });
-
-  })
-});
 
 router.get('/page/:id', csrfProtection, async function(req, res, next) {
   const id = req.params.id;
@@ -332,52 +256,6 @@ router.get('/delete/page/:id', csrfProtection, async function(req, res, next) {
   res.redirect(req.baseUrl);
 });
 
-router.get('/screenshot/:id', csrfProtection, function(req, res, next) {
-  const id = req.params.id;
-  //console.log(id);
-  Screenshot.findById(id)
-  .then((webpage) => {
-      //console.log(webpage);
-      var img = new Buffer(webpage.screenshot, 'base64');  
-      res.writeHead(200, {
-        'Content-Type': 'image/png',
-        'Content-Length': img.length
-      });
-      res.end(img); 
-    });
-});
-
-router.get('/payload/:id', csrfProtection, function(req, res, next) {
-  const id = req.params.id;
-  Payload.findById(id)
-  .then(async (payload) => {
-    console.log(payload._id);
-    const responses = await Response.find()
-      .where({"payload":payload._id})
-      .then((document)=>{
-        return document;
-      });
-      //console.log(responses[0]);
-      res.render('payload', {
-        payload,
-        responses,
-        csrfToken:req.csrfToken(), 
-    });
-  });
-});
-
-router.get('/website/:id', csrfProtection, function(req, res, next) {
-  const id = req.params.id;
-  //console.log(id);
-  Website.findById(id)
-  .then((website) => {
-      res.render('website', {
-        website,
-        csrfToken:req.csrfToken(), 
-    });
-  });
-});
-
 
 router.get('/response/:id', csrfProtection, async function(req, res, next) {
   const id = req.params.id;
@@ -420,22 +298,6 @@ router.get('/response/:id', csrfProtection, async function(req, res, next) {
     model:'response',
   });
   //});
-});
-
-
-router.get('/request/:id', csrfProtection, function(req, res, next) {
-  const id = req.params.id;
-  Request.findById(id).populate('response').populate('webpage')
-    .then((webpage) => {
-      //console.log(webpage);
-      res.render(
-        'request', { 
-        title: "Request", 
-        webpage:webpage,
-        csrfToken:req.csrfToken(),
-        //model:'request',
-      });
-    });
 });
 
 router.get('/search/page', csrfProtection, function(req, res, next) {
@@ -496,5 +358,17 @@ router.get('/download', csrfProtection, function(req, res, next) {
   res.download('public/test/test.pdf');
 });
 */
+
+const request = require("./request");
+router.use('/request', request);
+
+const website = require("./website");
+router.use('/website', website);
+
+const payload = require("./payload");
+router.use('/payload', payload);
+
+const screenshot = require("./screenshot");
+router.use('/screenshot', screenshot);
 
 module.exports = router;

@@ -1,15 +1,6 @@
 var express = require('express');
 var router = express.Router();
 
-/*const mongoose = require('mongoose');
-mongoose.connect('mongodb://mongodb/wgeteer', {
-  useNewUrlParser: true,
-  useCreateIndex: true,
- });
-mongoose.Promise = global.Promise;
-var db = mongoose.connection;
-db.on('error', console.error.bind(console, 'MongoDB connection error:'));
-*/
 const Payload = require('./models/payload');
 const Response = require('./models/response');
 
@@ -19,7 +10,6 @@ var bodyParser = require('body-parser');
 var csrfProtection = csrf({ cookie: true });
 var parseForm = bodyParser.urlencoded({ extended: false });
 router.use(cookieParser());
-
 
 router.get('/',  csrfProtection, function(req, res, next) {
     //const now = date.now();
