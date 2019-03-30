@@ -19,6 +19,7 @@ const atob = require('atob');
 //const btoa = require('btoa');
 
 const ipInfo = require('./ipInfo')
+const wapptr = require('./wapptr')
 
 module.exports = {
 
@@ -130,7 +131,7 @@ module.exports = {
       client.on('Network.requestIntercepted',
         async ({ interceptionId, request, responseHeaders, resourceType }) => {
         console.log(`[Intercepted] ${request.url} {interception id: ${interceptionId}}`);
-        console.log(responseHeaders);
+        //console.log(responseHeaders);
         try{
           const response = await client.send('Network.getResponseBodyForInterception', {interceptionId});
           console.log(response.body.length, response.base64Encoded);    
@@ -182,12 +183,11 @@ module.exports = {
       page.on('framedetached', frm => console.log('[Frame] detached: ', frm));
       page.on('framenavigateed', frm => console.log('[Frame] navigated: ', frm));
 
-      ipCache = {}
+      var ipCache = {};
+      var responses = [];
       async function saveResponse(interceptedResponse, request){
         var responseBuffer, payloadId, text;  
         try{
-          //if (interceptedResponse.status() < 300
-            //|| interceptedResponse.status() >= 400){
             for(let seq in responseCache){
               if(interceptedResponse.url() in responseCache[seq]){
                 var cache = responseCache[seq];
@@ -199,6 +199,11 @@ module.exports = {
             }
             responseBuffer = await interceptedResponse.buffer();
             //}
+        }catch(error){
+          console.log(error);
+        }
+
+        if (responseBuffer){
             var md5Hash = crypto.createHash('md5').update(responseBuffer).digest('hex');
             const payload = await Payload.findOneAndUpdate(
               {"md5": md5Hash},
@@ -207,13 +212,9 @@ module.exports = {
             );
             payloadId = payload._id;
             console.log(payload._id, payload.md5);
-
-          }catch(error){
-          console.log(error);
         }
 
         try{
-          //if(!text)
           text = await interceptedResponse.text();
         }catch(error){
           console.log(error);
@@ -248,6 +249,17 @@ module.exports = {
             text:text,
             request: request._id,
           });
+          let cookies;
+          const wapps = await wapptr(
+            response.url,
+            response.headers,
+            response.text,
+            cookies,
+          );
+          console.log(wapps);
+          if (wapps){
+            response.wappalyzer = wapps;
+          }
           if (response.remoteAddress){
             const host = response.remoteAddress.ip;
             var hostinfo = null
@@ -270,7 +282,7 @@ module.exports = {
             if(err) console.log(err);
             //else console.log(response);
           });
-
+          responses.push(response);
           return response;
 
         }catch(error){
@@ -279,6 +291,7 @@ module.exports = {
         return;
       }
 
+      var requests = [];
       async function saveRequest(interceptedRequest, result){
         var redirectChain = [];
         try{
@@ -318,12 +331,12 @@ module.exports = {
           if(err) console.log(err); 
           //else console.log(request);
         });
-        
+        requests.push(request);
         return request;
       }
 
       page.on('requestfailed', request => {
-        console.log('[Request] failed: ', request.url(), request.failure());
+        console.log('[Request] failed: ', request.url().slice(0,100), request.failure());
         try{
           saveRequest(request, 'failed');
         }catch(error){
@@ -332,7 +345,7 @@ module.exports = {
       });
       
       page.on('requestfinished', request => {
-        console.log('[Request] finished: ', request.method(), request.url());
+        console.log('[Request] finished: ', request.method(), request.url().slice(0,100));
         try{
           saveRequest(request, 'finished');
         }catch(error){
@@ -347,7 +360,7 @@ module.exports = {
             //interceptedRequest,
             interceptedRequest.method(),
             interceptedRequest.resourceType(),
-            interceptedRequest.url(),
+            interceptedRequest.url().slice(0,100),
           );
         }catch(error){
           console.log(error);
@@ -361,7 +374,7 @@ module.exports = {
           //interceptedResponse,
           interceptedResponse.status(),
           interceptedResponse.remoteAddress(),
-          interceptedResponse.url(),
+          interceptedResponse.url().slice(0,100),
           //interceptedResponse.securityDetails(),
           //interceptedResponse.headers(),
         );
@@ -371,34 +384,37 @@ module.exports = {
     });
 
     try{
-      const finalResponse = await page.goto(url,{
+      await page.goto(url,{
         timeout:timeout,
         referer:referer,
         waitUntil: 'networkidle2',
       });
       await page.waitFor(delay);    
-      
-      webpage.url = page.url();
+
+      webpage.requests = requests;
+      webpage.responses = responses;
+
       const pageTitle = await page.title()
       webpage.title = pageTitle;
 
       const pageContent = await page.content();
       webpage.content = pageContent;
 
-      if(finalResponse){
-
-        webpage.status = finalResponse.status();
-        webpage.headers = finalResponse.headers();
-        webpage.remoteAddress = finalResponse.remoteAddress();
-        if (webpage.remoteAddress){
-          const host = webpage.remoteAddress.ip;
-          const hostinfo = await ipInfo(host);
-          if(hostinfo){
-            webpage.remoteAddress.reverse = hostinfo.reverse;
-            webpage.remoteAddress.bgp = hostinfo.bgp;
-            webpage.remoteAddress.geoip = hostinfo.geoip;  
+      webpage.url = page.url();
+      var finalResponse;
+      if(webpage.url){
+        for(let num in responses){
+          if (responses[num].url){
+            if (responses[num].url === webpage.url){
+              finalResponse = responses[num];
+           }
           }
         }
+      }
+      if(finalResponse){
+        webpage.status = finalResponse.status;
+        webpage.headers = finalResponse.headers;
+        webpage.remoteAddress = finalResponse.remoteAddress;
       }
 
       const screenshot = await page.screenshot({
@@ -423,23 +439,12 @@ module.exports = {
           {"screenshot": fullscreenshot},
           {"new":true,"upsert":true},
         );
-        /*
-        const ss = new Screenshot({
-          screenshot: fullscreenshot,
-        });
-        await ss.save(function (err, success){
-          if(err) console.log(err);
-        });
-        */
         return ss;
       }
       const ss = await saveScreenshot(fullscreenshot);
-
       webpage.screenshot = ss._id;
-
     }catch(error){
         console.log(error);
-        //webpage.title = error.message;
         webpage.error = error.message;
 
     }finally{

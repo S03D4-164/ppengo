@@ -1,23 +1,28 @@
 mixin webpages-include(webpages)
   if webpages
+
     if webpages.length
+      h3= title + " - Total: " + webpages.length
       table.table.table-striped.table-bordered.table-hover.table-sm
         tr.thead-light.d-flex
           th.col-5 input
           th.col-4 result
           th.col-3 capture
         each webpage in webpages
-          tr.d-flex.page(value=webpage._id)
+          tr.d-flex.page(value=webpage._id, class={
+                      "table-warning":webpage.status!=200,
+                      "table-danger":webpage.error,
+                      })
             td.col-5
               .row
                 .col-12
-                  h5 url: 
-                    a(href=rootPath + "search/page?input=" + encodeURIComponent(webpage.input)) 🔍 #{webpage.input}
-
+                  h6 url: 🔍
+                    a(href=rootPath + "search/page?input=" + encodeURIComponent(webpage.input)) #{webpage.input}
               .row
                 .col-3 createdAt
                 .col-9
-                  a= moment(webpage.createdAt).fromNow()
+                  - var date = webpage.createdAt 
+                  a= moment(date).format('YYYY-MM-DD HH:mm:ss') + " / " + moment(date).fromNow()
               .row
                 if webpage.option
                   each value, key in webpage.option
@@ -27,10 +32,10 @@ mixin webpages-include(webpages)
             td.col-4
               .row                    
                 .col-12
-                    if webpage._id
-                      h5 id: 
-                        a(href=rootPath + "page/" +webpage._id) #{webpage._id}
-
+                  if webpage._id
+                    h6 id: 
+                      a(href=rootPath + "page/" +webpage._id) #{webpage._id}
+                      a= " - req:" + webpage.requests.length + " / res:" + webpage.responses.length
               .row
                 .col-2 title
                 .col-10
@@ -42,10 +47,30 @@ mixin webpages-include(webpages)
                   if webpage.url
                     a(href=rootPath + "search/page?url=" + webpage.url) 🔍 #{webpage.url}
               .row
-                .col-2 size
+                .col-2 error
                 .col-10
+                  if webpage.error
+                    a= webpage.error
+                  else
+                    a none
+              .row
+                .col-2 status
+                .col-4
+                  if webpage.status
+                    a= webpage.status
+                .col-2 size
+                .col-4
                   if webpage.content
                     a= webpage.content.length
+              .row
+                .col-2 ip
+                .col-10
+                  if webpage.remoteAddress
+                    a(href=rootPath + "search/page?ip=" + webpage.remoteAddress.ip) 🔍 #{webpage.remoteAddress.ip}
+                  if webpage.remoteAddress.geoip
+                    if webpage.remoteAddress.geoip[0]
+                      a= " (" + webpage.remoteAddress.geoip[0].country + ")"
+
             td.col-3
               if webpage.thumbnail
                 a.colorbox(href=rootPath + "screenshot/" +webpage.screenshot)

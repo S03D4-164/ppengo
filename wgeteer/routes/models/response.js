@@ -38,6 +38,9 @@ const responseSchema = new mongoose.Schema({
       type: Date,
       default: Date.now
     },
+    wappalyzer: {
+      type: [String]
+    },
     webpage : { type: mongoose.Schema.Types.ObjectId, ref: 'Webpage' },
     request : { type: mongoose.Schema.Types.ObjectId, ref: 'Request' },
     payload : { type: mongoose.Schema.Types.ObjectId, ref: 'Payload' },

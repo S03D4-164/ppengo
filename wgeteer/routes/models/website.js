@@ -8,8 +8,8 @@ const websiteSchema = new mongoose.Schema({
       unique: true,
     },
     track: {
-        period: {type: Number },
-        counter: {type: Number },
+        period: {type: Number, default: 0 },
+        counter: {type: Number, default: 0 },
         option:{
             type: Object,
         },
@@ -17,26 +17,9 @@ const websiteSchema = new mongoose.Schema({
     tag: {
         type: [String]
     },
-    /*
-    createdAt: {
-        type: Date,
-        default: Date.now
-    },
-    updatedAt: {
-        type: Date,
-        default: Date.now
-    },
-    */
     last : { type: mongoose.Schema.Types.ObjectId, ref: 'Webpage' },
-},{timestamps:true},
+},
+{timestamps:true},
 );
-
-/*
-websiteSchema.pre('findOneAndUpdate', function preSave(next){
-    var self = this;
-    self.updatedAt = new Date;
-    next();
-});
-*/
 
 module.exports = mongoose.model('Website', websiteSchema);

@@ -50,6 +50,9 @@ const webpageSchema = new mongoose.Schema({
     validFrom: {type: Number},
     validTo: {type: Number},
   },
+  wappalyzer: {
+    type: [String]
+  },
   requests : [{ type: mongoose.Schema.Types.ObjectId, ref: 'Request' }],
   responses : [{ type: mongoose.Schema.Types.ObjectId, ref: 'Response' }],
   //response : { type: mongoose.Schema.Types.ObjectId, ref: 'Response' },

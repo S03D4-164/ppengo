@@ -3,19 +3,19 @@ extends layout
 block content
   if webpage
     .p-2
-      .jumbotoron.text-center
-        h2= "Page"
       .row.p-2.bg-light.shadow-lg
         div.col-md-3
+          h1= "Page"
+
           if webpage.thumbnail
             a.colorbox(href=rootPath + "screenshot/" + webpage.screenshot)
               img(src="data:image/png;base64," + webpage.thumbnail)
 
         div.col-md-9
-          h3 Url: 
-            a(href=rootPath + "search/page?url=" + webpage.url) #{webpage.url} 
           h3 Title: 
             a(href=rootPath + "search/page?title=" + webpage.title) #{webpage.title}
+          h3 Url: 
+            a(href=rootPath + "search/page?url=" + webpage.url) #{webpage.url} 
           h3 from input: 
             a(href=rootPath + "search/page?input=" + webpage.input) #{webpage.input}
           if webpage.error
@@ -41,7 +41,8 @@ block content
           .col-6
             h5 remoteAddress
             if webpage.remoteAddress
-              a= "ip:port: " + webpage.remoteAddress.ip + ":" + webpage.remoteAddress.port
+              - var pageAddress = webpage.remoteAddress
+              a(href=rootPath + "search/page?ip=" + pageAddress.ip)= "ip:port: " + pageAddress.ip + ":" + pageAddress.port
               br
               a= "reverse: " + webpage.remoteAddress.reverse
               br
@@ -87,13 +88,12 @@ block content
                       "table-danger":request.url===webpage.url,
                       "table-warning":request.failure,
                       })
-                    td.col-2= moment(request.createdAt).format('YYYY-MM-DDTHH:mm:ss.SS')
+                    td.col-2= moment(request.createdAt).format('YYYY-MM-DD HH:mm:ss.SS')
                     td.col-3
                       if request.url.length > 100
-                        a(href=rootPath + "search/request?url=" + request.url) #{request.url.slice(0,100)}(truncated)
+                        a(href=rootPath + "search/response?url=" + request.url) #{request.url.slice(0,100)}(truncated)
                       else
-                        a(href=rootPath + "search/request?url=" + request.url) #{request.url}
-
+                        a(href=rootPath + "search/response?url=" + request.url) #{request.url}
                     td.col-2
                       if request.response
                         a(href=rootPath + "response/" + request.response._id) #{request.method} / #{request.resourceType}
@@ -103,65 +103,28 @@ block content
                         a= " / chain:" +request.redirectChain.length
                       if request.failure
                         a= " -> " + request.failure.errorText
-                    if request.response
-                      td.col-1
-                        if request.response.status
-                          a.col-6(href=rootPath + "response/" + request.response._id) #{request.response.status}
-                        if request.response.text
-                          br
-                          a.col-6(href=rootPath + "response/" + request.response._id)  (#{request.response.text.length})
-                        else
-                          br
-                          a.col-6(href=rootPath + "response/" + request.response._id)  (-)
-                      td.col-2
-                        a= request.response.remoteAddress.ip
-                        if request.response.remoteAddress.geoip
-                          if request.response.remoteAddress.geoip[0]
-                            a= " - " + request.response.remoteAddress.geoip[0].country
-
-                      td.col-2= request.response.securityDetails.issuer
-                    else
-                      td.col-5 no response
                     each response in responses
-                      if request.url===response.url
-                        td.col-2
+                      if request.response && response._id
+                       if request.response.toString()==response._id.toString()
+                        td.col-1
                           if response.status
-                            a(href=rootPath + "response/" + response._id) #{response.status}
+                            a.col-6(href=rootPath + "response/" + response._id) #{response.status}
                           if response.text
-                            a(href=rootPath + "response/" + response._id) (#{response.text.length}bytes)
+                            br
+                            a.col-6(href=rootPath + "response/" + response._id)  (#{response.text.length})
                           else
-                            a(href=rootPath + "response/" + response._id) (-)
-                        td.col-1= response.remoteAddress.ip
+                            br
+                            a.col-6(href=rootPath + "response/" + response._id)  (-)
+
+                        td.col-2
+                          a(href=rootPath + "search/response?ip=" + response.remoteAddress.ip) #{response.remoteAddress.ip}
+                          if response.remoteAddress.geoip
+                            if response.remoteAddress.geoip[0]
+                              a= " - " + response.remoteAddress.geoip[0].country
                         td.col-2= response.securityDetails.issuer
-                        - response.url = undefined
-                        - break
-        div.col-md-12(hidden)
-          if responses
-            if responses.length
-              h3= "Responses: " + responses.length
-              table.table.table-striped.table-bordered.table-hover.table-sm
-                tr.thead-light.d-flex
-                  th.col-3 createdAt
-                  th.col-3 url
-                  th.col-1 status
-                  th.col-1 size
-                  th.col-2 remoteAddress
-                  th.col-2 securityDetails
-                each response in responses
-                  tr.d-flex(class={"table-primary":response.url===webpage.url})
-                    td.col-3= moment(response.createdAt).format('YYYY-MM-DDTHH:mm:ss.SS')
-                    td.col-3
-                      if response.url
-                        if response.url.length > 100
-                          a(href=rootPath + "response/" + response._id) #{response.url.slice(0,100)}(truncated)
-                        else
-                          a(href=rootPath + "response/" + response._id) #{response.url}
-                    td.col-1= response.status
-                    td.col-1
-                      if response.payload
-                        #{response.payload.length}
-                    td.col-2= response.remoteAddress.ip
-                    td.col-2= response.securityDetails
+                      else
+                        td.col-5 no response
+
     .row
         if webpage.content
           div.col-md-12
