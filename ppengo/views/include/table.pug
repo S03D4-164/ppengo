@@ -1,22 +1,20 @@
 mixin webpages-include(webpages)
   if webpages
-
     if webpages.length
       h3= title + " - Total: " + webpages.length
-      table.table.table-striped.table-bordered.table-hover.table-sm
+      table.table.table-bordered.table-sm
         tr.thead-light.d-flex
           th.col-5 input
           th.col-4 result
           th.col-3 capture
         each webpage in webpages
           tr.d-flex.page(value=webpage._id, class={
-                      "table-warning":webpage.status!=200,
-                      "table-danger":webpage.error,
+                      "table-secondary":webpage.status>=400||webpage.error,
                       })
             td.col-5
               .row
                 .col-12
-                  h6 url: 🔍
+                  h5 url: 🔍
                     a(href=rootPath + "search/page?input=" + encodeURIComponent(webpage.input)) #{webpage.input}
               .row
                 .col-3 createdAt
@@ -33,7 +31,7 @@ mixin webpages-include(webpages)
               .row                    
                 .col-12
                   if webpage._id
-                    h6 id: 
+                    h5 id: 
                       a(href=rootPath + "page/" +webpage._id) #{webpage._id}
                       a= " - req:" + webpage.requests.length + " / res:" + webpage.responses.length
               .row

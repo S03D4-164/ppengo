@@ -61,24 +61,6 @@ router.get('/drop/payload',  csrfProtection, function(req, res, next) {
   res.redirect(req.baseUrl);
 });
 
-
-router.get('/response',  csrfProtection, function(req, res, next) {
-  //const now = date.now();
-  Response.find().sort("-createdAt").limit(100)
-    .then((webpages) => {
-      //console.log(webpages);
-      res.render(
-        'responses', {
-           webpages, 
-           csrfToken:req.csrfToken(),
-        });
-    })
-    .catch((err) => { 
-      console.log(err);
-      res.send(err); 
-    });
-});
-
 router.post('/', parseForm, csrfProtection, async function(req, res, next) {
 
   async function queJob(webpage){
@@ -126,15 +108,6 @@ router.post('/', parseForm, csrfProtection, async function(req, res, next) {
       {"last": webpage._id},
       {"new":true,"upsert":true},
     );
-    /*
-    const website= await new Website({
-      url: inputUrl,
-    });
-    await website.save(function (err, success){
-      if(err) console.log(err);
-      else console.log(website);
-    });
-    */
     return webpage;
     //console.log(ids);
   }
@@ -244,6 +217,7 @@ router.get('/page/:id', csrfProtection, async function(req, res, next) {
         webpage,
         requests,
         responses,
+        previous,
         csrfToken:req.csrfToken(), 
         model:"page",
   });
@@ -253,50 +227,6 @@ router.get('/delete/page/:id', csrfProtection, async function(req, res, next) {
   const id = req.params.id;
   await Webpage.findByIdAndDelete(id)
   res.redirect(req.baseUrl);
-});
-
-
-router.get('/response/:id', csrfProtection, async function(req, res, next) {
-  const id = req.params.id;
-  const response = await Response.findById(id)
-    .populate('request').populate('webpage')
-    .then((document) => {
-      //console.log(document);
-      return document;
-    });
-  const webpage = response.webpage;
-  const request = response.request;
-  /*
-  const previous = await Response.find({
-      "url":response.url,
-      "createdAt":{$lt: response.createdAt}
-  }).sort("createdat").limit(1)
-  .then((document) => {
-      //console.log(document);
-      return document;
-    });
-
-  Response.findById(id)
-    .populate('request')
-    .populate('webpage')
-    .then((webpage) => {
-      //console.log(webpage);
-      var payload = null;
-      if (webpage.payload){
-        //payload = webpage.payload.toString();
-      }*/
-
-  res.render(
-    'response', { 
-    title: "Response", 
-    webpage:webpage,
-    request:request,
-    response:response,
-    csrfToken:req.csrfToken(),
-    //payload: payload,
-    model:'response',
-  });
-  //});
 });
 
 /*
@@ -319,5 +249,8 @@ router.use('/screenshot', screenshot);
 
 const search = require("./search");
 router.use('/search', search);
+
+const search = require("./response");
+router.use('/response', response);
 
 module.exports = router;

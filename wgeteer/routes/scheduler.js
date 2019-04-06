@@ -20,11 +20,12 @@ const queue = kue.createQueue({
 var job = queue.createJob('crawl', {})
 .unique('crawl').ttl(100000);
 
-queue.clear(function(error,response){
+(async function (){
+await queue.clear(function(error,response){
   console.log("[Queue]cleared: ", response);
 });
-
-queue.every('60 minutes', job);
+await queue.every('00 */1  * * *', job);
+})();
 
 job.on('complete', function(result){
   console.log('Job completed with data ', result);
@@ -47,6 +48,9 @@ queue.on('job enqueue', function(id, type){
     });
   });
 });
+queue.on('already scheduled', function (job) {
+  console.log('job already scheduled' + job.id);
+});
 queue.on( 'error', function( err ) {
   console.log( 'Oops... ', err );
 });
@@ -54,7 +58,7 @@ queue.on('schedule error', function(error) {
   console.log( 'Oops... ', error);
 });
 queue.on('schedule success', function(job) {
-  console.log("[Queue] schedule succeeded: ", job.id);
+  console.log("[Queue] schedule succeeded: ", job.length);
 });
 
 queue.process('crawl', 1, (job, done) => {
