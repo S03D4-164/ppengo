@@ -1,13 +1,10 @@
 extends layout
 
 block content
-  .jumbotoron
-    h1 Requests
-      //a(href=rootPath+"page/"+pageId) #{pageId}
   if webpages
       if webpages.length
-          //h2= "total: "+webpages.length 
-          table.table.table-striped.table-bordered.table-hover.table-sm
+          h3= title + " - total: " + webpages.length
+          table.table.table-bordered.table-sm
             tr.thead-light.d-flex
               th.col-3 createdAt
               th.col-6 url
@@ -19,6 +16,7 @@ block content
                   td.col-3= moment(webpage.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
                   td.col-6
                     a(href=rootPath + "request/" +webpage._id) #{webpage.url}
+                    a(href=rootPath + "search/request?url=" + encodeURIComponent(webpage.url)) 🔍
                   td.col-1= webpage.method
                   td.col-1= webpage.resourceType
                   td.col-1= webpage.isNavigationRequest

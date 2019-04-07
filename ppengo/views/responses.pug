@@ -1,11 +1,9 @@
 extends layout
 
 block content
-  h3= title + " - Total: " + webpages.length
-  a(href=rootPath+"page/"+pageId) #{pageId}
   if webpages
     if webpages.length
-      h2= "total:" + webpages.length
+      h3= title + " - total: " + webpages.length
       table.table.table-bordered.table-sm
         tr.thead-light.d-flex
           th.col-2 createdAt
@@ -19,7 +17,7 @@ block content
             td.col-2= moment(webpage.createdAt).format('YYYY-MM-DD HH:mm:ss.SSS')
             td.col-4
               a(href=rootPath + "response/" +webpage._id) #{webpage.url}
-              a(href=rootPath + "search/response?url=" +webpage.url) 🔍
+              a(href=rootPath + "search/response?url=" + encodeURIComponent(webpage.url)) 🔍
             td.col-1
               a(href=rootPath + "search/response?status=" +webpage.status) #{webpage.status}
             td.col-1

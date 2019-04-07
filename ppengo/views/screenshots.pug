@@ -3,11 +3,11 @@ extends layout
 block content
   if payloads
       if payloads.length
-          h2= "total: "+payloads.length 
+          h3= title + " - total: "+payloads.length 
           table.table.table-striped.table-bordered.table-hover.table-sm
             tr.thead-light.d-flex
               th.col-3 createdAt
-              th.col-8 md5
+              th.col-8 md5  
               th.col-1 size
             each payload in payloads
                 tr.d-flex

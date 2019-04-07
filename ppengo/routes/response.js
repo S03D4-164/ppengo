@@ -20,7 +20,8 @@ router.get('/',  csrfProtection, function(req, res, next) {
         //console.log(webpages);
         res.render(
           'responses', {
-             webpages, 
+            title: "Response", 
+            webpages, 
              csrfToken:req.csrfToken(),
           });
       })

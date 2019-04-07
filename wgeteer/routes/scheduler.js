@@ -20,12 +20,12 @@ const queue = kue.createQueue({
 var job = queue.createJob('crawl', {})
 .unique('crawl').ttl(100000);
 
-(async function (){
-await queue.clear(function(error,response){
+queue.clear(function(error,response){
   console.log("[Queue]cleared: ", response);
 });
-await queue.every('00 */1  * * *', job);
-})();
+
+queue.every('00 */1  * * *', job);
+//queue.every('*/1 *  * * *', job);
 
 job.on('complete', function(result){
   console.log('Job completed with data ', result);
@@ -77,25 +77,30 @@ const crawlWeb = async (job, done) => {
   if(websites){
     for(let seq in websites){
       var website = websites[seq];
-      const webpage = await new Webpage({
-        input: website.url,
-        option: website.track.option,
-      });
-    await webpage.save(function (err, success){
-      if(err) console.log(err);
-      else console.log(webpage);
-    });
-    website.track.counter -= 1;
-    website.last = webpage;
-    await website.save()
-    const job = await queue.create('wgeteer', {
-      pageId: webpage._id,
-      options:webpage.option,
-    }).ttl(100000);
-    await job.save(function(err){
-      if( err ) console.log( job.id, err);
-      //else console.log( job.id, option);
-    });
+      const now = Math.floor(Date.now()/(60*60*1000));
+      const update = website.track.period  + Math.floor(website.updatedAt.valueOf()/(60*60*1000));
+      console.log(update-now)
+      if (now >= update){
+        const webpage = await new Webpage({
+          input: website.url,
+          option: website.track.option,
+        });
+        await webpage.save(function (err, success){
+          if(err) console.log(err);
+          else console.log(webpage);
+        });
+        website.track.counter -= 1;
+        website.last = webpage;
+        await website.save();
+        const job = await queue.create('wgeteer', {
+          pageId: webpage._id,
+          options:webpage.option,
+        }).ttl(100000);
+        await job.save(function(err){
+          if( err ) console.log( job.id, err);
+          //else console.log( job.id, option);
+        });
+      }
     }
   }
   done();

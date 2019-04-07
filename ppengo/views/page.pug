@@ -6,18 +6,16 @@ block content
       .row.p-2.bg-light.shadow-lg
         div.col-md-3
           h1= "Page"
-
           if webpage.thumbnail
             a.colorbox(href=rootPath + "screenshot/" + webpage.screenshot)
               img(src="data:image/png;base64," + webpage.thumbnail)
-
         div.col-md-9
           h3 Title: 
-            a(href=rootPath + "search/page?title=" + webpage.title) #{webpage.title}
+            a(href=rootPath + "search/page?title=" + encodeURIComponent(webpage.title)) #{webpage.title}
           h3 Url: 
-            a(href=rootPath + "search/page?url=" + webpage.url) #{webpage.url} 
+            a(href=rootPath + "search/page?url=" + encodeURIComponent(webpage.url)) #{webpage.url} 
           h3 from input: 
-            a(href=rootPath + "search/page?input=" + webpage.input) #{webpage.input}
+            a(href=rootPath + "search/page?input=" + encodeURIComponent(webpage.input)) #{webpage.input}
           if webpage.error
             p= "Error: " + webpage.error
           else
@@ -52,29 +50,39 @@ block content
                   br
               a= "bgp: " + JSON.stringify(webpage.remoteAddress.bgp, null, ' ')
 
-          //.col-6
-            h6 securityDetails
-            - var securityDetails = response.securityDetails
-            if securityDetails.issuer
-              a= "issuer: " + securityDetails.issuer
-              br
-              a= "protocol: " + securityDetails.protocol
-              br
-              a= "subjectName: " + securityDetails.subjectName
-              br
-              - const from = securityDetails.validFrom
-              a= "validFrom: " + moment.unix(from).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(from).fromNow()
-              br
-              - const to = securityDetails.validTo
-              a= "validTo: " + moment.unix(to).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(to).fromNow()
+          .col-6
+            h5 securityDetails
+            if webpage.securityDetails
+              - var securityDetails = webpage.securityDetails
+              if securityDetails.issuer
+                a= "issuer: " + securityDetails.issuer
+                br
+                a= "protocol: " + securityDetails.protocol
+                br
+                a= "subjectName: " + securityDetails.subjectName
+                br
+                - const from = securityDetails.validFrom
+                a= "validFrom: " + moment.unix(from).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(from).fromNow()
+                br
+                - const to = securityDetails.validTo
+                a= "validTo: " + moment.unix(to).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(to).fromNow()
             else
-              p empty
-    .row
-        div.col-md-12
+                p empty
+
+    ul.nav.nav-tabs
+      li.nav-item
+        a.nav-link.active(data-toggle="tab",href="#request-tab") Request
+      li.nav-item
+        a.nav-link(data-toggle="tab",href="#content-tab") Content
+      li.nav-item
+        a.nav-link(data-toggle="tab",href="#diff-tab") Diff
+
+    div.tab-content
+      div#request-tab.tab-pane.active
           if requests
             if requests.length
               h3= "Requests: "+ requests.length + " / Responses: " + responses.length
-              table.table.table-striped.table-bordered.table-hover.table-sm
+              table.table.table-bordered.table-sm
                 tr.thead-light.d-flex
                   th.col-2 createdAt
                   th.col-3 🔍url
@@ -91,9 +99,9 @@ block content
                     td.col-2= moment(request.createdAt).format('YYYY-MM-DD HH:mm:ss.SS')
                     td.col-3
                       if request.url.length > 100
-                        a(href=rootPath + "search/response?url=" + request.url) #{request.url.slice(0,100)}(truncated)
+                        a(href=rootPath + "search/response?url=" + encodeURIComponent(request.url)) #{request.url.slice(0,100)}(truncated)
                       else
-                        a(href=rootPath + "search/response?url=" + request.url) #{request.url}
+                        a(href=rootPath + "search/response?url=" + encodeURIComponent(request.url)) #{request.url}
                     td.col-2
                       if request.response
                         a(href=rootPath + "response/" + request.response._id) #{request.method} / #{request.resourceType}
@@ -124,11 +132,9 @@ block content
                         td.col-2= response.securityDetails.issuer
                       else
                         td.col-5 no response
-
-    .row
+      div#content-tab.tab-pane
+       .row
         if webpage.content
-          div.col-md-12
-            hr
           div.col-md-1
             h5= "Content"
             p= "size: " + webpage.content.length
@@ -139,15 +145,41 @@ block content
               button.btn.btn-sm.btn-primary(onclick="prettyPrint()") prettyPrint
             p
               button.btn.btn-sm.btn-primary(onclick="beautify()") beautify
-            script.
-              function beautify(){
-                var content=$("#content").text();
-                var beautified = html_beautify(content);
-                $('pre#content').text(beautified);
-              };
         else
-          div.col-md-12
-            h5 No Content.
+         div.alert
+          p No data
+      div#diff-tab.tab-pane
+        .row
+          if diff
+            div.col-md-1
+              h5= "Diff"
+            div.col-md-10
+              #diff
+                pre.prettyprint.linenums(style="white-space: pre-wrap") #{diff}
+            div.col-md-1
+              p
+                button.btn.btn-sm.btn-primary(onclick="diff()") diff2html
+              a(href=rootPath + "page/" + previous._id) previous: #{previous.id}
+          else
+            div.alert
+              p No data
+    script.
+        function beautify(){
+          var content=$("#content").text();
+          var beautified = html_beautify(content);
+          $('pre#content').text(beautified);
+        };
+        function diff(){
+          var udiff =$("#diff").text();
+          var diffHtml = Diff2Html.getPrettyHtml(udiff, {
+            inputFormat: 'diff',
+            showFiles: false,
+            matching: "none",
+            outputFormat: 'side-by-side',
+            //outputFormat: 'line-by-line',
+          });
+          document.getElementById("diff").innerHTML = diffHtml;
+        };
   else
     div.alert.alert-warning
       p No data

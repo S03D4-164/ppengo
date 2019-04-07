@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+var Diff = require('diff');
 
 const mongoose = require('mongoose');
 mongoose.connect('mongodb://mongodb/wgeteer', {
@@ -32,6 +33,7 @@ var bodyParser = require('body-parser');
 var csrfProtection = csrf({ cookie: true });
 var parseForm = bodyParser.urlencoded({ extended: false });
 router.use(cookieParser());
+
 
 router.get('/',  csrfProtection, function(req, res, next) {
   //const now = date.now();
@@ -190,19 +192,22 @@ router.get('/page/:id', csrfProtection, async function(req, res, next) {
     });
     
   var previous = await Webpage.find({
-      "url":webpage.url,
+      "input":webpage.input,
       "createdAt":{$lt: webpage.createdAt}
   }).sort("createdat").limit(1)
   .then((document) => {
       //console.log(document);
       return document;
     });
-  
-  //console.log(webpage);
+  //console.log(previous);
+  var diff;
+  if (previous){
+    diff =  Diff.createPatch("", previous[0].content, webpage.content, previous[0]._id, webpage._id) 
+  }
+  //console.log(diff);
+
   var requests = await Request.find({"webpage":id})
     .sort("createdAt")
-    //.populate("response")
-    //.exec()
     .then((document) => {
       return document;
     });
@@ -217,7 +222,8 @@ router.get('/page/:id', csrfProtection, async function(req, res, next) {
         webpage,
         requests,
         responses,
-        previous,
+        previous:previous[0],
+        diff,
         csrfToken:req.csrfToken(), 
         model:"page",
   });
@@ -250,7 +256,7 @@ router.use('/screenshot', screenshot);
 const search = require("./search");
 router.use('/search', search);
 
-const search = require("./response");
+const response = require("./response");
 router.use('/response', response);
 
 module.exports = router;

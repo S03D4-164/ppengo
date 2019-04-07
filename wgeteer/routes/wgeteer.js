@@ -211,7 +211,7 @@ module.exports = {
               {"new":true,"upsert":true},
             );
             payloadId = payload._id;
-            console.log(payload._id, payload.md5);
+            //console.log(payload._id, payload.md5);
         }
 
         try{
@@ -269,7 +269,7 @@ module.exports = {
             }else{
               hostinfo = await ipInfo(host);
               ipCache[host] = hostinfo;
-              console.log(hostinfo);
+              //console.log(hostinfo);
             }
             if(hostinfo){
               if (hostinfo.reverse) response.remoteAddress.reverse = hostinfo.reverse;
@@ -280,7 +280,7 @@ module.exports = {
           
           await response.save(function (err){
             if(err) console.log(err);
-            //else console.log(response);
+            else console.log("response saved: " + response.url.slice(0,100));
           });
           responses.push(response);
           return response;
@@ -329,7 +329,7 @@ module.exports = {
         }
         await request.save(function (err){
           if(err) console.log(err); 
-          //else console.log(request);
+          else console.log("request saved: " + request.url.slice(0,100));
         });
         requests.push(request);
         return request;
@@ -384,15 +384,13 @@ module.exports = {
     });
 
     try{
+      var finalResponse;
       await page.goto(url,{
         timeout:timeout,
         referer:referer,
         waitUntil: 'networkidle2',
       });
       await page.waitFor(delay);    
-
-      webpage.requests = requests;
-      webpage.responses = responses;
 
       const pageTitle = await page.title()
       webpage.title = pageTitle;
@@ -401,7 +399,6 @@ module.exports = {
       webpage.content = pageContent;
 
       webpage.url = page.url();
-      var finalResponse;
       if(webpage.url){
         for(let num in responses){
           if (responses[num].url){
@@ -410,11 +407,6 @@ module.exports = {
            }
           }
         }
-      }
-      if(finalResponse){
-        webpage.status = finalResponse.status;
-        webpage.headers = finalResponse.headers;
-        webpage.remoteAddress = finalResponse.remoteAddress;
       }
 
       const screenshot = await page.screenshot({
@@ -446,12 +438,28 @@ module.exports = {
     }catch(error){
         console.log(error);
         webpage.error = error.message;
-
+        await new Promise(done => setTimeout(done, 1000));
+  
+        if (!finalResponse){
+          if(responses.length===1){
+            finalResponse=responses[0];
+            webpage.url = finalResponse.url;
+          }
+        }
     }finally{
-        await webpage.save(function (err, success){
-          if(err) console.log(err);      
+
+      if(finalResponse){
+        webpage.status = finalResponse.status;
+        webpage.headers = finalResponse.headers;
+        webpage.remoteAddress = finalResponse.remoteAddress;
+      };
+      webpage.requests = requests;
+      webpage.responses = responses;
+
+      await webpage.save(function (err, success){
+          if(err) console.log(err)
+          else console.log("webpage saved: " + webpage.input);
         });
-        //console.log(webpage);
         await browser.close();
       }
   },

@@ -4,19 +4,30 @@ block content
   if websites
       if websites.length
           h2= "total: "+websites.length 
-          table.table.table-striped.table-bordered.table-hover.table-sm
+          table.table.table-bordered.table-sm
             tr.thead-light.d-flex
               th.col-2 timestamps
-              th.col-3 url
+              th.col-3 site
               th.col-3 last
               th.col-3 capture
               th.col-1 tag
             each webpage in websites
-                tr.d-flex(class={"table-primary":webpage.isNavigationRequest===true})
+                tr.d-flex.page(value=webpage._id, class={
+                  "table-success":webpage.track.counter,
+                  })
                   td.col-2
                     a= "created: " + moment(webpage.createdAt).fromNow()
                     br
+                    a= moment(webpage.createdAt).format('YYYY-MM-DD HH:mm:ss')
+                    br
+                    hr
                     a= "updated: " + moment(webpage.updatedAt).fromNow()
+                    br
+                    a= moment(webpage.updatedAt).format('YYYY-MM-DD HH:mm:ss')
+
+                  td.col-3
+                    a= "url: "
+                    a(href=rootPath + "website/" +webpage._id) #{webpage.url}
                     if webpage.track
                       br
                       a= "counter: " + webpage.track.counter
@@ -26,9 +37,10 @@ block content
                       //a= "option: " + JSON.stringify(webpage.track.option, null, ' ')
 
                   td.col-3
-                    a(href=rootPath + "website/" +webpage._id) #{webpage.url}
-                  td.col-3
                     if webpage.last
+                      a= "url: "
+                      a(href=rootPath + "page/" + webpage.last._id)= webpage.last.url
+                      br
                       a= "status: " + webpage.last.status
                       br
                       a= "error: " + webpage.last.error
@@ -38,7 +50,6 @@ block content
                       if webpage.last.content
                         a= "size: " + webpage.last.content.length
                         br
-                      a(href=rootPath + "page/" + webpage.last._id)= webpage.last.url
                   td.col-3
                     if webpage.last
                       if webpage.last.thumbnail

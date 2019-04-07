@@ -16,7 +16,7 @@ router.get('/',  csrfProtection, function(req, res, next) {
     .then((webpages) => {
       res.render(
         'requests', {
-          title:"Page",
+          title:"Request",
           webpages,
           csrfToken:req.csrfToken(),
         });
@@ -33,9 +33,11 @@ router.get('/:id', csrfProtection, function(req, res, next) {
     .then((webpage) => {
       //console.log(webpage);
       res.render(
-        'request', { 
+        'response', { 
         title: "Request", 
-        webpage:webpage,
+        request:webpage,
+        webpage:webpage.webpage,
+        response:webpage.response,
         csrfToken:req.csrfToken(),
         //model:'request',
       });
