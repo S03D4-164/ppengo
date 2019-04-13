@@ -21,22 +21,29 @@ RegExp.escape= function(s) {
 router.get('/page', csrfProtection, function(req, res, next) {
     var search = []
     if(typeof req.query.input !== 'undefined' && req.query.input !== null){
-      search.push({"input": new RegExp(req.query.input)});
+      search.push({"input": req.query.input});
     }
+    if(typeof req.query.rinput !== 'undefined' && req.query.rinput !== null){
+      search.push({"input": new RegExp(RegExp.escape(req.query.input))});
+    }
+
     if(typeof req.query.title !== 'undefined' && req.query.title !== null){
       search.push({"title": new RegExp(req.query.title)});
     }
     if(typeof req.query.url !== 'undefined' && req.query.url !== null){
+      search.push({"url": req.query.url});
+    }
+    if(typeof req.query.rurl !== 'undefined' && req.query.rurl !== null){
       search.push({"url":new RegExp(RegExp.escape(req.query.url))});
     }
 
-     if(typeof req.query.content !== 'undefined' && req.query.content !== null){
-      search.push({"content": new RegExp(req.query.content)});
+    if(typeof req.query.content !== 'undefined' && req.query.content !== null){
+      search.push({"content": new RegExp(RegExp.escape(req.query.content))});
     }
     if(typeof req.query.ip !== 'undefined' && req.query.ip !== null){
         search.push({"remoteAddress.ip":new RegExp(req.query.ip)});
     }
-    
+    console.log(search);
     Webpage.find().and(search).sort("-createdAt")
     .then((webpage) => {
         res.render('index', { 
@@ -51,7 +58,7 @@ router.get('/page', csrfProtection, function(req, res, next) {
 router.get('/request', csrfProtection, function(req, res, next) {
   var search = []
   if(typeof req.query.url !== 'undefined' && req.query.url !== null){
-    search.push({"url":new RegExp(RegExp.escape(req.query.url))});
+    search.push({"url":new req.query.url});
   }
   Request.find()
   .and(search).sort("-createdAt")
@@ -73,7 +80,10 @@ router.get('/request', csrfProtection, function(req, res, next) {
 router.get('/response', csrfProtection, function(req, res, next) {
     var search = []
     if(typeof req.query.url !== 'undefined' && req.query.url !== null){
-      search.push({"url":new RegExp(RegExp.escape(req.query.url))});
+      search.push({"url": req.query.url});
+    }
+    if(typeof req.query.rurl !== 'undefined' && req.query.rurl !== null){
+      search.push({"url":new RegExp(RegExp.escape(req.query.rurl))});
     }
 
     if(typeof req.query.ip !== 'undefined' && req.query.ip !== null){
@@ -86,7 +96,7 @@ router.get('/response', csrfProtection, function(req, res, next) {
       search.push({"securityDetails.issuer":new RegExp(req.query.issuer)});
     }
     if(typeof req.query.text !== 'undefined' && req.query.text !== null){
-      search.push({"text":new RegExp(req.query.text)});
+      search.push({"text":new RegExp(RegExp.escape(req.query.text))});
     }
 
     if(typeof req.query.status !== 'undefined' && req.query.status !== null){

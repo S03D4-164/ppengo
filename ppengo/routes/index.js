@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-var Diff = require('diff');
+//var Diff = require('diff');
 
 const mongoose = require('mongoose');
 mongoose.connect('mongodb://mongodb/wgeteer', {
@@ -11,11 +11,12 @@ mongoose.Promise = global.Promise;
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
+
 const Webpage = require('./models/webpage');
-const Request = require('./models/request');
-const Response = require('./models/response');
-const Screenshot = require('./models/screenshot');
-const Payload = require('./models/payload');
+//const Request = require('./models/request');
+//const Response = require('./models/response');
+//const Screenshot = require('./models/screenshot');
+//const Payload = require('./models/payload');
 const Website = require('./models/website');
 
 var kue = require('kue');
@@ -34,7 +35,7 @@ var csrfProtection = csrf({ cookie: true });
 var parseForm = bodyParser.urlencoded({ extended: false });
 router.use(cookieParser());
 
-
+/*
 router.get('/',  csrfProtection, function(req, res, next) {
   //const now = date.now();
   Webpage.find()
@@ -53,15 +54,7 @@ router.get('/',  csrfProtection, function(req, res, next) {
       res.send(err); 
     });
 });
-
-
-router.get('/drop/payload',  csrfProtection, function(req, res, next) {
-
-  Payload.collection.drop();
-  Screenshot.collection.drop();
-
-  res.redirect(req.baseUrl);
-});
+*/
 
 router.post('/', parseForm, csrfProtection, async function(req, res, next) {
 
@@ -181,7 +174,7 @@ router.post('/progress', parseForm, csrfProtection, function(req, res, next) {
   });
 });
 
-
+/*
 router.get('/page/:id', csrfProtection, async function(req, res, next) {
   const id = req.params.id;
 
@@ -228,6 +221,7 @@ router.get('/page/:id', csrfProtection, async function(req, res, next) {
         model:"page",
   });
 });
+*/
 
 router.get('/delete/page/:id', csrfProtection, async function(req, res, next) {
   const id = req.params.id;
@@ -236,6 +230,14 @@ router.get('/delete/page/:id', csrfProtection, async function(req, res, next) {
 });
 
 /*
+router.get('/drop/payload',  csrfProtection, function(req, res, next) {
+
+  Payload.collection.drop();
+  Screenshot.collection.drop();
+
+  res.redirect(req.baseUrl);
+});
+
 router.get('/download', csrfProtection, function(req, res, next) {
   res.download('public/test/test.pdf');
 });
@@ -258,5 +260,10 @@ router.use('/search', search);
 
 const response = require("./response");
 router.use('/response', response);
+
+const webpage = require("./webpage");
+router.use('/page', webpage);
+
+router.use('/', website);
 
 module.exports = router;

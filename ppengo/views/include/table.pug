@@ -1,4 +1,4 @@
-mixin webpages-include(webpages)
+mixin webpages-include(webpages, title)
   if webpages
     if webpages.length
       h3= title + " - Total: " + webpages.length
@@ -78,4 +78,4 @@ mixin webpages-include(webpages)
     div.alert.alert-warning
       p No data
 
-+webpages-include(webpages)
++webpages-include(webpages, title)

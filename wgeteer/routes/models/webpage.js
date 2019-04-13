@@ -61,5 +61,6 @@ const webpageSchema = new mongoose.Schema({
 
 webpageSchema.index({createdAt:-1});
 webpageSchema.index({content:'text'});
+webpageSchema.index({input:1,createdAt:-1});
 
 module.exports = mongoose.model('Webpage', webpageSchema);

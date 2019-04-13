@@ -20,12 +20,16 @@ const queue = kue.createQueue({
 var job = queue.createJob('crawl', {})
 .unique('crawl').ttl(100000);
 
-queue.clear(function(error,response){
-  console.log("[Queue]cleared: ", response);
-});
+(async function(){
 
-queue.every('00 */1  * * *', job);
-//queue.every('*/1 *  * * *', job);
+await queue.clear();
+console.log("[Queue] cleared.");
+
+const cron = '00 * * * *'; 
+queue.every(cron, job)
+console.log("[Queue] every: ", cron);
+
+})();
 
 job.on('complete', function(result){
   console.log('Job completed with data ', result);
@@ -69,6 +73,7 @@ const crawlWeb = async (job, done) => {
   const websites = await Website.find()
   .where("track.counter")
   .gt(0)
+  .populate("last")
   .then((documents) => {
     return documents;
   });
@@ -78,8 +83,8 @@ const crawlWeb = async (job, done) => {
     for(let seq in websites){
       var website = websites[seq];
       const now = Math.floor(Date.now()/(60*60*1000));
-      const update = website.track.period  + Math.floor(website.updatedAt.valueOf()/(60*60*1000));
-      console.log(update-now)
+      const update = website.track.period  + Math.floor(website.last.createdAt.valueOf()/(60*60*1000));
+      console.log(Date.now()-website.last.createdAt.valueOf(), update-now)
       if (now >= update){
         const webpage = await new Webpage({
           input: website.url,
