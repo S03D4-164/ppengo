@@ -3,9 +3,22 @@ extends layout
 block content
     h1 Payload
     if payload
-        h2 md5:  #{payload.md5}
-        h3 size: #{payload.payload.length}
-        .row
+      h2 md5:  #{payload.md5}
+      h3 size: #{payload.payload.length}
+      ul.nav.nav-tabs
+        li.nav-item
+          a.nav-link.active(data-toggle="tab",href="#content-tab") Content
+
+        li.nav-item
+          a.nav-link(data-toggle="tab",href="#request-tab") Request
+        li.nav-item
+          a.nav-link(data-toggle="tab",href="#vt-tab") VT
+
+      div.tab-content
+        div#vt-tab.tab-pane
+          pre= JSON.stringify(payload.vt, null, " ")
+
+        div#request-tab.tab-pane
           .col-12
             table.table.table-striped.table-bordered.table-hover.table-sm
               tr.thead-light.d-flex
@@ -21,7 +34,7 @@ block content
                     else
                       a(href=rootPath + "response/" + response._id) #{response.url}
 
-          .col-12
+        div#content-tab.tab-pane.active
             pre.prettyprint.linenums(style="white-space: pre-wrap")= payload.payload.toString() 
       
     else

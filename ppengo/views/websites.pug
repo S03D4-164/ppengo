@@ -63,8 +63,10 @@ block content
                       br
                   td.col-2
                     each tag in webpage.tag
-                      each key in tag
-                        a= tag[key]
+                      each val, key in tag
+                        a(href=rootPath + "search/website/?tagkey=" + key)= key
+                        a= ":"
+                        a(href=rootPath + "search/website/?tagkey=" + key + "&tagval=" + val)= val
                         br
   else
     div.alert.alert-warning

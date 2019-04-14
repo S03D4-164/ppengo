@@ -106,6 +106,7 @@ router.post('/:id', parseForm, csrfProtection, async function(req, res, next) {
       .then((document)=>{return document});
     res.render('website', {
           website, webpages,
+          title: website.url,
           csrfToken:req.csrfToken(), 
     });
 });

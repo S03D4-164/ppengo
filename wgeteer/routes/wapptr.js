@@ -1,6 +1,5 @@
 const Driver = require('wappalyzer/driver');
 
-
 const wapptr = async function (url, headers, text, cookies){
   let Browser,
   options = {"debug":true};
@@ -9,15 +8,17 @@ const wapptr = async function (url, headers, text, cookies){
   //const html = driver.processHtml(text);
   const html = text;
   const js = driver.processJs(text);
+  console.log(headers);
+  var header = {};
   for (let head in headers){
-    headers[head] = headers[head].split(';');
+    header[head] = headers[head].split(';');
   }
   let scripts;
   var data = {
     //"scripts":[text],
     "scripts":scripts,
     "cookies":cookies,
-    "headers":headers,
+    "headers":header,
     "js":js,
     "html":html,
   };

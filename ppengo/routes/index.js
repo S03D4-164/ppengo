@@ -1,6 +1,5 @@
 var express = require('express');
 var router = express.Router();
-//var Diff = require('diff');
 
 const mongoose = require('mongoose');
 mongoose.connect('mongodb://mongodb/wgeteer', {
@@ -11,15 +10,14 @@ mongoose.Promise = global.Promise;
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
+mongoose.set('debug', function (coll, method, query, doc) {
+  console.log(coll + " " + method + " " + JSON.stringify(query) + " " + JSON.stringify(doc));
+});
 
 const Webpage = require('./models/webpage');
-//const Request = require('./models/request');
-//const Response = require('./models/response');
-//const Screenshot = require('./models/screenshot');
-//const Payload = require('./models/payload');
 const Website = require('./models/website');
 
-var kue = require('kue');
+const kue = require('kue-scheduler')
 let queue = kue.createQueue({
   prefix: 'q',
   redis: {
@@ -28,6 +26,63 @@ let queue = kue.createQueue({
   }
 });
 
+var job = queue.createJob('crawl', {})
+.unique('crawl').ttl(100000);
+
+/*
+queue.clear(function(error,response){
+  console.log("[Queue]cleared: ", response);
+});
+*/
+
+queue.every('* * * * *', job);
+
+queue.process('crawl', 1, (job, done) => {
+  crawlWeb(job, done);
+});
+
+const crawlWeb = async (job, done) => {
+  const websites = await Website.find()
+  .where("track.counter")
+  .gt(0)
+  .populate("last")
+  .then((documents) => {
+    return documents;
+  });
+  console.log("tracked: ",websites.length);
+
+  if(websites){
+    for(let seq in websites){
+      var website = websites[seq];
+      const now = Math.floor(Date.now()/(60*60*1000));
+      const update = website.track.period  + Math.floor(website.last.createdAt.valueOf()/(60*60*1000));
+      console.log((Date.now()-website.last.createdAt.valueOf())/(60*1000), update-now)
+      if (now >= update){
+        const webpage = await new Webpage({
+          input: website.url,
+          option: website.track.option,
+        });
+        await webpage.save(function (err, success){
+          if(err) console.log(err);
+          else console.log(webpage);
+        });
+        website.track.counter -= 1;
+        website.last = webpage;
+        await website.save();
+        const job = await queue.create('wgeteer', {
+          pageId: webpage._id,
+          options:webpage.option,
+        }).ttl(100000);
+        await job.save(function(err){
+          if( err ) console.log( job.id, err);
+          //else console.log( job.id, option);
+        });
+      }
+    }
+  }
+  done();
+}
+
 var cookieParser = require('cookie-parser');
 var csrf = require('csurf');
 var bodyParser = require('body-parser');
@@ -35,26 +90,21 @@ var csrfProtection = csrf({ cookie: true });
 var parseForm = bodyParser.urlencoded({ extended: false });
 router.use(cookieParser());
 
-/*
-router.get('/',  csrfProtection, function(req, res, next) {
-  //const now = date.now();
-  Webpage.find()
-    .sort("-createdAt")
-    .limit(100)
-    .then((webpages) => {
-      res.render(
-        'index', {
-          title: "Page",
-          webpages,
-          csrfToken:req.csrfToken(),
-        });
-    })
-    .catch((err) => { 
-      console.log(err);
-      res.send(err); 
+router.get('/vt/:id', parseForm, csrfProtection, async function(req, res, next) {
+  async function queJob(id){
+    const job = await queue.create('vt', {
+      payloadId:id,
+      //ak:ak,
+    }).ttl(100000);
+    await job.save(function(err){
+      if( err ) console.log( job.id, err);
+      //else console.log( job.id, option);
     });
+  }
+  const id = req.params.id;
+  const job = await queJob(id);
+  await res.redirect(req.baseUrl + "/payload/" + id);
 });
-*/
 
 router.post('/', parseForm, csrfProtection, async function(req, res, next) {
 
@@ -168,60 +218,12 @@ router.post('/progress', parseForm, csrfProtection, function(req, res, next) {
       res.render(
         'progress', {
         webpages, 
+        "title":"Progress",
         completed: completed,
         csrfToken:req.csrfToken(),
     });
   });
 });
-
-/*
-router.get('/page/:id', csrfProtection, async function(req, res, next) {
-  const id = req.params.id;
-
-  var webpage = await Webpage.findById(id)
-    .then((document) => {
-      //console.log(document);
-      return document;
-    });
-    
-  var previous = await Webpage.find({
-      "input":webpage.input,
-      "createdAt":{$lt: webpage.createdAt}
-  }).sort("createdat").limit(1)
-  .then((document) => {
-      //console.log(document);
-      return document;
-    });
-  //console.log(previous);
-  var diff;
-  if (previous){
-    diff =  Diff.createPatch("", previous[0].content, webpage.content, previous[0]._id, webpage._id) 
-  }
-  //console.log(diff);
-
-  var requests = await Request.find({"webpage":id})
-    .sort("createdAt")
-    .then((document) => {
-      return document;
-    });
-  //console.log(requests);
-
-  var responses = await Response.find({"webpage":id})
-    .sort("createdAt").then((document) => {
-      return document;
-    });
-
-  res.render('page', { 
-        webpage,
-        requests,
-        responses,
-        previous:previous[0],
-        diff,
-        csrfToken:req.csrfToken(), 
-        model:"page",
-  });
-});
-*/
 
 router.get('/delete/page/:id', csrfProtection, async function(req, res, next) {
   const id = req.params.id;

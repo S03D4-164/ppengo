@@ -48,6 +48,8 @@ block content
             pre= "bgp: " + JSON.stringify(response.remoteAddress.bgp[0], null, ' ')
 
           .col-6
+            if webpage.wappalyzer
+              h6= "wappalyzer: " + webpage.wappalyzer
             h6 securityDetails
             - var securityDetails = response.securityDetails
             if securityDetails.issuer

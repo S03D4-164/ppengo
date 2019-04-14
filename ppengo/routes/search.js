@@ -43,6 +43,12 @@ router.get('/page', csrfProtection, function(req, res, next) {
     if(typeof req.query.ip !== 'undefined' && req.query.ip !== null){
         search.push({"remoteAddress.ip":new RegExp(req.query.ip)});
     }
+    if(typeof req.query.tagkey !== 'undefined' && req.query.tagkey !== null){
+      var elem = {};
+      elem[req.query.tagkey] = new RegExp('.*');
+      search.push({"tag": {"$elemMatch":elem}});
+     }
+
     console.log(search);
     Webpage.find().and(search).sort("-createdAt")
     .then((webpage) => {
@@ -53,6 +59,28 @@ router.get('/page', csrfProtection, function(req, res, next) {
           //model:'page',
         });
       });
+});
+
+router.get('/website', csrfProtection, function(req, res, next) {
+  var search = []
+  if(typeof req.query.tagkey !== 'undefined' && req.query.tagkey !== null){
+    var elem = {};
+    elem[req.query.tagkey] = {"$regex":"^.*$"};
+    if(typeof req.query.tagval !== 'undefined' && req.query.tagval !== null){
+      elem[req.query.tagkey] = req.query.tagval;
+    }
+    search.push({"tag": {"$elemMatch":elem}});
+  }
+
+  console.log(search);
+  Website.find().and(search).sort("-createdAt")
+  .then((websites) => {
+      res.render('websites', { 
+        title: "Search: "+ JSON.stringify(req.query),
+        websites,
+        csrfToken:req.csrfToken(),
+      });
+    });
 });
 
 router.get('/request', csrfProtection, function(req, res, next) {

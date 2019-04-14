@@ -1,5 +1,6 @@
 const kue = require('kue-scheduler')
 const wgeteer = require('./wgeteer')
+const vt = require('./vt')
 
 const mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost:27017/wgeteer', { useNewUrlParser: true });
@@ -7,15 +8,16 @@ mongoose.Promise = global.Promise;
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
-const Website = require('./models/website');
-const Webpage = require('./models/webpage');
-
 const queue = kue.createQueue({
   redis: {
     host: "localhost",
     port: 6379
   }
 });
+
+/*
+const Website = require('./models/website');
+const Webpage = require('./models/webpage');
 
 var job = queue.createJob('crawl', {})
 .unique('crawl').ttl(100000);
@@ -25,7 +27,7 @@ var job = queue.createJob('crawl', {})
 await queue.clear();
 console.log("[Queue] cleared.");
 
-const cron = '00 * * * *'; 
+const cron = '* * * * *'; 
 queue.every(cron, job)
 console.log("[Queue] every: ", cron);
 
@@ -40,6 +42,7 @@ job.on('complete', function(result){
 }).on('progress', function(progress, data){
   console.log('\r  job #' + job.id + ' ' + progress + '% complete with data ', data );
 });
+*/
 
 queue.on('job enqueue', function(id, type){
   console.log( 'Job %s got queued of type %s', id, type );
@@ -65,6 +68,7 @@ queue.on('schedule success', function(job) {
   console.log("[Queue] schedule succeeded: ", job.length);
 });
 
+/*
 queue.process('crawl', 1, (job, done) => {
   crawlWeb(job, done);
 });
@@ -110,12 +114,27 @@ const crawlWeb = async (job, done) => {
   }
   done();
 }
+*/
 
 queue.process('wgeteer', 2, (job, done) => {
   getWeb(job, done);
 });
 const getWeb = async (job, done) => {
   await wgeteer.wget(job.data.pageId, job.data.options)
+  .then((success) => {
+    done();
+  })
+  .catch((err)=>{
+    console.log(err);
+    done();
+  });
+}
+
+queue.process('vt', 1, (job, done) => {
+  getVT(job, done);
+});
+const getVT = async (job, done) => {  console.log(job.data);
+  await vt.vt(job.data.payloadId)
   .then((success) => {
     done();
   })

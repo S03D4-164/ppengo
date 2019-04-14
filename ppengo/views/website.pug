@@ -10,11 +10,13 @@ block content
             a(href=rootPath + "website/" + website._id)= "URL: " +  website.url
           h6= "createdAt: " + website.createdAt
           //h6= "updatedAt: " + website.updatedAt
-          h6= "tag: "
+          h5= "tag: "
             each tag in website.tag
-              each key in tag
-                a= "[" + key +":"+tag[key] + "]"
-                a(href=rootPath + "website/" + website._id + "?rmtag=" + key +":"+tag[key])= "x "
+              each val, key in tag
+                span.badge.badge-primary
+                  a= key + ":" + val 
+                  a.text-light(href=rootPath + "website/" + website._id + "?rmtag=" + key +":"+val)= " [x]"
+                a= " "
 
           form(method="post" action=rootPath + "website/" + website._id)
             .row

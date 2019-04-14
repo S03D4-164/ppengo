@@ -409,6 +409,21 @@ module.exports = {
         }
       }
 
+      const cookies = await page.cookies();
+      console.log(cookies, finalResponse.headers);
+      if (finalResponse){
+        const wapps = await wapptr(
+          webpage.url,
+          finalResponse.headers,
+          webpage.content,
+          cookies,
+        );
+        console.log(wapps);
+        if (wapps){
+          webpage.wappalyzer = wapps;
+        }  
+      }
+
       const screenshot = await page.screenshot({
         fullPage: false,
         encoding: 'base64',

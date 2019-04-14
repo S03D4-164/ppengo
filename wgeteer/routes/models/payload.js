@@ -8,6 +8,9 @@ const payloadSchema = new mongoose.Schema({
         type: String,
         unique: true,
     },
+    vt: {
+        type: Object,
+    },
     createdAt: {
         type: Date,
         default: Date.now

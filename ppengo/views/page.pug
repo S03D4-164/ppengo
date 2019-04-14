@@ -40,7 +40,9 @@ block content
             h5 remoteAddress
             if webpage.remoteAddress
               - var pageAddress = webpage.remoteAddress
-              a(href=rootPath + "search/page?ip=" + pageAddress.ip)= "ip:port: " + pageAddress.ip + ":" + pageAddress.port
+              a= "ip-port: "
+              a(href=rootPath + "search/page?ip=" + pageAddress.ip)= pageAddress.ip
+              a=  " - " + pageAddress.port
               br
               a= "reverse: " + webpage.remoteAddress.reverse
               br
@@ -49,8 +51,11 @@ block content
                   a= "geoip country: " + webpage.remoteAddress.geoip[0].country
                   br
               a= "bgp: " + JSON.stringify(webpage.remoteAddress.bgp, null, ' ')
-
+              br
           .col-6
+            if webpage.wappalyzer
+              h5= "wappalyzer: " + webpage.wappalyzer
+            
             h5 securityDetails
             if webpage.securityDetails
               - var securityDetails = webpage.securityDetails
