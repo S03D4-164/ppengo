@@ -4,7 +4,9 @@ block content
     h1 Payload
     if payload
       h2 md5:  #{payload.md5}
-      h3 size: #{payload.payload.length}
+      h3 buffer size: #{payload.payload.length}
+      h3 text size: #{payload.payload.toString().length}
+      a= "download"
       ul.nav.nav-tabs
         li.nav-item
           a.nav-link.active(data-toggle="tab",href="#content-tab") Content
@@ -12,10 +14,17 @@ block content
         li.nav-item
           a.nav-link(data-toggle="tab",href="#request-tab") Request
         li.nav-item
-          a.nav-link(data-toggle="tab",href="#vt-tab") VT
+          if payload.vt
+            if payload.vt.total && payload.vt.positives
+            - var total =  payload.vt.total
+            - var pos =  payload.vt.positives
+            a.nav-link(data-toggle="tab",href="#vt-tab") VT #{pos}/#{total}
+          else
+            a.nav-link(data-toggle="tab",href="#vt-tab") VT
 
       div.tab-content
         div#vt-tab.tab-pane
+          a.btn.btn-primary(href=rootPath + "vt/" + payload._id) VT search
           pre= JSON.stringify(payload.vt, null, " ")
 
         div#request-tab.tab-pane

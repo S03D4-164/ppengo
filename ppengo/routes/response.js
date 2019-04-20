@@ -7,11 +7,10 @@ var cookieParser = require('cookie-parser');
 var csrf = require('csurf');
 var bodyParser = require('body-parser');
 var csrfProtection = csrf({ cookie: true });
-var parseForm = bodyParser.urlencoded({ extended: false });
+//var parseForm = bodyParser.urlencoded({ extended: false });
 router.use(cookieParser());
 
 router.get('/',  csrfProtection, function(req, res, next) {
-    //const now = date.now();
     Response
     .find()
     .populate("payload")
@@ -44,7 +43,7 @@ router.get('/:id', csrfProtection, async function(req, res, next) {
     const previous = await Response.find({
         "url":response.url,
         "createdAt":{$lt: response.createdAt}
-    }).sort("createdat").limit(1)
+    }).sort("-createdat").limit(1)
     .then((document) => {
         //console.log(document);
         return document;

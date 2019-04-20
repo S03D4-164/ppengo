@@ -9,11 +9,14 @@ block content
               th.col-3 capture
               th.col-2 timestamps
               th.col-5 site
-              //th.col-3 last
               th.col-2 tag
             each webpage in websites
+                if webpage.last
+                  - var status = webpage.last.status || null
+                  - var error = webpage.last.error || null
                 tr.d-flex.page(value=webpage._id, class={
-                  "table-success":webpage.track.counter,
+                  "table-info":webpage.track.counter,
+                  "table-secondary":status>=400||error,
                   })
                   td.col-3
                     //a= "id: " + webpage.id

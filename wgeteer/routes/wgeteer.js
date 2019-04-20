@@ -15,8 +15,6 @@ const Payload = require('./models/payload');
 const imageThumbnail = require('image-thumbnail');
 
 const crypto = require("crypto");
-const atob = require('atob');
-//const btoa = require('btoa');
 
 const ipInfo = require('./ipInfo')
 const wapptr = require('./wapptr')
@@ -51,17 +49,17 @@ module.exports = {
       }
       */
       var exHeaders = {};
+      var lang = option['lang'];
+      if (lang) exHeaders["Accept-Language"] = lang;
       if (option['exHeaders']){
         const headers = option['exHeaders'];
         for (let line of headers.split('\r\n')){
           var match  = line.match(/^([^:]+):(.+)$/);
-          if(match.length===2){
+          if(match.length>=2){
             exheaders[match[1].trim()] = match[2].trim();
           }
         }
       }
-      var lang = option['lang'];
-      if (lang) exHeaders["Accept-Language"] = lang;
 
       var chromiumArgs= [
         '--no-sandbox',
@@ -116,9 +114,7 @@ module.exports = {
 
       await client.send('Network.enable');
       //const requestCache = new Map();
-      const urlPatterns = [
-        '*',
-      ]
+      const urlPatterns = ['*']
       await client.send('Network.setRequestInterception', { 
         patterns: urlPatterns.map(pattern => ({
           urlPattern: pattern,
@@ -137,25 +133,17 @@ module.exports = {
           console.log(response.body.length, response.base64Encoded);    
           //const contentTypeHeader = Object.keys(responseHeaders).find(k => k.toLowerCase() === 'content-type');
           //let newBody, contentType = responseHeaders[contentTypeHeader];
-          const newBody = response.base64Encoded ? atob(response.body) : response.body;
+          const newBody = response.base64Encoded ? Buffer.from(response.body, "base64") : response.body;
           var cache = {};
           cache[request.url] = newBody;
           responseCache.push(cache);
         }catch(error){
-          console.log("[Intercepted] ", error);
+          console.log("[Intercepted] error", error);
         }
-        /*
-        const newHeaders = [];
-        for (var header in responseHeaders){
-          newHeaders.push(header+": "+responseHeaders[header])
-        }
-        */
         console.log(`Continuing interception ${interceptionId}`)
         client.send('Network.continueInterceptedRequest', {
           interceptionId,
-          //rawResponse: btoa('HTTP/1.1 200 OK' + '\r\n' + newHeaders.join('\r\n') + '\r\n\r\n' + newBody)
         })
-
       });
 
       page.on('dialog', async dialog => {
@@ -256,10 +244,8 @@ module.exports = {
             response.text,
             cookies,
           );
-          console.log(wapps);
-          if (wapps){
-            response.wappalyzer = wapps;
-          }
+          //console.log(wapps);
+          if (wapps) response.wappalyzer = wapps;
           if (response.remoteAddress){
             const host = response.remoteAddress.ip;
             var hostinfo = null
@@ -269,7 +255,7 @@ module.exports = {
             }else{
               hostinfo = await ipInfo(host);
               ipCache[host] = hostinfo;
-              //console.log(hostinfo);
+              console.log(hostinfo);
             }
             if(hostinfo){
               if (hostinfo.reverse) response.remoteAddress.reverse = hostinfo.reverse;
@@ -318,14 +304,10 @@ module.exports = {
           redirectChain:redirectChain,
         });
 
-        //if (result==='finished'){
         const response = interceptedRequest.response();
         if (response) {
           const res = await saveResponse(response, request);
-          if(res){
-            request.response = res.id;
-            //request.save();
-          }
+          if(res) request.response = res.id;
         }
         await request.save(function (err){
           if(err) console.log(err); 
@@ -410,7 +392,7 @@ module.exports = {
       }
 
       const cookies = await page.cookies();
-      console.log(cookies, finalResponse.headers);
+      //console.log(cookies, finalResponse.headers);
       if (finalResponse){
         const wapps = await wapptr(
           webpage.url,
@@ -418,10 +400,8 @@ module.exports = {
           webpage.content,
           cookies,
         );
-        console.log(wapps);
-        if (wapps){
-          webpage.wappalyzer = wapps;
-        }  
+        //console.log(wapps);
+        if (wapps) webpage.wappalyzer = wapps;
       }
 
       const screenshot = await page.screenshot({
@@ -453,8 +433,7 @@ module.exports = {
     }catch(error){
         console.log(error);
         webpage.error = error.message;
-        await new Promise(done => setTimeout(done, 1000));
-  
+        await new Promise(done => setTimeout(done, 5000)); 
         if (!finalResponse){
           if(responses.length===1){
             finalResponse=responses[0];
@@ -462,11 +441,11 @@ module.exports = {
           }
         }
     }finally{
-
       if(finalResponse){
         webpage.status = finalResponse.status;
         webpage.headers = finalResponse.headers;
         webpage.remoteAddress = finalResponse.remoteAddress;
+        webpage.securityDetails = finalResponse.securityDetails;
       };
       webpage.requests = requests;
       webpage.responses = responses;

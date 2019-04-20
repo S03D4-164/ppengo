@@ -5,11 +5,13 @@ block content
   if website
       include include/sitemodal.pug
       .row
-        .col-5
+        .col-12
           h2
             a(href=rootPath + "website/" + website._id)= "URL: " +  website.url
           h6= "createdAt: " + website.createdAt
           //h6= "updatedAt: " + website.updatedAt
+      .row
+        .col-4
           h5= "tag: "
             each tag in website.tag
               each val, key in tag
@@ -27,14 +29,22 @@ block content
               .col-5
                 input(type="text" name="tag" id="tag" placeholder="value")
               input(type="hidden" name="_csrf", value=csrfToken)
-
-        .col-7
+        .col-8
           a.btn.btn-sm.btn-outline-primary(data-toggle="modal",data-target="#update_form", style="cursor:pointer;") track
           button.btn.btn-sm(data-toggle="collapse" data-target="#track") ▽
           div#track.collapse
-            pre= website.track
+            pre= JSON.stringify(website.track, null, " ")
+          br
+          br
+          //a.btn.btn-sm.btn-outline-primary(style="cursor:pointer;") gsb▽
+          button.btn.btn-sm.btn-outline-primary(data-toggle="collapse" data-target="#gsb") gsb ▽
+          div#gsb.collapse
+            a.btn.btn-sm.btn-outline-primary(href=rootPath + "gsblookup/" + website._id) Lookup
+            pre= JSON.stringify(website.gsb.lookup, null, " ")
+
       if webpages
         include include/table.pug
+        
   else
     div.alert.alert-warning
       p No data

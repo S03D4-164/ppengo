@@ -1,8 +1,9 @@
 html {
   overflow-y:scroll;
+  font-size: 14px;
 }
 
-table{
+table {
   table-layout:fixed;
 }
 
@@ -34,6 +35,10 @@ input{
   width:100%;
 }
 
+h1, h2, h3 {
+  word-break: break-all;
+}
+
 pre {
   white-space: pre-wrap;
   white-space: -moz-pre-wrap;
@@ -61,7 +66,3 @@ pre {
 #toTop:hover {
   background-color: #555; /* Add a dark-grey background on hover */
 }
-
-body {
-  zoom:95%;
-} 

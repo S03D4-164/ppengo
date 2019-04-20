@@ -9,10 +9,12 @@ const Request = require('./models/response');
 
 var cookieParser = require('cookie-parser');
 var csrf = require('csurf');
-var bodyParser = require('body-parser');
+//var bodyParser = require('body-parser');
 var csrfProtection = csrf({ cookie: true });
-var parseForm = bodyParser.urlencoded({ extended: false });
+//var parseForm = bodyParser.urlencoded({ extended: false });
 router.use(cookieParser());
+
+var ObjectId = require('mongoose').Types.ObjectId
 
 RegExp.escape= function(s) {
   return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
@@ -24,7 +26,7 @@ router.get('/page', csrfProtection, function(req, res, next) {
       search.push({"input": req.query.input});
     }
     if(typeof req.query.rinput !== 'undefined' && req.query.rinput !== null){
-      search.push({"input": new RegExp(RegExp.escape(req.query.input))});
+      search.push({"input": new RegExp(RegExp.escape(req.query.rinput))});
     }
 
     if(typeof req.query.title !== 'undefined' && req.query.title !== null){
@@ -34,7 +36,7 @@ router.get('/page', csrfProtection, function(req, res, next) {
       search.push({"url": req.query.url});
     }
     if(typeof req.query.rurl !== 'undefined' && req.query.rurl !== null){
-      search.push({"url":new RegExp(RegExp.escape(req.query.url))});
+      search.push({"url":new RegExp(RegExp.escape(req.query.rurl))});
     }
 
     if(typeof req.query.content !== 'undefined' && req.query.content !== null){
@@ -56,7 +58,6 @@ router.get('/page', csrfProtection, function(req, res, next) {
           title: "Search: "+ JSON.stringify(req.query),
           webpages:webpage,
           csrfToken:req.csrfToken(),
-          //model:'page',
         });
       });
 });
@@ -104,7 +105,6 @@ router.get('/request', csrfProtection, function(req, res, next) {
     });
 });
 
-
 router.get('/response', csrfProtection, function(req, res, next) {
     var search = []
     if(typeof req.query.url !== 'undefined' && req.query.url !== null){
@@ -130,6 +130,11 @@ router.get('/response', csrfProtection, function(req, res, next) {
     if(typeof req.query.status !== 'undefined' && req.query.status !== null){
       search.push({"status":req.query.status});
     }
+
+    if(typeof req.query.webpage !== 'undefined' && req.query.webpage !== null){
+      search.push({"webpage": new ObjectId(req.query.webpage)});
+    }
+
     console.log(req.query, search);
     Response.find()
     .and(search).sort("-createdAt")

@@ -17,11 +17,18 @@ const websiteSchema = new mongoose.Schema({
     tag: {
         type: [Object]
     },
+    gsb: {
+        lookup:{
+            type: Object,
+        }
+    },
+
     last : { type: mongoose.Schema.Types.ObjectId, ref: 'Webpage' },
 },
 {timestamps:true},
 );
 
 websiteSchema.index({updatedAt:-1});
+websiteSchema.index({url:1});
 
 module.exports = mongoose.model('Website', websiteSchema);

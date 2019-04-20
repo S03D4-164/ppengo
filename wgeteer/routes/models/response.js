@@ -47,7 +47,8 @@ const responseSchema = new mongoose.Schema({
 
 });
 
-//responseSchema.index({createdAt:-1});
+responseSchema.index({createdAt:-1});
 responseSchema.index({text:'text'});
+responseSchema.index({webpage:1});
 
 module.exports = mongoose.model('Response', responseSchema);

@@ -5,72 +5,82 @@ block content
     .p-2
       .row.p-2.bg-light.shadow-lg
         div.col-md-3
-          h1= "Page"
+          h2= "Page"
           if webpage.thumbnail
             a.colorbox(href=rootPath + "screenshot/" + webpage.screenshot)
               img(src="data:image/png;base64," + webpage.thumbnail)
+          h5= "id: "
+            a(href=rootPath + "page/" + webpage._id) #{webpage._id}
+          a= moment(webpage.createdAt).format('YYYY-MM-DD HH:mm:ss.SSS') +" / "+moment(webpage.createdAt).fromNow()
+
         div.col-md-9
           h3 Title: 
             a(href=rootPath + "search/page?title=" + encodeURIComponent(webpage.title)) #{webpage.title}
           h3 Url: 
             a(href=rootPath + "search/page?url=" + encodeURIComponent(webpage.url)) #{webpage.url} 
           h3 from input: 
-            a(href=rootPath + "search/page?input=" + encodeURIComponent(webpage.input)) #{webpage.input}
+            a(href=rootPath + "website/" + website._id) #{webpage.input}
+            a(href=rootPath + "search/page?input=" + encodeURIComponent(webpage.input)) 🔍
           if webpage.error
-            p= "Error: " + webpage.error
+            h5= "Error: " + webpage.error
           else
-            p= "Error: none"
-          p #{webpage.createdAt}
+            h5= "Error: none"
+          h5 Option
+          if webpage.option
+            each value, key in webpage.option
+              if value
+                .row
+                  .col-2= key
+                  .col-10= value
+      
     .row
-      .p-2.col-5
+      .p-2.col-12
        .p-2.bg-light.shadow-lg
-        h3 Option
-        if webpage.option
-          each value, key in webpage.option
-            if value
-              .row
-                .col-2= key
-                .col-10= value
-      .p-2.col-7
-       .p-2.bg-light.shadow-lg
-        h3 finalResponse
-        h5= "status:" + webpage.status
+        h3= "finalResponse"
+          a= " - status:" + webpage.status
+  
         .row
-          .col-6
-            h5 remoteAddress
+          dl.col-3
+
+            dt= "remoteAddress: "
             if webpage.remoteAddress
-              - var pageAddress = webpage.remoteAddress
-              a= "ip-port: "
-              a(href=rootPath + "search/page?ip=" + pageAddress.ip)= pageAddress.ip
-              a=  " - " + pageAddress.port
-              br
-              a= "reverse: " + webpage.remoteAddress.reverse
-              br
+            - var pageAddress = webpage.remoteAddress
+              dd ip - port :
+                a(href=rootPath + "search/page?ip=" + pageAddress.ip)= pageAddress.ip
+                a=  " - " + pageAddress.port
               if webpage.remoteAddress.geoip
                 if webpage.remoteAddress.geoip[0]
-                  a= "geoip country: " + webpage.remoteAddress.geoip[0].country
-                  br
-              a= "bgp: " + JSON.stringify(webpage.remoteAddress.bgp, null, ' ')
-              br
-          .col-6
+                  dd= "geoip country: " + webpage.remoteAddress.geoip[0].country
+            dt= "reverse: "
+            each reverse in webpage.remoteAddress.reverse
+              dd= reverse
+          dl.col-3
+              dt= "bgp: "
+              each bgp in webpage.remoteAddress.bgp
+                pre=JSON.stringify(bgp, null, ' ')
+                hr
+
+          dl.col-3
             if webpage.wappalyzer
-              h5= "wappalyzer: " + webpage.wappalyzer
-            
-            h5 securityDetails
+              dt= "wappalyzer: "
+              each wapp in webpage.wappalyzer
+                dd= wapp
+          dl.col-3            
+            dt securityDetails
             if webpage.securityDetails
               - var securityDetails = webpage.securityDetails
               if securityDetails.issuer
-                a= "issuer: " + securityDetails.issuer
+                dd= "issuer: " + securityDetails.issuer
                 br
-                a= "protocol: " + securityDetails.protocol
+                dd= "protocol: " + securityDetails.protocol
                 br
-                a= "subjectName: " + securityDetails.subjectName
+                dd= "subjectName: " + securityDetails.subjectName
                 br
                 - const from = securityDetails.validFrom
-                a= "validFrom: " + moment.unix(from).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(from).fromNow()
+                dd= "validFrom: " + moment.unix(from).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(from).fromNow()
                 br
                 - const to = securityDetails.validTo
-                a= "validTo: " + moment.unix(to).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(to).fromNow()
+                dd= "validTo: " + moment.unix(to).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(to).fromNow()
             else
                 p empty
 
@@ -137,6 +147,7 @@ block content
                         td.col-2= response.securityDetails.issuer
                       else
                         td.col-5 no response
+                        - break
       div#content-tab.tab-pane
        .row
         if webpage.content
@@ -156,15 +167,14 @@ block content
       div#diff-tab.tab-pane
         .row
           if diff
-            div.col-md-1
-              h5= "Diff"
-            div.col-md-10
+            h5= "Diff"          
+            a(href=rootPath + "page/" + previous._id) previous: #{previous.id}
+            br
+            button.btn.btn-sm.btn-primary(onclick="diff('side-by-side')") side-by-side
+            button.btn.btn-sm.btn-primary(onclick="diff('line-by-line')") line-by-line
+            div.col-md-12
               #diff
                 pre.prettyprint.linenums(style="white-space: pre-wrap") #{diff}
-            div.col-md-1
-              p
-                button.btn.btn-sm.btn-primary(onclick="diff()") diff2html
-              a(href=rootPath + "page/" + previous._id) previous: #{previous.id}
           else
             div.alert
               p No data
@@ -174,13 +184,13 @@ block content
           var beautified = html_beautify(content);
           $('pre#content').text(beautified);
         };
-        function diff(){
+        function diff(output){
           var udiff =$("#diff").text();
           var diffHtml = Diff2Html.getPrettyHtml(udiff, {
             inputFormat: 'diff',
             showFiles: false,
             matching: "none",
-            outputFormat: 'side-by-side',
+            outputFormat: output,
             //outputFormat: 'line-by-line',
           });
           document.getElementById("diff").innerHTML = diffHtml;

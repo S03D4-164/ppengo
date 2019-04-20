@@ -9,10 +9,20 @@ services:
     container_name: wgeteer
     volumes:
       - ./routes:/home/node/app
-      - ./download:/home/node/download
+      #- ./download:/home/node/download
     network_mode: "host"
     working_dir: /home/node/app
     #command: /bin/sh
-    command: dumb-init -- node --optimize_for_size --gc_interval=100 --max-old-space-size=2048 worker
+    command: dumb-init -- node --optimize_for_size --gc_interval=100 --max-old-space-size=2048 scheduler
     mem_limit: 2g
-    
+
+  gosb:
+    build: "gosb"
+    tty: true
+    container_name: gosb
+    volumes:
+      - ./gosb:/tmp/gosb
+    ports:
+      - 127.0.0.1:8080:8080
+    working_dir: /app
+    command: ./bin/sbserver -db="/tmp/gosb/gsbv4.db" -srvaddr="0.0.0.0:8080" -apikey=""

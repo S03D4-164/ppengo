@@ -4,17 +4,17 @@ var Diff = require('diff');
 
 var cookieParser = require('cookie-parser');
 var csrf = require('csurf');
-var bodyParser = require('body-parser');
+//var bodyParser = require('body-parser');
 var csrfProtection = csrf({ cookie: true });
-var parseForm = bodyParser.urlencoded({ extended: false });
+//var parseForm = bodyParser.urlencoded({ extended: false });
 router.use(cookieParser());
 
 const Webpage = require('./models/webpage');
 const Request = require('./models/request');
 const Response = require('./models/response');
+const Website = require('./models/website');
 
 router.get('/',  csrfProtection, function(req, res, next) {
-    //const now = date.now();
     Webpage.find()
       .sort("-createdAt")
       .limit(100)
@@ -40,20 +40,22 @@ router.get('/:id', csrfProtection, async function(req, res, next) {
         //console.log(document);
         return document;
       });
-      
-    var previous = await Webpage.find({
+  
+    var diff;
+    if (webpage.content){
+      var previous = await Webpage.find({
         "input":webpage.input,
-        //"createdAt":{$lt: webpage.createdAt}
-    }).sort("-createdAt")
-    .then((document) => {
+        "createdAt":{$lt: webpage.createdAt}
+      }).sort("-createdAt")
+      .then((document) => {
         console.log(document.length);
         return document;
       });
-    console.log(webpage.createdAt);
-    var diff;
-    if (previous[0]){
-      if (previous[0].content){
-        diff =  Diff.createPatch("", previous[0].content, webpage.content, previous[0]._id, webpage._id) 
+      if (previous.length){
+        previous = previous[0];
+        if (previous.content && webpage.content){
+          diff =  Diff.createPatch("", previous.content, webpage.content, previous._id, webpage._id) 
+        }
       }
     }
     //console.log(diff);
@@ -63,10 +65,15 @@ router.get('/:id', csrfProtection, async function(req, res, next) {
       .then((document) => {
         return document;
       });
-    //console.log(requests);
   
     var responses = await Response.find({"webpage":id})
       .sort("createdAt").then((document) => {
+        return document;
+      });
+
+      var website = await Website.findOne({"url":webpage.input})
+      .then((document) => {
+        //console.log(document);
         return document;
       });
   
@@ -74,10 +81,10 @@ router.get('/:id', csrfProtection, async function(req, res, next) {
           webpage,
           requests,
           responses,
-          previous:previous[0],
+          website,
+          previous:previous,
           diff,
           csrfToken:req.csrfToken(), 
-          model:"page",
     });
 });
 

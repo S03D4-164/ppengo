@@ -12,7 +12,6 @@ var parseForm = bodyParser.urlencoded({ extended: false });
 router.use(cookieParser());
 
 router.get('/',  csrfProtection, function(req, res, next) {
-  //const now = date.now();
   Website.find()
     .sort("-updatedAt")
     .limit(100)
@@ -92,7 +91,7 @@ router.post('/:id', parseForm, csrfProtection, async function(req, res, next) {
       options['proxy'] = req.body['proxy'];
       options['timeout'] = req.body['timeout'];
       options['delay'] = req.body['delay'];
-      options['exheader'] = req.body['exheader'];     
+      options['exHeaders'] = req.body['exHeaders'];     
       options['lang'] = req.body['lang'];
       options['userAgent'] = req.body['userAgent'];
       track.option = options;  

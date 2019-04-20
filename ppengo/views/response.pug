@@ -22,7 +22,8 @@ block content
               h5= "redirectChain:"
               if request.redirectChain
                 each chain in request.redirectChain
-                  li= chain
+                  a= "- " + chain
+                  br
               else
                 p empty          
       .p-2.col-6(style="break-word:break-all;")
@@ -37,7 +38,7 @@ block content
         .row
           .col-6
             h6 remoteAddress
-            a= "ip:port: " + response.remoteAddress.ip + ":" + response.remoteAddress.port
+            a= "ip - port: " + response.remoteAddress.ip + " - " + response.remoteAddress.port
             br
             a= "reverse: " + response.remoteAddress.reverse
             br
@@ -97,25 +98,38 @@ block content
         div.col-md-10
           if response.text
               pre#content.prettyprint.linenums(style="white-space: pre-wrap") #{response.text}
+              div(hidden="")
+                pre#tmp.prettyprint.linenums(style="white-space: pre-wrap") #{response.text}
+
           else
             h5 No Content.
         div.col-md-1
           p
+            button.btn.btn-sm.btn-primary(onclick="reset()") reset
+          p
             button.btn.btn-sm.btn-primary(onclick="prettyPrint()") prettyPrint
           p
             if request.resourceType === "script"
-              button.btn.btn-sm.btn-primary(onclick="beautify(\"script\")") beautify
+              button.btn.btn-sm.btn-primary(onclick="beautify(\"script\")") JSbeautify
             else if request.resourceType === "stylesheet"
-              button.btn.btn-sm.btn-primary(onclick="beautify(\"stylesheet\")") beautify
+              button.btn.btn-sm.btn-primary(onclick="beautify(\"stylesheet\")") CSSbeautify
             else
-              button.btn.btn-sm.btn-primary(onclick="beautify(\"html\")") beautify
+              button.btn.btn-sm.btn-primary(onclick="beautify(\"html\")") HTMLbeautify
+              br
+              br
+              button.btn.btn-sm.btn-primary(onclick="beautify(\"script\")") JSbeautify
 
           script.
+              function reset(){
+                var content=$("#tmp").text();
+                $('pre#content').text(content);
+              };
               function beautify(type){
                 //console.log(type);
                 var content=$("#content").text();
                 var beautified;
-                if (type==="script") beautified = js_beautify(content);
+                var opts = {"unescape-strings":true};
+                if (type==="script") beautified = js_beautify(content, opts);
                 else if (type==="stylesheet") beautified = css_beautify(content);
                 else beautified = html_beautify(content);
                 $('pre#content').text(beautified);

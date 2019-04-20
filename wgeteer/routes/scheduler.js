@@ -1,6 +1,7 @@
 const kue = require('kue-scheduler')
 const wgeteer = require('./wgeteer')
 const vt = require('./vt')
+const gsblookup = require('./gsblookup')
 
 const mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost:27017/wgeteer', { useNewUrlParser: true });
@@ -68,54 +69,6 @@ queue.on('schedule success', function(job) {
   console.log("[Queue] schedule succeeded: ", job.length);
 });
 
-/*
-queue.process('crawl', 1, (job, done) => {
-  crawlWeb(job, done);
-});
-
-const crawlWeb = async (job, done) => {
-  const websites = await Website.find()
-  .where("track.counter")
-  .gt(0)
-  .populate("last")
-  .then((documents) => {
-    return documents;
-  });
-  //console.log(websites);
-
-  if(websites){
-    for(let seq in websites){
-      var website = websites[seq];
-      const now = Math.floor(Date.now()/(60*60*1000));
-      const update = website.track.period  + Math.floor(website.last.createdAt.valueOf()/(60*60*1000));
-      console.log(Date.now()-website.last.createdAt.valueOf(), update-now)
-      if (now >= update){
-        const webpage = await new Webpage({
-          input: website.url,
-          option: website.track.option,
-        });
-        await webpage.save(function (err, success){
-          if(err) console.log(err);
-          else console.log(webpage);
-        });
-        website.track.counter -= 1;
-        website.last = webpage;
-        await website.save();
-        const job = await queue.create('wgeteer', {
-          pageId: webpage._id,
-          options:webpage.option,
-        }).ttl(100000);
-        await job.save(function(err){
-          if( err ) console.log( job.id, err);
-          //else console.log( job.id, option);
-        });
-      }
-    }
-  }
-  done();
-}
-*/
-
 queue.process('wgeteer', 2, (job, done) => {
   getWeb(job, done);
 });
@@ -133,8 +86,22 @@ const getWeb = async (job, done) => {
 queue.process('vt', 1, (job, done) => {
   getVT(job, done);
 });
-const getVT = async (job, done) => {  console.log(job.data);
+const getVT = async (job, done) => {
   await vt.vt(job.data.payloadId)
+  .then((success) => {
+    done();
+  })
+  .catch((err)=>{
+    console.log(err);
+    done();
+  });
+}
+
+queue.process('gsblookup', (job, done) => {
+  gsbLookup(job, done);
+});
+const gsbLookup = async (job, done) => {
+  await gsblookup.lookup(job.data.websiteId)
   .then((success) => {
     done();
   })

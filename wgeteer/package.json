@@ -6,8 +6,6 @@
     "start": "node ./app/scheduler.js"
   },
   "dependencies": {
-    "atob": "^2.1.2",
-    "btoa": "^1.2.1",
     "geoip-lite": "^1.3.6",
     "image-thumbnail": "^1.0.2",
     "kue": "^0.11.6",

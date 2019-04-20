@@ -3,6 +3,7 @@
 - var winFirefox = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:62.0) Gecko/20100101 Firefox/62.0'
 - var winIE11 = 'Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko'
 - var iphone6 = 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1'
+- var googlebot = 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
 
 #register_form.modal.col-12(role="dialog")
   .modal-dialog.modal-dialog-centered(style="max-width:50%;")
@@ -21,12 +22,15 @@
                 option(value=winIE11) win-IE11
                 option(value=iphone6) iphone6
                 option(value=win10Edge) win10-edge
+                option(value=googlebot) googlebot
 
             div.col-6
               label.col-12(for="lang") Browser Language: 
               select.col-12(name='lang' id='lang' multiple)
                 option(value='ja', selected= true) ja
                 option(value='en') en
+                option(value='zh') zh
+
           br
           label.col-2(for="referer") Referer: 
           input.col-10(type="text" name="referer", id="referer")
@@ -41,8 +45,8 @@
           //label.col-2(for="disableScript") Disable Script
           //input.col-1(type="checkbox", name="disableScript", id="disableScript" value="")
           br
-          label(for="exheader") Extra Headers: 
-          textarea.col-12(id="exheader", name="exheader", rows=2)
+          label(for="exHeaders") Extra Headers: 
+          textarea.col-12(id="exHeaders", name="exHeaders", rows=2)
           br
           //label(for="postData") Post Data: 
           //br

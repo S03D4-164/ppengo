@@ -16,6 +16,8 @@ mongoose.set('debug', function (coll, method, query, doc) {
 
 const Webpage = require('./models/webpage');
 const Website = require('./models/website');
+const Payload = require('./models/payload');
+const Screenshot = require('./models/screenshot');
 
 const kue = require('kue-scheduler')
 let queue = kue.createQueue({
@@ -27,13 +29,11 @@ let queue = kue.createQueue({
 });
 
 var job = queue.createJob('crawl', {})
-.unique('crawl').ttl(100000);
+.unique('crawl').ttl(600*1000);
 
-/*
 queue.clear(function(error,response){
   console.log("[Queue]cleared: ", response);
 });
-*/
 
 queue.every('* * * * *', job);
 
@@ -72,7 +72,7 @@ const crawlWeb = async (job, done) => {
         const job = await queue.create('wgeteer', {
           pageId: webpage._id,
           options:webpage.option,
-        }).ttl(100000);
+        }).ttl(600*1000);
         await job.save(function(err){
           if( err ) console.log( job.id, err);
           //else console.log( job.id, option);
@@ -95,7 +95,7 @@ router.get('/vt/:id', parseForm, csrfProtection, async function(req, res, next) 
     const job = await queue.create('vt', {
       payloadId:id,
       //ak:ak,
-    }).ttl(100000);
+    }).ttl(60*1000);
     await job.save(function(err){
       if( err ) console.log( job.id, err);
       //else console.log( job.id, option);
@@ -106,13 +106,29 @@ router.get('/vt/:id', parseForm, csrfProtection, async function(req, res, next) 
   await res.redirect(req.baseUrl + "/payload/" + id);
 });
 
+router.get('/gsblookup/:id', parseForm, csrfProtection, async function(req, res, next) {
+  async function queJob(id){
+    const job = await queue.create('gsblookup', {
+      websiteId:id,
+    }).ttl(60*1000);
+    await job.save(function(err){
+      if( err ) console.log( job.id, err);
+      //else console.log( job.id, option);
+    });
+  }
+  const id = req.params.id;
+  const job = await queJob(id);
+  await res.redirect(req.baseUrl + "/website/" + id);
+});
+
+
 router.post('/', parseForm, csrfProtection, async function(req, res, next) {
 
   async function queJob(webpage){
     const job = await queue.create('wgeteer', {
       pageId: webpage._id,
       options:webpage.option,
-    }).ttl(100000);
+    }).ttl(60*1000);
     await job.save(function(err){
       if( err ) console.log( job.id, err);
       //else console.log( job.id, option);
@@ -135,6 +151,8 @@ router.post('/', parseForm, csrfProtection, async function(req, res, next) {
     .replace(/^ */, '')
     .replace(/\[:\]/g, ':')
     .replace(/\[.\]/g, '.')
+    .replace(/^URL./, '')
+    .replace(/^url./, '')
     .replace(/^hXXp/, 'http')
     .replace(/^hxxp/, 'http');
 
@@ -180,7 +198,7 @@ router.post('/', parseForm, csrfProtection, async function(req, res, next) {
         options['proxy'] = req.body['proxy'];
         options['timeout'] = req.body['timeout'];
         options['delay'] = req.body['delay'];
-        options['exheader'] = req.body['exheader'];     
+        options['exHeaders'] = req.body['exHeaders'];
         options['lang'] = lang[lkey];
         options['userAgent'] = userAgent[ukey];
         //console.log(options);
