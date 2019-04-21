@@ -13,6 +13,14 @@
           label(for="url") URL: 
           textarea.col-12(id="url", name="url", rows=2) http://
           br
+          label.col-2(for="track_url") Track URL
+          //input.col-1(type="checkbox", name="track", id="track" value="")
+          select.col-10(name='track_url' id='track_url')
+              option(value=0, selected= true) -
+              option(value=1) 1hx24 (no overwrite) 
+              option(value=2) 1hx24 (overwrite)
+
+          br
           .row
             div.col-6
               label.col-12(for="userAgent") User-Agent: 
@@ -47,7 +55,7 @@
           br
           label(for="exHeaders") Extra Headers: 
           textarea.col-12(id="exHeaders", name="exHeaders", rows=2)
-          br
+
           //label(for="postData") Post Data: 
           //br
           //textarea(id="postData", name="postData", rows=3, cols=50)

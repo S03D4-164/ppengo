@@ -146,7 +146,6 @@ router.post('/', parseForm, csrfProtection, async function(req, res, next) {
   }
 
   async function saveInput(inputUrl, option){
-    //console.log("options", option);
     inputUrl = inputUrl
     .replace(/^ */, '')
     .replace(/\[:\]/g, ':')
@@ -164,16 +163,42 @@ router.post('/', parseForm, csrfProtection, async function(req, res, next) {
       if(err) console.log(err);
       //else console.log(webpage);
     });
-    //console.log("webpage.option", webpage.option);
 
     const website = await Website.findOneAndUpdate(
       {"url": inputUrl},
-      {"last": webpage._id},
+      {
+        "last": webpage._id,
+      },
       {"new":true,"upsert":true},
     );
+    if (option['track'] > 0){
+      counter = 24;
+      period = 1;
+      website.track.counter = counter;
+      website.track.period = period;
+       
+      if (option['track'] = 2){
+        await website.save(function (err, success){
+          if(err) console.log(err);
+          else console.log(website);
+        });
+    
+      } else if (option['track'] = 1){
+        if (!website.track.counter){
+          await website.save(function (err, success){
+            if(err) console.log(err);
+            else console.log(website);
+          });
+        } 
+      }
+    }
+
+
     return webpage;
     //console.log(ids);
   }
+
+  console.log(req.body);
 
   const input = req.body['url'];
   const urls = input.split('\r\n');
@@ -193,16 +218,17 @@ router.post('/', parseForm, csrfProtection, async function(req, res, next) {
     }
     for (var lkey in lang){
       for (var ukey in userAgent){
-        var options = {};
-        options['referer'] = req.body['referer'];
-        options['proxy'] = req.body['proxy'];
-        options['timeout'] = req.body['timeout'];
-        options['delay'] = req.body['delay'];
-        options['exHeaders'] = req.body['exHeaders'];
-        options['lang'] = lang[lkey];
-        options['userAgent'] = userAgent[ukey];
-        //console.log(options);
-        const webpage = await saveInput(inputUrl, options);
+        var option = {};
+        option['referer'] = req.body['referer'];
+        option['proxy'] = req.body['proxy'];
+        option['timeout'] = req.body['timeout'];
+        option['delay'] = req.body['delay'];
+        option['exHeaders'] = req.body['exHeaders'];
+        option['lang'] = lang[lkey];
+        option['userAgent'] = userAgent[ukey];
+        option['track'] = req.body['track_url'];
+        console.log(option);
+        const webpage = await saveInput(inputUrl, option);
         console.log(webpage);
         ids.push(webpage._id.toString());
         webpages.push(webpage);  
