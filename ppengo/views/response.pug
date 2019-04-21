@@ -2,15 +2,15 @@ extends layout
 
 block content
   if webpage
-    h3
-      a(href=rootPath+"page/"+webpage._id) goto Page: #{webpage.input}
+    h3= "<< goto Page: "
+      a(href=rootPath+"page/"+webpage._id) #{webpage.input}
     .row
-      .p-2.col-6(style="break-word:break-all;")
+      .p-2.col-6
        .p-2.bg-light.shadow-lg
         if request
-          .row.col-md-12(style="word-break:break-all;")
+          .row.col-md-12
             h4 Request: #{request.url}
-            a(href=rootPath + "search/request?url=" + request.url) 🔍
+              a(href=rootPath + "search/request?url=" +  encodeURIComponent(request.url)) 🔍
           p= "createdAt: " + moment(request.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
           .row
             .col-12
@@ -26,12 +26,12 @@ block content
                   br
               else
                 p empty          
-      .p-2.col-6(style="break-word:break-all;")
+      .p-2.col-6
        .p-2.bg-light.shadow-lg
         if response
-          .row.col-md-12(style="word-break:break-all;")
+          .row.col-md-12
             h4 Response: #{response.url}
-            a(href=rootPath + "search/response?url=" + response.url) 🔍
+              a(href=rootPath + "search/response?url=" + encodeURIComponent(response.url)) 🔍
         p= "createdAt: " + moment(response.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
         h5= "status: " + response.status + " " + response.statusText
         //p= "ok: " + webpage.ok
@@ -40,14 +40,16 @@ block content
             h6 remoteAddress
             a= "ip - port: " + response.remoteAddress.ip + " - " + response.remoteAddress.port
             br
-            a= "reverse: " + response.remoteAddress.reverse
+            a= "reverse: "
             br
+            each reverse in response.remoteAddress.reverse
+              a= reverse
+              br
             if response.remoteAddress.geoip
               if response.remoteAddress.geoip[0]
                 a= "geoip country: " + response.remoteAddress.geoip[0].country
                 br
             pre= "bgp: " + JSON.stringify(response.remoteAddress.bgp[0], null, ' ')
-
           .col-6
             if webpage.wappalyzer
               h6= "wappalyzer: " + webpage.wappalyzer
@@ -69,6 +71,7 @@ block content
               a= "To: " + moment.unix(to).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(to).fromNow()
             else
               p empty
+
     .row
         .col-6
           h6 Request Headers:

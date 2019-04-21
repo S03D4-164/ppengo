@@ -27,7 +27,10 @@ const getIpinfo = async function(host){
         //const who = await whoisCache(host);
         var hostnames = [];
         try{
-            hostnames = await whois.reverse(host);
+            var reverses = await whois.reverse(host);
+            console.log(reverses);
+            hostnames = Array.from(new Set(reverses))
+
         }catch(error){
             console.log(error);
         }

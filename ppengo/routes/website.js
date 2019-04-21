@@ -59,7 +59,7 @@ router.get('/:id', csrfProtection, async function(req, res, next) {
     res.render('website', {
       website,
       webpages,
-      title: website.url,
+      title: "Results",
       csrfToken:req.csrfToken(), 
     });
 });
@@ -105,7 +105,7 @@ router.post('/:id', parseForm, csrfProtection, async function(req, res, next) {
       .then((document)=>{return document});
     res.render('website', {
           website, webpages,
-          title: website.url,
+          title: "Results",
           csrfToken:req.csrfToken(), 
     });
 });

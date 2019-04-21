@@ -16,8 +16,8 @@ mongoose.set('debug', function (coll, method, query, doc) {
 
 const Webpage = require('./models/webpage');
 const Website = require('./models/website');
-const Payload = require('./models/payload');
-const Screenshot = require('./models/screenshot');
+//const Payload = require('./models/payload');
+//const Screenshot = require('./models/screenshot');
 
 const kue = require('kue-scheduler')
 let queue = kue.createQueue({
@@ -243,13 +243,14 @@ router.post('/progress', parseForm, csrfProtection, function(req, res, next) {
   });
 });
 
+/*
+
 router.get('/delete/page/:id', csrfProtection, async function(req, res, next) {
   const id = req.params.id;
   await Webpage.findByIdAndDelete(id)
   res.redirect(req.baseUrl);
 });
 
-/*
 router.get('/drop/payload',  csrfProtection, function(req, res, next) {
 
   Payload.collection.drop();
@@ -258,9 +259,6 @@ router.get('/drop/payload',  csrfProtection, function(req, res, next) {
   res.redirect(req.baseUrl);
 });
 
-router.get('/download', csrfProtection, function(req, res, next) {
-  res.download('public/test/test.pdf');
-});
 */
 
 const request = require("./request");

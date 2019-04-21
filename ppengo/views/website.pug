@@ -6,8 +6,9 @@ block content
       include include/sitemodal.pug
       .row
         .col-12
-          h2
-            a(href=rootPath + "website/" + website._id)= "URL: " +  website.url
+          h2= "URL: " 
+            a(href=rootPath + "website/" + website._id)= website.url
+            a(href=rootPath + "search/website?rurl=" + encodeURIComponent(website.url)) 🔍
           h6= "createdAt: " + website.createdAt
           //h6= "updatedAt: " + website.updatedAt
       .row
@@ -30,21 +31,22 @@ block content
                 input(type="text" name="tag" id="tag" placeholder="value")
               input(type="hidden" name="_csrf", value=csrfToken)
         .col-8
-          a.btn.btn-sm.btn-outline-primary(data-toggle="modal",data-target="#update_form", style="cursor:pointer;") track
-          button.btn.btn-sm(data-toggle="collapse" data-target="#track") ▽
+          button.btn.btn-sm.btn-outline-primary(data-toggle="collapse" data-target="#track") track ▽
           div#track.collapse
+            a.btn.btn-sm.btn-primary(data-toggle="modal",data-target="#update_form", style="color:white;cursor:pointer;") Update
             pre= JSON.stringify(website.track, null, " ")
           br
           br
           //a.btn.btn-sm.btn-outline-primary(style="cursor:pointer;") gsb▽
-          button.btn.btn-sm.btn-outline-primary(data-toggle="collapse" data-target="#gsb") gsb ▽
+          button.btn.btn-sm.btn-outline-primary(data-toggle="collapse" data-target="#gsb") Google Safe Browsing ▽
           div#gsb.collapse
-            a.btn.btn-sm.btn-outline-primary(href=rootPath + "gsblookup/" + website._id) Lookup
+            a.btn.btn-sm.btn-primary(href=rootPath + "gsblookup/" + website._id) Lookup
             pre= JSON.stringify(website.gsb.lookup, null, " ")
 
       if webpages
-        include include/table.pug
-        
+        include include/pagelist.pug
+        //include include/table.pug
+
   else
     div.alert.alert-warning
       p No data

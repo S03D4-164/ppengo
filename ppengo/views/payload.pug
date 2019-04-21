@@ -6,7 +6,7 @@ block content
       h2 md5:  #{payload.md5}
       h3 buffer size: #{payload.payload.length}
       h3 text size: #{payload.payload.toString().length}
-      a= "download"
+      a.btn.btn-sm.btn-primary(href=rootPath + "payload/download/" + payload._id) download
       ul.nav.nav-tabs
         li.nav-item
           a.nav-link.active(data-toggle="tab",href="#content-tab") Content

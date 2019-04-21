@@ -38,11 +38,10 @@ block content
                   td.col-5
                     a= "input: "
                     a(href=rootPath + "website/" +webpage._id) #{webpage.url}
+                    a(href=rootPath + "search/website?url=" + encodeURIComponent(webpage.url)) 🔍
                     if webpage.track
                       br
                       a= "counter: " + webpage.track.counter + " / period: " + webpage.track.period
-                      //br
-                      //a= "option: " + JSON.stringify(webpage.track.option, null, ' ')
 
                     if webpage.last
                       hr

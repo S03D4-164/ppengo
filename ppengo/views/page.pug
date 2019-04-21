@@ -38,10 +38,8 @@ block content
        .p-2.bg-light.shadow-lg
         h3= "finalResponse"
           a= " - status:" + webpage.status
-  
         .row
           dl.col-3
-
             dt= "remoteAddress: "
             if webpage.remoteAddress
             - var pageAddress = webpage.remoteAddress
@@ -59,7 +57,6 @@ block content
               each bgp in webpage.remoteAddress.bgp
                 pre=JSON.stringify(bgp, null, ' ')
                 hr
-
           dl.col-3
             if webpage.wappalyzer
               dt= "wappalyzer: "
@@ -71,19 +68,14 @@ block content
               - var securityDetails = webpage.securityDetails
               if securityDetails.issuer
                 dd= "issuer: " + securityDetails.issuer
-                br
                 dd= "protocol: " + securityDetails.protocol
-                br
                 dd= "subjectName: " + securityDetails.subjectName
-                br
                 - const from = securityDetails.validFrom
                 dd= "validFrom: " + moment.unix(from).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(from).fromNow()
-                br
                 - const to = securityDetails.validTo
                 dd= "validTo: " + moment.unix(to).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(to).fromNow()
             else
                 p empty
-
     ul.nav.nav-tabs
       li.nav-item
         a.nav-link.active(data-toggle="tab",href="#request-tab") Request
@@ -100,7 +92,7 @@ block content
               table.table.table-bordered.table-sm
                 tr.thead-light.d-flex
                   th.col-2 createdAt
-                  th.col-3 🔍url
+                  th.col-3 url
                   th.col-2 request
                   th.col-1 response
                   th.col-2 ipAddress
@@ -114,9 +106,11 @@ block content
                     td.col-2= moment(request.createdAt).format('YYYY-MM-DD HH:mm:ss.SS')
                     td.col-3
                       if request.url.length > 100
-                        a(href=rootPath + "search/response?url=" + encodeURIComponent(request.url)) #{request.url.slice(0,100)}(truncated)
+                        a(href=rootPath + "response/" + request.response._id) #{request.url.slice(0,100)}(truncated)
+                        
                       else
-                        a(href=rootPath + "search/response?url=" + encodeURIComponent(request.url)) #{request.url}
+                        a(href=rootPath + "response/" + request.response._id) #{request.url}
+                      a(href=rootPath + "search/response?url=" + encodeURIComponent(request.url)) 🔍
                     td.col-2
                       if request.response
                         a(href=rootPath + "response/" + request.response._id) #{request.method} / #{request.resourceType}

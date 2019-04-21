@@ -72,9 +72,16 @@ router.get('/website', csrfProtection, function(req, res, next) {
     }
     search.push({"tag": {"$elemMatch":elem}});
   }
+  if(typeof req.query.url !== 'undefined' && req.query.url !== null){
+    search.push({"url": req.query.url});
+  }
+
+  if(typeof req.query.rurl !== 'undefined' && req.query.rurl !== null){
+    search.push({"url":new RegExp(RegExp.escape(req.query.rurl))});
+  }
 
   console.log(search);
-  Website.find().and(search).sort("-createdAt")
+  Website.find().and(search).sort("-createdAt").populate("last")
   .then((websites) => {
       res.render('websites', { 
         title: "Search: "+ JSON.stringify(req.query),

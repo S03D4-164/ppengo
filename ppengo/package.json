@@ -6,6 +6,7 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
+    "archiver-zip-encrypted": "^1.0.3",
     "bootstrap": "^4.3.1",
     "cookie-parser": "~1.4.3",
     "csurf": "^1.9.0",
@@ -16,10 +17,10 @@
     "jquery": "^3.3.1",
     "kue": "^0.11.6",
     "kue-scheduler": "^0.8.1",
-    "minizip-asm.js": "^1.0.10",
     "moment": "^2.24.0",
     "mongoose": "^5.4.10",
     "morgan": "~1.9.0",
+    "nodemailer": "^6.1.1",
     "popper.js": "^1.14.7",
     "pug": "^2.0.3"
   }

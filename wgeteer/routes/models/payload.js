@@ -15,6 +15,9 @@ const payloadSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
+    tag: {
+        type: [Object]
+    },
 },{timestamps:true},
 );
 
