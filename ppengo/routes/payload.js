@@ -6,13 +6,15 @@ const Response = require('./models/response');
 
 var cookieParser = require('cookie-parser');
 var csrf = require('csurf');
-var bodyParser = require('body-parser');
+//var bodyParser = require('body-parser');
 var csrfProtection = csrf({ cookie: true });
 //var parseForm = bodyParser.urlencoded({ extended: false });
 router.use(cookieParser());
 
 var archiver = require('archiver');
 archiver.registerFormat('zip-encrypted', require("archiver-zip-encrypted"));
+
+var yara = require('yara');
 
 router.get('/',  csrfProtection, function(req, res, next) {
     Payload.find()
@@ -60,7 +62,56 @@ router.get('/',  csrfProtection, function(req, res, next) {
     });
   });
 
-  router.get('/:id', csrfProtection, function(req, res, next) {
+  router.get('/yara/:id', csrfProtection, function(req, res, next) {
+    const id = req.params.id;
+    Payload.findById(id)
+    .then(async (payload) => {
+      console.log(payload._id);
+      yara.initialize(function(error) {
+        if (error) {
+          console.error(error)
+        } else {
+          var scanner = yara.createScanner()
+          console.log(process.cwd())
+          var options = {
+            rules: [
+              {filename: "public/rules.yara"},
+            ]
+          }
+          scanner.configure(options, function(error, warnings) {
+            if (error) {
+              if (error instanceof yara.CompileRulesError) {
+                console.error(error.message + ": " + JSON.stringify(error.errors))
+              } else {
+                console.error(error)
+              }
+            } else {
+              if (warnings.length) {
+                console.error("Compile warnings: " + JSON.stringify(warnings))
+              } else {
+                var req = {buffer: Buffer.from(payload.payload)};
+                console.log(req);
+                scanner.scan(req, function(error, result) {
+                if (error) {
+                  console.error("scan failed: %s", error.message)
+                } else {
+                  console.log(result);
+                  if (result.rules.length) {
+                    console.log("matched: %s", JSON.stringify(result))
+                  }
+                }
+                
+                });
+              }
+            }
+          });
+        }
+      })
+    await res.redirect(req.baseUrl + "/" + id);
+    });
+});
+
+router.get('/:id', csrfProtection, function(req, res, next) {
     const id = req.params.id;
     Payload.findById(id)
     .then(async (payload) => {

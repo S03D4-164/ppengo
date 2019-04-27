@@ -15,12 +15,13 @@ const Response = require('./models/response');
 const Website = require('./models/website');
 
 router.get('/',  csrfProtection, function(req, res, next) {
-    Webpage.find()
+  console.log(req);
+  Webpage.find()
       .sort("-createdAt")
       .limit(100)
       .then((webpages) => {
         res.render(
-          'index', {
+          'pages', {
             title: "Page",
             webpages,
             csrfToken:req.csrfToken(),

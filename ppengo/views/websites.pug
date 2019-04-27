@@ -19,7 +19,6 @@ block content
                   "table-secondary":status>=400||error,
                   })
                   td.col-3
-                    //a= "id: " + webpage.id
                     if webpage.last
                       if webpage.last.thumbnail
                         a.colorbox(href=rootPath + "screenshot/" +webpage.last.screenshot)
@@ -54,12 +53,16 @@ block content
                       else
                         a= " / size: -"
                       if webpage.last.remoteAddress
-                        a= " / ip: " + webpage.last.remoteAddress.ip
+                        a= " / ip: "
+                        a(href=rootPath + "search/page?ip=" + webpage.last.remoteAddress.ip)= webpage.last.remoteAddress.ip
                         if webpage.last.remoteAddress.geoip.length
-                          a= " - " + webpage.last.remoteAddress.geoip[0].country
-
+                          a= " - "
+                          - var cc = webpage.last.remoteAddress.geoip[0].country
+                          a(href=rootPath + "search/page?country=" + cc)= cc
+ 
                       br
-                      a= "title: " + webpage.last.title
+                      a= "title: "
+                      a(href=rootPath + "search/page?title=" + webpage.last.title)=  webpage.last.title
                       br
                       a error: #{webpage.last.error||"none"}
                       br

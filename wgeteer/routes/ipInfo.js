@@ -30,7 +30,6 @@ const getIpinfo = async function(host){
             var reverses = await whois.reverse(host);
             console.log(reverses);
             hostnames = Array.from(new Set(reverses))
-
         }catch(error){
             console.log(error);
         }

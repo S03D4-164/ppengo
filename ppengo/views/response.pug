@@ -9,8 +9,8 @@ block content
        .p-2.bg-light.shadow-lg
         if request
           .row.col-md-12
-            h4 Request: #{request.url}
-              a(href=rootPath + "search/request?url=" +  encodeURIComponent(request.url)) 🔍
+            h4 Request: 
+              a(href=rootPath + "search/request?url=" +  encodeURIComponent(request.url)) #{request.url}🔍
           p= "createdAt: " + moment(request.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
           .row
             .col-12

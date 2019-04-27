@@ -105,12 +105,12 @@ block content
                       })
                     td.col-2= moment(request.createdAt).format('YYYY-MM-DD HH:mm:ss.SS')
                     td.col-3
-                      if request.url.length > 100
-                        a(href=rootPath + "response/" + request.response._id) #{request.url.slice(0,100)}(truncated)
-                        
-                      else
-                        a(href=rootPath + "response/" + request.response._id) #{request.url}
-                      a(href=rootPath + "search/response?url=" + encodeURIComponent(request.url)) 🔍
+                      if request.response
+                        if request.url.length > 100
+                          a(href=rootPath + "response/" + request.response._id) #{request.url.slice(0,100)}(truncated)
+                        else
+                          a(href=rootPath + "response/" + request.response._id) #{request.url}
+                        a(href=rootPath + "search/response?url=" + encodeURIComponent(request.url)) 🔍
                     td.col-2
                       if request.response
                         a(href=rootPath + "response/" + request.response._id) #{request.method} / #{request.resourceType}
@@ -127,12 +127,9 @@ block content
                           if response.status
                             a.col-6(href=rootPath + "response/" + response._id) #{response.status}
                           if response.text
-                            br
                             a.col-6(href=rootPath + "response/" + response._id)  (#{response.text.length})
                           else
-                            br
                             a.col-6(href=rootPath + "response/" + response._id)  (-)
-
                         td.col-2
                           a(href=rootPath + "search/response?ip=" + response.remoteAddress.ip) #{response.remoteAddress.ip}
                           if response.remoteAddress.geoip
@@ -161,9 +158,9 @@ block content
       div#diff-tab.tab-pane
         .row
           if diff
-            h5= "Diff"          
-            a(href=rootPath + "page/" + previous._id) previous: #{previous.id}
-            br
+            h5= "Diff"
+            p
+              a(href=rootPath + "page/" + previous._id) previous: #{previous.id}
             button.btn.btn-sm.btn-primary(onclick="diff('side-by-side')") side-by-side
             button.btn.btn-sm.btn-primary(onclick="diff('line-by-line')") line-by-line
             div.col-md-12

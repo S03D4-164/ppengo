@@ -186,7 +186,6 @@ module.exports = {
               }
             }
             responseBuffer = await interceptedResponse.buffer();
-            //}
         }catch(error){
           console.log(error);
         }
@@ -237,25 +236,31 @@ module.exports = {
             text:text,
             request: request._id,
           });
-          let cookies;
-          const wapps = await wapptr(
-            response.url,
-            response.headers,
-            response.text,
-            cookies,
-          );
-          //console.log(wapps);
-          if (wapps) response.wappalyzer = wapps;
+
+          try{
+            let cookies;
+            const wapps = await wapptr(
+              response.url,
+              response.headers,
+              response.text,
+              cookies,
+            );
+            //console.log(wapps);
+            if (wapps) response.wappalyzer = wapps;
+          }catch(err){
+            console.log(err);
+          }
+
           if (response.remoteAddress){
             const host = response.remoteAddress.ip;
-            var hostinfo = null
+            var hostinfo;
             if (host in ipCache){
               hostinfo = ipCache[host]
               console.log("[ipInfo] cache exists.");
             }else{
               hostinfo = await ipInfo(host);
               ipCache[host] = hostinfo;
-              console.log(hostinfo);
+              //console.log(hostinfo);
             }
             if(hostinfo){
               if (hostinfo.reverse) response.remoteAddress.reverse = hostinfo.reverse;
@@ -380,30 +385,6 @@ module.exports = {
       const pageContent = await page.content();
       webpage.content = pageContent;
 
-      webpage.url = page.url();
-      if(webpage.url){
-        for(let num in responses){
-          if (responses[num].url){
-            if (responses[num].url === webpage.url){
-              finalResponse = responses[num];
-           }
-          }
-        }
-      }
-
-      const cookies = await page.cookies();
-      //console.log(cookies, finalResponse.headers);
-      if (finalResponse){
-        const wapps = await wapptr(
-          webpage.url,
-          finalResponse.headers,
-          webpage.content,
-          cookies,
-        );
-        //console.log(wapps);
-        if (wapps) webpage.wappalyzer = wapps;
-      }
-
       const screenshot = await page.screenshot({
         fullPage: false,
         encoding: 'base64',
@@ -430,10 +411,39 @@ module.exports = {
       }
       const ss = await saveScreenshot(fullscreenshot);
       webpage.screenshot = ss._id;
+
+      webpage.url = page.url();
+      if(webpage.url){
+        for(let num in responses){
+          if (responses[num].url){
+            if (responses[num].url === webpage.url){
+              finalResponse = responses[num];
+           }
+          }
+        }
+      }
+
+      try{
+        const cookies = await page.cookies();
+        //console.log(cookies, finalResponse.headers);
+        if (finalResponse){
+          const wapps = await wapptr(
+            webpage.url,
+            finalResponse.headers,
+            webpage.content,
+            cookies,
+          );
+          //console.log(wapps);
+          if (wapps) webpage.wappalyzer = wapps;
+        }  
+      }catch(err){
+        console.log(err);
+      }
+
     }catch(error){
         console.log(error);
         webpage.error = error.message;
-        await new Promise(done => setTimeout(done, 5000)); 
+        await new Promise(done => setTimeout(done, delay)); 
         if (!finalResponse){
           if(responses.length===1){
             finalResponse=responses[0];
@@ -441,14 +451,15 @@ module.exports = {
           }
         }
     }finally{
+      webpage.requests = requests;
+      webpage.responses = responses;
+
       if(finalResponse){
         webpage.status = finalResponse.status;
         webpage.headers = finalResponse.headers;
         webpage.remoteAddress = finalResponse.remoteAddress;
         webpage.securityDetails = finalResponse.securityDetails;
       };
-      webpage.requests = requests;
-      webpage.responses = responses;
 
       await webpage.save(function (err, success){
           if(err) console.log(err)

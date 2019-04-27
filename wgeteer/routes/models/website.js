@@ -22,7 +22,6 @@ const websiteSchema = new mongoose.Schema({
             type: Object,
         }
     },
-
     last : { type: mongoose.Schema.Types.ObjectId, ref: 'Webpage' },
 },
 {timestamps:true},

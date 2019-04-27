@@ -1,18 +1,28 @@
 nav.navbar.navbar-expand-sm.bg-primary.navbar-dark
-  ul.navbar-nav
+  ul.navbar-nav.mr-auto
     li.nav-item
       a.nav-link(href=rootPath) Top
-    li.nav-item
-      a.nav-link(data-toggle="modal",data-target="#register_form", style="cursor:pointer;") Register URL
-    li.nav-item
-      a.nav-link(href=rootPath + "page") Page
-    li.nav-item
-      a.nav-link(href=rootPath + "website") Site
-    li.nav-item
-      a.nav-link(href=rootPath + "request") Request
-    li.nav-item
-      a.nav-link(href=rootPath + "response") Response
-    li.nav-item
-      a.nav-link(href=rootPath + "payload") Payload
-    li.nav-item
-      a.nav-link(href=rootPath + "screenshot") Screenshot
+    if (user)
+      li.nav-item
+        a.nav-link(data-toggle="modal",data-target="#register_form", style="cursor:pointer;") Register URL
+      li.nav-item
+        a.nav-link(href=rootPath + "page") Page
+      li.nav-item
+        a.nav-link(href=rootPath + "website") Site
+      li.nav-item
+        a.nav-link(href=rootPath + "request") Request
+      li.nav-item
+        a.nav-link(href=rootPath + "response") Response
+      li.nav-item
+        a.nav-link(href=rootPath + "payload") Payload
+      li.nav-item
+        a.nav-link(href=rootPath + "screenshot") Screenshot
+
+  ul.navbar-nav
+    if (user)
+      li.nav-item
+        a.nav-link user: #{user.username}
+      li.nav-item
+        a.nav-link(href=rootPath + "register") Register
+      li.nav-item
+        a.nav-link(href=rootPath + "logout") Logout

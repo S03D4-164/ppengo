@@ -24,7 +24,7 @@ block content
 
       div.tab-content
         div#vt-tab.tab-pane
-          a.btn.btn-primary(href=rootPath + "vt/" + payload._id) VT search
+          a.btn.btn-primary(href=rootPath + "api/vt/" + payload._id) VT search
           pre= JSON.stringify(payload.vt, null, " ")
 
         div#request-tab.tab-pane

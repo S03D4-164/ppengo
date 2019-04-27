@@ -19,7 +19,7 @@ module.exports = {
           console.log(err);
         });
 
-        var ApiEndpoint = 'http://127.0.0.1:8080/v4/threatMatches:find';
+        var ApiEndpoint = 'http://127.0.0.1:3001/v4/threatMatches:find';
         var submit = {
             "threatInfo": {
                 "threatEntries": [
@@ -33,10 +33,10 @@ module.exports = {
         }
         await request.post(options, async function (error, response, body) {
             console.log(response.statusCode, body.length, JSON.stringify(body));
-            if (body==={}){
-                website.gsb.lookup = {"matches":false};
-            }else{
+            if ("matches" in body){
                 website.gsb.lookup = body;
+            }else{
+                website.gsb.lookup = {"matches":false};
             }
             await website.save();
         })

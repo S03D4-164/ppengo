@@ -6,10 +6,8 @@ mongoose.connect('mongodb://mongodb/wgeteer', {
   useNewUrlParser: true,
   useCreateIndex: true,
  });
-mongoose.Promise = global.Promise;
-var db = mongoose.connection;
-db.on('error', console.error.bind(console, 'MongoDB connection error:'));
-
+//mongoose.Promise = global.Promise;
+mongoose.connection.on('error', console.error.bind(console, 'MongoDB connection error:'));
 mongoose.set('debug', function (coll, method, query, doc) {
   console.log(coll + " " + method + " " + JSON.stringify(query) + " " + JSON.stringify(doc));
 });
@@ -19,6 +17,11 @@ const Website = require('./models/website');
 //const Payload = require('./models/payload');
 //const Screenshot = require('./models/screenshot');
 
+const scheduler = require('./scheduler');
+(async function(){
+  await scheduler.start();
+})();
+
 const kue = require('kue-scheduler')
 let queue = kue.createQueue({
   prefix: 'q',
@@ -27,6 +30,7 @@ let queue = kue.createQueue({
     port: 6379
   }
 });
+/*
 
 var job = queue.createJob('crawl', {})
 .unique('crawl').ttl(600*1000);
@@ -67,7 +71,9 @@ const crawlWeb = async (job, done) => {
           else console.log(webpage);
         });
         website.track.counter -= 1;
+        website.track.option = option;
         website.last = webpage;
+
         await website.save();
         const job = await queue.create('wgeteer', {
           pageId: webpage._id,
@@ -82,6 +88,7 @@ const crawlWeb = async (job, done) => {
   }
   done();
 }
+*/
 
 var cookieParser = require('cookie-parser');
 var csrf = require('csurf');
@@ -89,37 +96,6 @@ var bodyParser = require('body-parser');
 var csrfProtection = csrf({ cookie: true });
 var parseForm = bodyParser.urlencoded({ extended: false });
 router.use(cookieParser());
-
-router.get('/vt/:id', parseForm, csrfProtection, async function(req, res, next) {
-  async function queJob(id){
-    const job = await queue.create('vt', {
-      payloadId:id,
-      //ak:ak,
-    }).ttl(60*1000);
-    await job.save(function(err){
-      if( err ) console.log( job.id, err);
-      //else console.log( job.id, option);
-    });
-  }
-  const id = req.params.id;
-  const job = await queJob(id);
-  await res.redirect(req.baseUrl + "/payload/" + id);
-});
-
-router.get('/gsblookup/:id', parseForm, csrfProtection, async function(req, res, next) {
-  async function queJob(id){
-    const job = await queue.create('gsblookup', {
-      websiteId:id,
-    }).ttl(60*1000);
-    await job.save(function(err){
-      if( err ) console.log( job.id, err);
-      //else console.log( job.id, option);
-    });
-  }
-  const id = req.params.id;
-  const job = await queJob(id);
-  await res.redirect(req.baseUrl + "/website/" + id);
-});
 
 
 router.post('/', parseForm, csrfProtection, async function(req, res, next) {
@@ -241,6 +217,7 @@ router.post('/', parseForm, csrfProtection, async function(req, res, next) {
   //console.log(ids);
   res.render(
     'progress', {
+    title:"Progress",
     webpages, 
     ids:String(ids),
     csrfToken:req.csrfToken(),
@@ -308,6 +285,11 @@ router.use('/response', response);
 const webpage = require("./webpage");
 router.use('/page', webpage);
 
-router.use('/', website);
+const api = require("./api");
+router.use('/api', api);
+
+//router.use('/', website);
+const user = require("./user");
+router.use('/', user);
 
 module.exports = router;

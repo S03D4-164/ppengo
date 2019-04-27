@@ -45,6 +45,9 @@ router.get('/page', csrfProtection, function(req, res, next) {
     if(typeof req.query.ip !== 'undefined' && req.query.ip !== null){
         search.push({"remoteAddress.ip":new RegExp(req.query.ip)});
     }
+    if(typeof req.query.country !== 'undefined' && req.query.country !== null){
+      search.push({"remoteAddress.geoip.country":new RegExp(req.query.country)});
+    }
     if(typeof req.query.tagkey !== 'undefined' && req.query.tagkey !== null){
       var elem = {};
       elem[req.query.tagkey] = new RegExp('.*');
