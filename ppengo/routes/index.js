@@ -1,16 +1,17 @@
 var express = require('express');
 var router = express.Router();
 
+/*
 const mongoose = require('mongoose');
 mongoose.connect('mongodb://mongodb/wgeteer', {
   useNewUrlParser: true,
   useCreateIndex: true,
  });
-//mongoose.Promise = global.Promise;
 mongoose.connection.on('error', console.error.bind(console, 'MongoDB connection error:'));
 mongoose.set('debug', function (coll, method, query, doc) {
   console.log(coll + " " + method + " " + JSON.stringify(query) + " " + JSON.stringify(doc));
 });
+*/
 
 const Webpage = require('./models/webpage');
 const Website = require('./models/website');
@@ -30,8 +31,8 @@ let queue = kue.createQueue({
     port: 6379
   }
 });
-/*
 
+/*
 var job = queue.createJob('crawl', {})
 .unique('crawl').ttl(600*1000);
 
@@ -88,7 +89,6 @@ const crawlWeb = async (job, done) => {
   }
   done();
 }
-*/
 
 var cookieParser = require('cookie-parser');
 var csrf = require('csurf');
@@ -96,10 +96,11 @@ var bodyParser = require('body-parser');
 var csrfProtection = csrf({ cookie: true });
 var parseForm = bodyParser.urlencoded({ extended: false });
 router.use(cookieParser());
+*/
 
 
-router.post('/', parseForm, csrfProtection, async function(req, res, next) {
-
+//router.post('/', parseForm, csrfProtection, async function(req, res, next) {
+router.post('/', async function(req, res, next) {
   async function queJob(webpage){
     const job = await queue.create('wgeteer', {
       pageId: webpage._id,
@@ -224,7 +225,9 @@ router.post('/', parseForm, csrfProtection, async function(req, res, next) {
   });
 });
 
-router.post('/progress', parseForm, csrfProtection, function(req, res, next) {
+//router.post('/progress', parseForm, csrfProtection, function(req, res, next) {
+router.post('/progress', function(req, res, next) {
+
   const ids = req.body["pageId[]"];
   Webpage
     .where('_id')
@@ -288,8 +291,9 @@ router.use('/page', webpage);
 const api = require("./api");
 router.use('/api', api);
 
-//router.use('/', website);
-const user = require("./user");
-router.use('/', user);
+const auth = require("./auth");
+router.use('/auth', auth);
+
+router.use('/', website);
 
 module.exports = router;

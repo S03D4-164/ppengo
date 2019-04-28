@@ -6,7 +6,7 @@ COPY app.js package.json ./
 
 RUN echo http://dl-4.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories \
     && apk --no-cache add python make g++ yara \
-    && chown -R node . \
+    && chown -R node.node * \
     && su node \
     && yarn install \
     && exit \

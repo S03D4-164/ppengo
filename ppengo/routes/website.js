@@ -11,7 +11,8 @@ var csrfProtection = csrf({ cookie: true });
 var parseForm = bodyParser.urlencoded({ extended: false });
 router.use(cookieParser());
 
-router.get('/',  csrfProtection, function(req, res, next) {
+//router.get('/',  csrfProtection, function(req, res, next) {
+router.get('/', function(req, res, next) {
   Website.find()
     .sort("-updatedAt")
     .limit(100)
@@ -35,7 +36,8 @@ router.get('/:id', csrfProtection, async function(req, res, next) {
     const id = req.params.id;
     console.log(req.query);
     const website = await Website.findById(id)
-      .then((document)=>{return document});
+      .then((document)=>{return document})
+      .catch((err)=>{return err});
     const webpages = await Webpage.find()
       .where({"input":website.url}).sort("-createdAt")
       .then((document)=>{return document});

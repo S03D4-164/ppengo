@@ -1,7 +1,0 @@
-extends layout
-
-block content
-  if (!user)
-    include login.pug
-  if (user)
-    p User authenticated: #{user.username}

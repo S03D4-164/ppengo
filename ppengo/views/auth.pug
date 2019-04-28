@@ -1,0 +1,21 @@
+extends layout
+
+block content
+    if message
+      .p-2
+        div.alert.alert-info
+          p= message
+    if (!user)
+      include login.pug
+    if (user)
+      .container
+        h2  Account
+        form(role='form', action=rootPath + "auth/user/" + user.username, method="post", style='max-width: 300px;')
+          h3= "username: " + user.username
+          //.form-group
+            input.form-control(type='text', name="username", placeholder='Enter Username', value=user.username)
+          .form-group
+            input.form-control(type='password', name="password", placeholder='Password')
+
+          input(type="hidden" name="_csrf", value=csrfToken)
+          button.btn.btn-primary(type='submit') Update

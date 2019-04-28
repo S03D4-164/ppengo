@@ -13,21 +13,25 @@ const mongoStore = require('connect-mongo')(session);
 mongoose.connect('mongodb://mongodb/wgeteer', {
   useNewUrlParser: true,
   useCreateIndex: true,
-})
-.then(() =>  console.log('connection succesful'))
+}).then(() =>  console.log('connection succesful'))
 .catch((err) => console.error(err));
+mongoose.set('debug', function (coll, method, query, doc) {
+  console.log(coll + " " + method + " " + JSON.stringify(query) + " " + JSON.stringify(doc));
+});
 
 const User = require('./routes/models/user');
 var passport = require('passport');
 
 passport.use(User.createStrategy());
-//var LocalStrategy = require('passport-local').Strategy;
-//passport.use(new LocalStrategy(User.authenticate()));
-
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
 var app = express();
+var rootPath = "/ppengo/";
+
+var mongo_express = require('mongo-express/lib/middleware')
+var mongo_express_config = require('./mongo_express_config.js')
+app.use('/mongo_express', mongo_express(mongo_express_config))
 
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -45,13 +49,12 @@ app.use(function (req, res, next) {
   res.locals.login = req.isAuthenticated();
   res.locals.user = req.user;
   var token = req.csrfToken();
-  res.cookie('XSRF-TOKEN', token);
   res.locals.csrfToken = token;
   next();
+
 });
 
 var indexRouter = require('./routes/index');
-var rootPath = "/ppengo/";
 app.use(rootPath, indexRouter);
 
 // view engine setup

@@ -21,8 +21,12 @@ nav.navbar.navbar-expand-sm.bg-primary.navbar-dark
   ul.navbar-nav
     if (user)
       li.nav-item
-        a.nav-link user: #{user.username}
+        a.nav-link(href=rootPath + "auth") user: #{user.username}
       li.nav-item
-        a.nav-link(href=rootPath + "register") Register
+        a.nav-link(href=rootPath + "auth/logout") Logout
+      if (user.admin)
+        li.nav-item
+          a.nav-link(href=rootPath + "auth/register") Register
+    else
       li.nav-item
-        a.nav-link(href=rootPath + "logout") Logout
+        a.nav-link(href=rootPath + "auth") Login
