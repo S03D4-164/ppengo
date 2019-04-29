@@ -1,13 +1,17 @@
 const kue = require('kue-scheduler')
 const wgeteer = require('./wgeteer')
-const vt = require('./vt')
+const vt = require('./testvt')
 const gsblookup = require('./gsblookup')
 
 const mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost:27017/wgeteer', { useNewUrlParser: true });
-mongoose.Promise = global.Promise;
-var db = mongoose.connection;
-db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+mongoose.connect('mongodb://localhost:27017/wgeteer', {
+  useNewUrlParser: true,
+  useCreateIndex: true,
+  autoReconnect:true,
+  reconnectInterval: 5000,
+  reconnectTries: 60
+}).then(() =>  console.log('connection succesful'))
+.catch((err) => console.error(err));
 
 const queue = kue.createQueue({
   redis: {
@@ -17,37 +21,10 @@ const queue = kue.createQueue({
 });
 
 /*
-const Website = require('./models/website');
-const Webpage = require('./models/webpage');
-
-var job = queue.createJob('crawl', {})
-.unique('crawl').ttl(100000);
-
-(async function(){
-
-await queue.clear();
-console.log("[Queue] cleared.");
-
-const cron = '* * * * *'; 
-queue.every(cron, job)
-console.log("[Queue] every: ", cron);
-
-})();
-
-job.on('complete', function(result){
-  console.log('Job completed with data ', result);
-}).on('failed attempt', function(errorMessage, doneAttempts){
-  console.log('Job failed',errorMessage);
-}).on('failed', function(errorMessage){
-  console.log('Job failed', errorMessage);
-}).on('progress', function(progress, data){
-  console.log('\r  job #' + job.id + ' ' + progress + '% complete with data ', data );
-});
-*/
-
 queue.on('job enqueue', function(id, type){
   console.log( 'Job %s got queued of type %s', id, type );
-}).on('job complete', function(id, result){
+})
+.on('job complete', function(id, result){
   kue.Job.get(id, function(err, job){
     if (err) return;
     job.remove(function(err){
@@ -59,7 +36,7 @@ queue.on('job enqueue', function(id, type){
 queue.on('already scheduled', function (job) {
   console.log('job already scheduled' + job.id);
 });
-queue.on( 'error', function( err ) {
+queue.on('error', function( err ) {
   console.log( 'Oops... ', err );
 });
 queue.on('schedule error', function(error) {
@@ -68,11 +45,14 @@ queue.on('schedule error', function(error) {
 queue.on('schedule success', function(job) {
   console.log("[Queue] schedule succeeded: ", job.length);
 });
+*/
 
 queue.process('wgeteer', 2, (job, done) => {
   getWeb(job, done);
 });
+
 const getWeb = async (job, done) => {
+  console.log(job.data)
   await wgeteer.wget(job.data.pageId, job.data.options)
   .then((success) => {
     done();

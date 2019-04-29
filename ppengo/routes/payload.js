@@ -4,19 +4,22 @@ var router = express.Router();
 const Payload = require('./models/payload');
 const Response = require('./models/response');
 
+/*
 var cookieParser = require('cookie-parser');
 var csrf = require('csurf');
 //var bodyParser = require('body-parser');
 var csrfProtection = csrf({ cookie: true });
 //var parseForm = bodyParser.urlencoded({ extended: false });
 router.use(cookieParser());
+*/
 
 var archiver = require('archiver');
 archiver.registerFormat('zip-encrypted', require("archiver-zip-encrypted"));
 
 var yara = require('yara');
 
-router.get('/',  csrfProtection, function(req, res, next) {
+//router.get('/',  csrfProtection, function(req, res, next) {
+router.get('/',  function(req, res) {
     Payload.find()
       .sort("-createdAt")
       .limit(100)
@@ -26,7 +29,7 @@ router.get('/',  csrfProtection, function(req, res, next) {
           'payloads', {
             title:"Payload",
             payloads,
-            csrfToken:req.csrfToken(),
+            //csrfToken:req.csrfToken(),
           });
       })
       .catch((err) => { 
@@ -35,7 +38,8 @@ router.get('/',  csrfProtection, function(req, res, next) {
       });
   });
 
-  router.get('/download/:id', csrfProtection, function(req, res, next) {
+//router.get('/download/:id', csrfProtection, function(req, res, next) {
+router.get('/download/:id', function(req, res) {
     const id = req.params.id;
     Payload.findById(id)
     .then(async (payload) => {
@@ -62,7 +66,8 @@ router.get('/',  csrfProtection, function(req, res, next) {
     });
   });
 
-  router.get('/yara/:id', csrfProtection, function(req, res, next) {
+//router.get('/yara/:id', csrfProtection, function(req, res, next) {
+router.get('/yara/:id', function(req, res) {
     const id = req.params.id;
     Payload.findById(id)
     .then(async (payload) => {
@@ -72,7 +77,7 @@ router.get('/',  csrfProtection, function(req, res, next) {
           console.error(error)
         } else {
           var scanner = yara.createScanner()
-          console.log(process.cwd())
+          //console.log(process.cwd())
           var options = {
             rules: [
               {filename: "public/rules.yara"},
@@ -111,7 +116,8 @@ router.get('/',  csrfProtection, function(req, res, next) {
     });
 });
 
-router.get('/:id', csrfProtection, function(req, res, next) {
+//router.get('/:id', csrfProtection, function(req, res, next) {
+router.get('/:id', function(req, res) {
     const id = req.params.id;
     Payload.findById(id)
     .then(async (payload) => {

@@ -29,12 +29,24 @@ passport.deserializeUser(User.deserializeUser());
 var app = express();
 var rootPath = "/ppengo/";
 
+/*
 var mongo_express = require('mongo-express/lib/middleware')
-var mongo_express_config = require('./mongo_express_config.js')
+//var mongo_express_config = require('./mongo_express_config.js')
+var mongo_express_config = require('mongo-express/config.default.js')
+
 app.use('/mongo_express', mongo_express(mongo_express_config))
+*/
+
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json());
+app.use(rootPath + "api", require('./routes/api'));
+
+app.use(rootPath, express.static(path.join(__dirname, 'public')));
+app.use(rootPath + 'js', express.static(__dirname + '/node_modules/bootstrap/dist/js')); // redirect bootstrap JS
+app.use(rootPath + 'js', express.static(__dirname + '/node_modules/jquery/dist')); // redirect JS jQuery
+app.use(rootPath + 'css', express.static(__dirname + '/node_modules/bootstrap/dist/css')); // redirect CSS bootstrap
 
 app.use(cookieParser());
-app.use(bodyParser.urlencoded({ extended: false }))
 app.use(csrf({ cookie: true }));
 app.use(session({
   secret: 'keyboard cat',
@@ -64,11 +76,6 @@ app.set('view engine', 'pug');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-
-app.use(rootPath, express.static(path.join(__dirname, 'public')));
-app.use(rootPath + 'js', express.static(__dirname + '/node_modules/bootstrap/dist/js')); // redirect bootstrap JS
-app.use(rootPath + 'js', express.static(__dirname + '/node_modules/jquery/dist')); // redirect JS jQuery
-app.use(rootPath + 'css', express.static(__dirname + '/node_modules/bootstrap/dist/css')); // redirect CSS bootstrap
 
 app.locals.moment = require('moment');
 

@@ -1,10 +1,11 @@
 const puppeteer = require('puppeteer');
 
+/*
 const mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost:27017/wgeteer', { useNewUrlParser: true });
-mongoose.Promise = global.Promise;
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+*/
 
 const Webpage = require('./models/webpage');
 const Request = require('./models/request');
@@ -25,18 +26,15 @@ module.exports = {
 
       //console.log(pageId);
       const webpage = await Webpage.findById(pageId)
-      .then(doc => {
-        return doc;
-      })
-      .catch(err =>{
-        console.log(err);
-      });
+      .then(doc => { return doc; })
+      .catch(err =>{ console.log(err);});
       console.log(webpage);
       const url = webpage.input;
       var option = webpage.option;
 
       //console.log(option);
-      var userAgent = option['userAgent'];
+      //var userAgent = option['userAgent'];
+      var userAgent = ("userAgent" in option) ? option['userAgent'] : undefined;
       var referer = option['referer'];
       var timeout = option['timeout'];
       timeout = (timeout >= 30 && timeout <= 300) ? timeout * 1000 : 30000; 
@@ -131,8 +129,7 @@ module.exports = {
         try{
           const response = await client.send('Network.getResponseBodyForInterception', {interceptionId});
           console.log(response.body.length, response.base64Encoded);    
-          //const contentTypeHeader = Object.keys(responseHeaders).find(k => k.toLowerCase() === 'content-type');
-          //let newBody, contentType = responseHeaders[contentTypeHeader];
+
           const newBody = response.base64Encoded ? Buffer.from(response.body, "base64") : response.body;
           var cache = {};
           cache[request.url] = newBody;
@@ -439,7 +436,6 @@ module.exports = {
       }catch(err){
         console.log(err);
       }
-
     }catch(error){
         console.log(error);
         webpage.error = error.message;
