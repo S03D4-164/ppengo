@@ -179,4 +179,7 @@ router.post('/check', async function(req, res) {
   }
 });
 
+const jstillery = require("./jstillery/server.js");
+router.use('/jstillery', jstillery);
+
 module.exports = router;

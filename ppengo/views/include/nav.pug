@@ -20,25 +20,19 @@ nav.navbar.navbar-expand-sm.bg-primary.navbar-dark
         
   ul.navbar-nav
     if user
+      li.nav-item
+        a.nav-link(href=rootPath + "mongo_express/") mongo-express
+      li.nav-item
+        a.nav-link(href=rootPath + "kue/") kueui
+
       li.nav-item.dropdown
         a.nav-link.dropdown-toggle(href="#" id="navbardrop" data-toggle="dropdown") user: #{user.username}
         .dropdown-menu
           a.dropdown-item(href=rootPath + "auth") Account
-          a.dropdown-item(href=rootPath + "auth/register") Register
           a.dropdown-item(href=rootPath + "auth/logout") Logout
+          if (user.admin)
+            a.dropdown-item(href=rootPath + "auth/register") Register
     else
       li.nav-item
         a.nav-link(href=rootPath + "auth") Login
 
-
-    //if (user)
-      li.nav-item
-        a.nav-link(href=rootPath + "auth") 
-      li.nav-item
-        a.nav-link(href=rootPath + "auth/logout") Logout
-      if (user.admin)
-        li.nav-item
-          a.nav-link(href=rootPath + "auth/register") Register
-    //else
-      li.nav-item
-        a.nav-link(href=rootPath + "auth") Login

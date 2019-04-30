@@ -107,25 +107,42 @@ block content
           else
             h5 No Content.
         div.col-md-1
-          p
-            button.btn.btn-sm.btn-primary(onclick="reset()") reset
+          p Beautify
+              button.btn.btn-sm.btn-primary(onclick="beautify(\"script\")") JS
+              br
+              button.btn.btn-sm.btn-primary(onclick="beautify(\"stylesheet\")") CSS
+              br
+              button.btn.btn-sm.btn-primary(onclick="beautify(\"html\")") HTML
           p
             button.btn.btn-sm.btn-primary(onclick="prettyPrint()") prettyPrint
+
+          p Deobfuscate
+              button.btn.btn-sm.btn-primary(onclick="jstillery()") JStillery
           p
-            if request.resourceType === "script"
-              button.btn.btn-sm.btn-primary(onclick="beautify(\"script\")") JSbeautify
-            else if request.resourceType === "stylesheet"
-              button.btn.btn-sm.btn-primary(onclick="beautify(\"stylesheet\")") CSSbeautify
-            else
-              button.btn.btn-sm.btn-primary(onclick="beautify(\"html\")") HTMLbeautify
-              br
-              br
-              button.btn.btn-sm.btn-primary(onclick="beautify(\"script\")") JSbeautify
+            button.btn.btn-sm.btn-primary(onclick="reset()") reset
+
 
           script.
               function reset(){
                 var content=$("#tmp").text();
                 $('pre#content').text(content);
+              };
+              function jstillery(){
+                var apiPath = #{rootPath};
+                var content=$("#content").text();
+                $.ajax({
+                  type: "post",
+                  url: apiPath + "api/jstillery",
+                  data:JSON.stringify({"source":content}),
+                  contentType: 'application/json',
+                  dataType: "json",            
+                  success: function(result) { 
+                    $('pre#content').text(result["source"]);
+                  },
+                  error: function() {
+                    $('pre#content').text("jstillery error");
+                  }
+                })
               };
               function beautify(type){
                 //console.log(type);

@@ -65,7 +65,6 @@ router.get('/:id', async function(req, res, next) {
       website,
       webpages,
       title: "Results",
-      csrfToken:req.csrfToken(), 
     });
 });
 
