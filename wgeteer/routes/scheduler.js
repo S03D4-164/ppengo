@@ -20,7 +20,6 @@ const queue = kue.createQueue({
   }
 });
 
-/*
 queue.on('job enqueue', function(id, type){
   console.log( 'Job %s got queued of type %s', id, type );
 })
@@ -45,7 +44,6 @@ queue.on('schedule error', function(error) {
 queue.on('schedule success', function(job) {
   console.log("[Queue] schedule succeeded: ", job.length);
 });
-*/
 
 queue.process('wgeteer', 2, (job, done) => {
   getWeb(job, done);

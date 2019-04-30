@@ -30,6 +30,9 @@ services:
       - MONGO_DATABASE=mongodb://mongodb/wgeteer
       - REDIS_URL=redis://cache
       - TZ=Asia/Tokyo
+      - ME_CONFIG_MONGODB_URL=mongodb://mongodb/wgeteer
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=password
     tty: true
     ports:
       - "127.0.0.1:3000:3000"
@@ -47,18 +50,3 @@ services:
       - ./ppengo/bin:/home/node/bin
     command: npm start
     #command: /bin/sh
-
-  mongo-express:
-    image: mongo-express
-    restart: always
-    ports:
-      - 127.0.0.1:8081:8081
-    environment:
-      - ME_CONFIG_MONGODB_SERVER=mongodb
-      - ME_CONFIG_BASICAUTH_USERNAME=admin
-      - ME_CONFIG_BASICAUTH_PASSWORD=pass
-    links:
-      - mongodb
-    depends_on:
-      - mongodb
-    container_name: mongo-express

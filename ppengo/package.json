@@ -21,6 +21,7 @@
     "kue-scheduler": "^0.8.1",
     "kue-ui-express": "^1.1.1",
     "moment": "^2.24.0",
+    "mongo-express": "^0.52.2",
     "mongoose": "^5.5.4",
     "morgan": "~1.9.0",
     "nodemailer": "^6.1.1",

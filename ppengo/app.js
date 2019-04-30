@@ -6,7 +6,16 @@ var csrf = require('csurf');
 var bodyParser = require('body-parser');
 var session = require('express-session');
 
-var logger = require('morgan');
+//var kue = require('kue');
+var kue = require('kue-scheduler');
+var kueUiExpress = require('kue-ui-express');
+kue.createQueue({
+  prefix: 'q',
+  redis: {
+    host: "cache",
+    port: 6379
+  }
+});
 
 const mongoose = require('mongoose');
 const mongoStore = require('connect-mongo')(session);
@@ -27,19 +36,22 @@ passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
 var app = express();
+
+var logger = require('morgan');
+app.use(logger('dev'));
+
 var rootPath = "/ppengo/";
 
-/*
 var mongo_express = require('mongo-express/lib/middleware')
-//var mongo_express_config = require('./mongo_express_config.js')
-var mongo_express_config = require('mongo-express/config.default.js')
-
-app.use('/mongo_express', mongo_express(mongo_express_config))
-*/
+var mongo_express_config = require('./public/config.js')
+app.use(rootPath + 'mongo_express/', mongo_express(mongo_express_config))
 
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json());
 app.use(rootPath + "api", require('./routes/api'));
+
+kueUiExpress(app, rootPath + 'kue/', rootPath + 'kue-api/');
+app.use(rootPath + 'kue-api/', kue.app);
 
 app.use(rootPath, express.static(path.join(__dirname, 'public')));
 app.use(rootPath + 'js', express.static(__dirname + '/node_modules/bootstrap/dist/js')); // redirect bootstrap JS
@@ -73,7 +85,6 @@ app.use(rootPath, indexRouter);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
-app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 

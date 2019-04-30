@@ -53,11 +53,14 @@ router.get('/register', function(req, res) {
 });
 
 router.post('/register', async function(req, res, next) {
-    if(!user.admin){
-        res.render('auth', {
-            user : req.user,
-            message: "no permission."
-        });    
+    if (user){
+        if(!user.admin){
+            res.render('auth', {
+                user : req.user,
+                message: "no permission."
+            });    
+        }
+    
     }
     var username = req.body.username;
     var password = req.body.password;
