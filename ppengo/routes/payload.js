@@ -4,21 +4,11 @@ var router = express.Router();
 const Payload = require('./models/payload');
 const Response = require('./models/response');
 
-/*
-var cookieParser = require('cookie-parser');
-var csrf = require('csurf');
-//var bodyParser = require('body-parser');
-var csrfProtection = csrf({ cookie: true });
-//var parseForm = bodyParser.urlencoded({ extended: false });
-router.use(cookieParser());
-*/
-
 var archiver = require('archiver');
 archiver.registerFormat('zip-encrypted', require("archiver-zip-encrypted"));
 
 var yara = require('yara');
 
-//router.get('/',  csrfProtection, function(req, res, next) {
 router.get('/',  function(req, res) {
     Payload.find()
       .sort("-createdAt")
@@ -29,7 +19,6 @@ router.get('/',  function(req, res) {
           'payloads', {
             title:"Payload",
             payloads,
-            //csrfToken:req.csrfToken(),
           });
       })
       .catch((err) => { 
@@ -38,7 +27,6 @@ router.get('/',  function(req, res) {
       });
   });
 
-//router.get('/download/:id', csrfProtection, function(req, res, next) {
 router.get('/download/:id', function(req, res) {
     const id = req.params.id;
     Payload.findById(id)
@@ -131,7 +119,7 @@ router.get('/:id', function(req, res) {
         res.render('payload', {
           payload,
           responses,
-          csrfToken:req.csrfToken(), 
+          //csrfToken:req.csrfToken(), 
       });
     });
   });

@@ -214,6 +214,9 @@ router.use('/page', webpage);
 const auth = require("./auth");
 router.use('/auth', auth);
 
+const jstillery = require("./jstillery/index");
+router.use('/jstillery', jstillery);
+
 router.use('/', website);
 
 module.exports = router;

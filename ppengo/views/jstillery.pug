@@ -1,0 +1,53 @@
+extends layout
+
+block content
+  h3= "JS"
+  .row
+        div.col-md-11
+              textarea#input(rows=10 style="width:100%")
+              pre#content.prettyprint.linenums(style="white-space: pre-wrap") result
+        div.col-md-1
+          a Beautify
+          .btn-group-vertical
+              button.btn.btn-sm.btn-outline-primary(onclick="beautify(\"script\")") JS
+              button.btn.btn-sm.btn-outline-primary(onclick="beautify(\"stylesheet\")") CSS
+              button.btn.btn-sm.btn-outline-primary(onclick="beautify(\"html\")") HTML
+              button.btn.btn-sm.btn-outline-primary(onclick="prettyPrint()") prettyPrint
+          hr
+          p Deobfuscate
+            button.btn.btn-sm.btn-primary(onclick="jstillery()") JStillery
+          hr
+          p
+            button.btn.btn-sm.btn-primary(onclick="reset()") reset
+          script.
+              function reset(){
+                //$('#input').val("");
+                $('pre#content').text("");
+                $('pre#content').removeClass("prettyprinted");
+              };
+              function jstillery(){
+                var apiPath = #{rootPath};
+                var content=$("#input").val();
+                $.ajax({
+                  type: "post",
+                  url: apiPath + "api/jstillery",
+                  data:JSON.stringify({"source":content}),
+                  contentType: 'application/json',
+                  dataType: "json",            
+                  success: function(result) { 
+                    $('pre#content').text(result["source"]);
+                  },
+                  error: function() {
+                    $('pre#content').text("jstillery error");
+                  }
+                })
+              };
+              function beautify(type){
+                var content=$("#input").val();
+                var beautified;
+                var opts = {"unescape-strings":true};
+                if (type==="script") beautified = js_beautify(content, opts);
+                else if (type==="stylesheet") beautified = css_beautify(content);
+                else beautified = html_beautify(content);
+                $('pre#content').text(beautified);
+              };
