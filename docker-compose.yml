@@ -48,5 +48,6 @@ services:
       - ./wgeteer/routes/models:/home/node/routes/models
       - ./ppengo/views:/home/node/views
       - ./ppengo/bin:/home/node/bin
+      - ./ppengo/config:/home/node/config
     command: npm start
     #command: /bin/sh

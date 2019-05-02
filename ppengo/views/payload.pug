@@ -6,7 +6,7 @@ block content
       h2 md5:  #{payload.md5}
       h3 buffer size: #{payload.payload.length}
       h3 text size: #{payload.payload.toString().length}
-      a.btn.btn-sm.btn-primary(href=rootPath + "payload/download/" + payload._id) download
+      a.btn.btn-sm.btn-primary(href=rootPath + "payload/download/" + payload._id) Download
       ul.nav.nav-tabs
         li.nav-item
           a.nav-link.active(data-toggle="tab",href="#content-tab") Content
@@ -31,13 +31,13 @@ block content
           .col-12
             table.table.table-striped.table-bordered.table-hover.table-sm
               tr.thead-light.d-flex
-                th.col-4 createdAt
-                th.col-8 url
+                th.col-5 createdAt
+                th.col-7 url
               each response in responses
                 tr.d-flex.page
-                  td.col-4
+                  td.col-5
                     a= response.createdAt
-                  td.col-8
+                  td.col-7
                     if response.url.length > 100
                       a(href=rootPath + "response/" + response._id) #{response.url.slice(0,100)}(truncated)
                     else

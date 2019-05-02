@@ -23,6 +23,8 @@ block content
             td.col-1
               if webpage.text
                 p= webpage.text.length
+              else
+                p -
             td.col-2
               a(href=rootPath + "search/response?ip=" +webpage.remoteAddress.ip) #{webpage.remoteAddress.ip}
               if webpage.remoteAddress.geoip

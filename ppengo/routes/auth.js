@@ -53,17 +53,26 @@ router.get('/register', function(req, res) {
 });
 
 router.post('/register', async function(req, res, next) {
-    if (user){
+    if (typeof user !== 'undefined'){
         if(!user.admin){
             res.render('auth', {
                 user : req.user,
                 message: "no permission."
             });    
         }
-    
+    }else if (typeof user === 'undefined'){
+        User.find().then((doc)=>{
+            if(doc.length>0){
+                res.render('auth', {
+                    user : req.user,
+                    message: "no permission."
+                });    
+            }
+        });    
     }
     var username = req.body.username;
     var password = req.body.password;
+
     User.register(new User({ username : username }), password, function(err, account) {
         if (err) {
             console.log(err);

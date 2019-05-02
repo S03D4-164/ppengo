@@ -43,7 +43,7 @@ app.use(logger('dev'));
 var rootPath = "/ppengo/";
 
 var mongo_express = require('mongo-express/lib/middleware')
-var mongo_express_config = require('./public/config.js')
+var mongo_express_config = require('./config/mongo_express_config.js')
 app.use(rootPath + 'mongo_express/', mongo_express(mongo_express_config))
 
 app.use(bodyParser.urlencoded({ extended: false }))
