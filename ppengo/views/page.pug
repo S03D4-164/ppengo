@@ -20,7 +20,7 @@ block content
             a(href=rootPath + "search/page?url=" + encodeURIComponent(webpage.url)) #{webpage.url} 
           h3 from input: 
             a(href=rootPath + "website/" + website._id) #{webpage.input}
-            a(href=rootPath + "search/page?input=" + encodeURIComponent(webpage.input)) 🔍
+            //a(href=rootPath + "search/page?input=" + encodeURIComponent(webpage.input)) 🔍
           if webpage.error
             h5= "Error: " + webpage.error
           else
@@ -125,11 +125,11 @@ block content
                        if request.response.toString()==response._id.toString()
                         td.col-1
                           if response.status
-                            a.col-6(href=rootPath + "response/" + response._id) #{response.status}
+                            a(href=rootPath + "response/" + response._id) #{response.status}
                           if response.text
-                            a.col-6(href=rootPath + "response/" + response._id)  (#{response.text.length})
+                            a(href=rootPath + "response/" + response._id)  (#{response.text.length})
                           else
-                            a.col-6(href=rootPath + "response/" + response._id)  (-)
+                            a(href=rootPath + "response/" + response._id)  (-)
                         td.col-2
                           a(href=rootPath + "search/response?ip=" + response.remoteAddress.ip) #{response.remoteAddress.ip}
                           if response.remoteAddress.geoip

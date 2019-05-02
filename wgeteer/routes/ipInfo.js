@@ -38,7 +38,7 @@ const getIpinfo = async function(host){
         try{
             bgp = await whois.bgpInfo(host);
         }catch(error){
-            console.log("[GeoIP] error: " + host);
+            console.log("[bgp] error: " + host);
         }
 
         var geo = {}
@@ -46,18 +46,15 @@ const getIpinfo = async function(host){
             geo = await geoip.lookup(host);
 
         }catch(error){
-            console.log(error);
+            console.log("[GeoIP] error: " + host);
         }
 
-        //ipInfo = JSON.stringify({
         ipInfo = {
             //'whois': who,
             'reverse': hostnames,
             'bgp': bgp,
             'geoip': geo,
         }
-        //);
-        //console.log(ipInfo);
         /*
         //client.set(host, ipInfo, 'EX', 30000);
         await client.set(host, who, 'EX', 30000);

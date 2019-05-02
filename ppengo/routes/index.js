@@ -3,41 +3,20 @@ var router = express.Router();
 
 const Webpage = require('./models/webpage');
 const Website = require('./models/website');
-//const Payload = require('./models/payload');
-//const Screenshot = require('./models/screenshot');
 
 const scheduler = require('./scheduler');
-(async function(){
-  await scheduler.start();
-})();
 
-const kue = require('kue-scheduler')
-let queue = kue.createQueue({
-  prefix: 'q',
-  redis: {
-    host: "cache",
-    port: 6379
-  }
-});
+var queue = scheduler.start();
 
 router.post('/', async function(req, res, next) {
   async function queJob(webpage){
     const job = await queue.create('wgeteer', {
       pageId: webpage._id,
       options:webpage.option,
-    }).ttl(60*1000);
+    }).ttl(30*60*1000);
     await job.save(function(err){
       if( err ) console.log( job.id, err);
       //else console.log( job.id, option);
-    });
-    job.on('complete', function(result){
-      console.log('Job completed with data ', result);
-    }).on('failed attempt', function(errorMessage, doneAttempts){
-      console.log('Job failed', errorMessage);
-    }).on('failed', function(errorMessage){
-      console.log('Job failed', errorMessage);
-    }).on('progress', function(progress, data){
-      console.log('\r  job #' + job.id + ' ' + progress + '% complete with data ', data );
     });
     return job;
   }
@@ -73,6 +52,7 @@ router.post('/', async function(req, res, next) {
       period = 1;
       website.track.counter = counter;
       website.track.period = period;
+      website.track.option = option;
        
       if (option['track'] = 2){
         await website.save(function (err, success){
@@ -90,13 +70,11 @@ router.post('/', async function(req, res, next) {
       }
     }
 
-
     return webpage;
     //console.log(ids);
   }
 
-  console.log(req.body);
-
+  //console.log(req.body);
   const input = req.body['url'];
   const urls = input.split('\r\n');
 
@@ -106,13 +84,10 @@ router.post('/', async function(req, res, next) {
   for (var inputUrl of urls){
     if(inputUrl){
     var lang = req.body['lang'];
-    if (typeof lang === 'string'){
-      lang = [lang];
-    }
+    if (typeof lang === 'string') lang = [lang];
     var userAgent = req.body['userAgent'];
-    if (typeof userAgent === 'string'){
-      userAgent = [userAgent];
-    }
+    if (typeof userAgent === 'string') userAgent = [userAgent];
+
     for (var lkey in lang){
       for (var ukey in userAgent){
         var option = {};
@@ -141,11 +116,10 @@ router.post('/', async function(req, res, next) {
     title:"Progress",
     webpages, 
     ids:String(ids),
-    csrfToken:req.csrfToken(),
+    //csrfToken:req.csrfToken(),
   });
 });
 
-//router.post('/progress', parseForm, csrfProtection, function(req, res, next) {
 router.post('/progress', function(req, res, next) {
 
   const ids = req.body["pageId[]"];
@@ -164,7 +138,6 @@ router.post('/progress', function(req, res, next) {
         webpages, 
         "title":"Progress",
         completed: completed,
-        csrfToken:req.csrfToken(),
     });
   });
 });

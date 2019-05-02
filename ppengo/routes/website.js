@@ -4,16 +4,6 @@ var router = express.Router();
 const Website = require('./models/website');
 const Webpage = require('./models/webpage');
 
-/*
-var cookieParser = require('cookie-parser');
-var csrf = require('csurf');
-var bodyParser = require('body-parser');
-var csrfProtection = csrf({ cookie: true });
-var parseForm = bodyParser.urlencoded({ extended: false });
-router.use(cookieParser());
-*/
-
-//router.get('/',  csrfProtection, function(req, res, next) {
 router.get('/', function(req, res, next) {
   Website.find()
     .sort("-updatedAt")
@@ -34,7 +24,6 @@ router.get('/', function(req, res, next) {
     });
 });
 
-//router.get('/:id', csrfProtection, async function(req, res, next) {
 router.get('/:id', async function(req, res, next) {
     const id = req.params.id;
     console.log(req.query);
@@ -68,7 +57,6 @@ router.get('/:id', async function(req, res, next) {
     });
 });
 
-//router.post('/:id', parseForm, csrfProtection, async function(req, res, next) {
 router.post('/:id', async function(req, res, next) {
     const id = req.params.id;
     var website = await Website.findById(id)

@@ -6,7 +6,6 @@ var csrf = require('csurf');
 var bodyParser = require('body-parser');
 var session = require('express-session');
 
-//var kue = require('kue');
 var kue = require('kue-scheduler');
 var kueUiExpress = require('kue-ui-express');
 kue.createQueue({
@@ -22,6 +21,7 @@ const mongoStore = require('connect-mongo')(session);
 mongoose.connect('mongodb://mongodb/wgeteer', {
   useNewUrlParser: true,
   useCreateIndex: true,
+  useFindAndModify: false
 }).then(() =>  console.log('connection succesful'))
 .catch((err) => console.error(err));
 mongoose.set('debug', function (coll, method, query, doc) {

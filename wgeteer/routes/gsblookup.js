@@ -1,16 +1,39 @@
-var request = require('request');
-var qs = require('querystring');
-
-const mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost:27017/wgeteer', { useNewUrlParser: true });
-mongoose.Promise = global.Promise;
-var db = mongoose.connection;
-db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+var request = require('request-promise');
 
 const Website = require('./models/website');
 
+async function gsbLookup(url){
+    var ApiEndpoint = 'http://127.0.0.1:3001/v4/threatMatches:find';
+    var submit = {
+        "threatInfo": {
+            "threatEntries": [
+                {"url": url},
+            ]
+        }
+    }
+    var options = {
+        url: ApiEndpoint,
+        json:true,
+        body:submit,
+        method:"POST"
+    }
+
+   var res = await request(options)
+   .then((body)=>{
+        if ("matches" in body){
+            return body;
+        }else{
+            return {"matches":false};
+        } 
+   })
+   .catch((err)=>{
+        return {"error":err.message};
+   })
+   return res;
+}
+
 module.exports = {
-    async lookup (id){
+    async lookupSite (id){
         var website = await Website.findById(id)
         .then((doc) => {
             return doc;
@@ -18,27 +41,13 @@ module.exports = {
         .catch(err =>{
           console.log(err);
         });
-
-        var ApiEndpoint = 'http://127.0.0.1:3001/v4/threatMatches:find';
-        var submit = {
-            "threatInfo": {
-                "threatEntries": [
-                    {"url": website.url},
-                ]
-            }
-        }
-        var options = {
-            url: ApiEndpoint,
-            json: submit,
-        }
-        await request.post(options, async function (error, response, body) {
-            console.log(response.statusCode, body.length, JSON.stringify(body));
-            if ("matches" in body){
-                website.gsb.lookup = body;
-            }else{
-                website.gsb.lookup = {"matches":false};
-            }
-            await website.save();
-        })
+        const res = await gsbLookup(website.url);
+        website.gsb.lookup = res;
+        await website.save();    
+        return res;
+    },
+    async lookupUrl (url){
+        const res = await gsbLookup(url);
+        return res;
     },
 };

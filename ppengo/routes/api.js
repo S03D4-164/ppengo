@@ -13,8 +13,7 @@ let queue = kue.createQueue({
   }
 });
 
-//router.get('/vt/:id', parseForm, csrfProtection, async function(req, res, next) {
-router.get('/vt/:id', async function(req, res, next) {
+router.get('/vt/:id', async function(req, res) {
   async function queJob(id){
     const job = await queue.create('vt', {
       payloadId:id,
@@ -30,32 +29,56 @@ router.get('/vt/:id', async function(req, res, next) {
   const job = await queJob(id);
   await res.redirect(req.baseUrl + "/../payload/" + id);
 });
-  
-//router.get('/gsblookup/:id', parseForm, csrfProtection, async function(req, res, next) {
-router.get('/gsblookup/:id', async function(req, res) {
-  async function queJob(id){
-    const job = await queue.create('gsblookup', {
-      websiteId:id,
-    }).ttl(60*1000);
+
+router.post('/gsblookupurl/', async function(req, res) {
+  async function queJob(url){
+    const job = await queue.create('gsblookupUrl', {
+      url:url,
+    }).ttl(60*1000).attempts(3).backoff( true );
     await job.save(function(err){
       if( err ) console.log( job.id, err);
-      //else console.log( job.id, option);
-    });
+    });    
+    return job;
   }
-  const id = req.params.id;
-  const job = await queJob(id);
+  const url = req.body.url;
+  const job = await queJob(url);
 
   job.on('complete', function(result){
     console.log('Job completed with data ', result);
-  }).on('failed attempt', function(errorMessage, doneAttempts){
-    console.log('Job failed');
+  }).on('failed', function(errorMessage){
+    console.log('Job failed');  
+  }).on('progress', function(progress, data){
+    console.log('\r  job #' + job.id + ' ' + progress + '% complete with data ', data );
+    return res.json(data);
+  });
+});
+
+router.post('/gsblookup/', async function(req, res) {
+  async function queJob(id){
+    const job = await queue.create('gsblookup', {
+      websiteId:id,
+    }).ttl(60*1000).attempts(3).backoff( true );
+    await job.save(function(err){
+      if( err ) console.log( job.id, err);
+    });
+    return job;
+  }
+  const id = req.body.id;
+  const job = await queJob(id);
+  
+  job.on('complete', function(result){
+    console.log('Job completed with data ', result);
   }).on('failed', function(errorMessage){
     console.log('Job failed');
   }).on('progress', function(progress, data){
     console.log('\r  job #' + job.id + ' ' + progress + '% complete with data ', data );
+    try{
+      return res.json(data);
+    }catch(err){
+      console.log(err);
+    }
   });
-
-  await res.redirect(req.baseUrl + "/../website/" + id);
+  return;
 });
 
 router.get('/page/', async function(req, res) {
@@ -80,6 +103,28 @@ router.get('/page/:id', async function(req, res) {
     })
 });
 
+router.get('/website/', async function(req, res) {
+  await Website.find()
+    .then((document) => {
+      return res.json(document);
+    })
+    .catch((err) => {
+      console.log(err)
+      return res.json({error:err.message});
+    })
+});
+
+router.get('/website/:id', async function(req, res) {
+  await Website.findById(req.params.id)
+    .then((document) => {
+      return res.json(document);
+    })
+    .catch((err) => {
+      console.log(err)
+      return res.json({error:err.message});
+    })
+});
+
 router.post('/check', async function(req, res) {
   async function queJob(webpage){
     const job = await queue.create('wgeteer', {
@@ -89,15 +134,6 @@ router.post('/check', async function(req, res) {
     await job.save(function(err){
       if( err ) console.log( job.id, err);
       //else console.log( job.id, option);
-    });
-    job.on('complete', function(result){
-      console.log('Job completed with data ', result);
-    }).on('failed attempt', function(errorMessage, doneAttempts){
-      console.log('Job failed', errorMessage);
-    }).on('failed', function(errorMessage){
-      console.log('Job failed', errorMessage);
-    }).on('progress', function(progress, data){
-      console.log('\r  job #' + job.id + ' ' + progress + '% complete with data ', data );
     });
     return job;
   }
@@ -150,9 +186,7 @@ router.post('/check', async function(req, res) {
         } 
       }
     }
-
     return webpage;
-    //console.log(ids);
   }
 
   console.log(req.body);

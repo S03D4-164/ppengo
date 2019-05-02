@@ -1,12 +1,5 @@
 const puppeteer = require('puppeteer');
 
-/*
-const mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost:27017/wgeteer', { useNewUrlParser: true });
-var db = mongoose.connection;
-db.on('error', console.error.bind(console, 'MongoDB connection error:'));
-*/
-
 const Webpage = require('./models/webpage');
 const Request = require('./models/request');
 const Response = require('./models/response');
@@ -128,7 +121,7 @@ module.exports = {
         //console.log(responseHeaders);
         try{
           const response = await client.send('Network.getResponseBodyForInterception', {interceptionId});
-          console.log(response.body.length, response.base64Encoded);    
+          //console.log(response.body.length, response.base64Encoded);    
 
           const newBody = response.base64Encoded ? Buffer.from(response.body, "base64") : response.body;
           var cache = {};
@@ -460,8 +453,9 @@ module.exports = {
       await webpage.save(function (err, success){
           if(err) console.log(err)
           else console.log("webpage saved: " + webpage.input);
-        });
-        await browser.close();
-      }
+      });
+      await browser.close();
+      return webpage;
+    }
   },
 };

@@ -2,20 +2,22 @@ var express = require('express');
 var router = express.Router();
 var Diff = require('diff');
 
+/*
 var cookieParser = require('cookie-parser');
 var csrf = require('csurf');
 //var bodyParser = require('body-parser');
 var csrfProtection = csrf({ cookie: true });
 //var parseForm = bodyParser.urlencoded({ extended: false });
 router.use(cookieParser());
+*/
 
 const Webpage = require('./models/webpage');
 const Request = require('./models/request');
 const Response = require('./models/response');
 const Website = require('./models/website');
 
-router.get('/',  csrfProtection, function(req, res, next) {
-  console.log(req);
+//router.get('/',  csrfProtection, function(req, res, next) {
+router.get('/',  function(req, res) {
   Webpage.find()
       .sort("-createdAt")
       .limit(100)
@@ -33,8 +35,9 @@ router.get('/',  csrfProtection, function(req, res, next) {
       });
 });
 
-router.get('/:id', csrfProtection, async function(req, res, next) {
-    const id = req.params.id;
+//router.get('/:id', csrfProtection, async function(req, res, next) {
+router.get('/:id', async function(req, res, next) {
+  const id = req.params.id;
   
     var webpage = await Webpage.findById(id)
       .then((document) => {

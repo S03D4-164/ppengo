@@ -7,12 +7,14 @@ const Webpage = require('./models/webpage');
 const Payload = require('./models/payload');
 const Request = require('./models/response');
 
+/*
 var cookieParser = require('cookie-parser');
 var csrf = require('csurf');
 //var bodyParser = require('body-parser');
 var csrfProtection = csrf({ cookie: true });
 //var parseForm = bodyParser.urlencoded({ extended: false });
 router.use(cookieParser());
+*/
 
 var ObjectId = require('mongoose').Types.ObjectId
 
@@ -20,8 +22,9 @@ RegExp.escape= function(s) {
   return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 };
 
-router.get('/page', csrfProtection, function(req, res, next) {
-    var search = []
+//router.get('/page', csrfProtection, function(req, res, next) {
+router.get('/page', function(req, res) {
+  var search = []
     if(typeof req.query.input !== 'undefined' && req.query.input !== null){
       search.push({"input": req.query.input});
     }
@@ -57,7 +60,7 @@ router.get('/page', csrfProtection, function(req, res, next) {
     console.log(search);
     Webpage.find().and(search).sort("-createdAt")
     .then((webpage) => {
-        res.render('index', { 
+        res.render('pages', { 
           title: "Search: "+ JSON.stringify(req.query),
           webpages:webpage,
           csrfToken:req.csrfToken(),
@@ -65,7 +68,8 @@ router.get('/page', csrfProtection, function(req, res, next) {
       });
 });
 
-router.get('/website', csrfProtection, function(req, res, next) {
+//router.get('/website', csrfProtection, function(req, res, next) {
+router.get('/website', function(req, res) {
   var search = []
   if(typeof req.query.tagkey !== 'undefined' && req.query.tagkey !== null){
     var elem = {};
@@ -94,7 +98,8 @@ router.get('/website', csrfProtection, function(req, res, next) {
     });
 });
 
-router.get('/request', csrfProtection, function(req, res, next) {
+//router.get('/request', csrfProtection, function(req, res, next) {
+router.get('/request', function(req, res) {
   var search = []
   if(typeof req.query.url !== 'undefined' && req.query.url !== null){
     search.push({"url":new req.query.url});
@@ -115,8 +120,9 @@ router.get('/request', csrfProtection, function(req, res, next) {
     });
 });
 
-router.get('/response', csrfProtection, function(req, res, next) {
-    var search = []
+//router.get('/response', csrfProtection, function(req, res, next) {
+router.get('/response', function(req, res) {
+  var search = []
     if(typeof req.query.url !== 'undefined' && req.query.url !== null){
       search.push({"url": req.query.url});
     }
@@ -162,7 +168,8 @@ router.get('/response', csrfProtection, function(req, res, next) {
       });
 });
 
-router.get('/payload', csrfProtection, function(req, res, next) {
+//router.get('/payload', csrfProtection, function(req, res, next) {
+router.get('/payload', function(req, res) {
     var search = []
     if(typeof req.query.md5 !== 'undefined' && req.query.md5 !== null){
       search.push({"md5":new RegExp(req.query.md5)});

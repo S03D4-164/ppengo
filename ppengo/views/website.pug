@@ -37,11 +37,26 @@ block content
             pre= JSON.stringify(website.track, null, " ")
           br
           br
-          //a.btn.btn-sm.btn-outline-primary(style="cursor:pointer;") gsb▽
           button.btn.btn-sm.btn-outline-primary(data-toggle="collapse" data-target="#gsb") Google Safe Browsing ▽
           div#gsb.collapse
-            a.btn.btn-sm.btn-primary(href=rootPath + "gsblookup/" + website._id) Lookup
-            pre= JSON.stringify(website.gsb.lookup, null, " ")
+            //a.btn.btn-sm.btn-primary(href=rootPath + "api/gsblookup/" + website._id) Lookup
+            button.btn.btn-sm.btn-primary(onclick="lookup()") Lookup
+
+            pre#gsblookup= JSON.stringify(website.gsb.lookup, null, " ")
+          script.
+              function lookup(){
+                var apiPath = #{rootPath};
+                $.ajax({
+                  type: "post",
+                  url: apiPath + "api/gsblookup",
+                  data:JSON.stringify({"id":"#{website._id}"}),
+                  contentType: 'application/json',
+                  dataType: "json",            
+                  success: function(result) { 
+                    $('pre#gsblookup').text(JSON.stringify(result, null, " "));
+                  },
+                })
+              };
 
       if webpages
         include include/pagelist.pug
