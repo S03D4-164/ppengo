@@ -13,21 +13,55 @@ let queue = kue.createQueue({
   }
 });
 
-router.get('/vt/:id', async function(req, res) {
+var yara = require('yara');
+
+router.post('/vtpayload/', async function(req, res) {
   async function queJob(id){
-    const job = await queue.create('vt', {
-      payloadId:id,
-      //ak:ak,
-    }).ttl(60*1000);
+    const job = await queue.create('vtPayload', {
+      payloadId: id,
+    }).ttl(60*1000).attempts(3).backoff( true );
 
     await job.save(function(err){
       if( err ) console.log( job.id, err);
       //else console.log( job.id, option);
     });
+    return job;
   }
-  const id = req.params.id;
+  const id = req.body.id;
   const job = await queJob(id);
-  await res.redirect(req.baseUrl + "/../payload/" + id);
+  job.on('complete', function(result){
+    console.log('Job completed with data ', result);
+  }).on('failed', function(errorMessage){
+    console.log('Job failed');  
+  }).on('progress', function(progress, data){
+    console.log('\r  job #' + job.id + ' ' + progress + '% complete with data ', data );
+    return res.json(data);
+  });
+});
+
+router.post('/vt/', async function(req, res) {
+  async function queJob(resource){
+    const job = await queue.create('vt', {
+      resource: resource,
+    }).ttl(60*1000).attempts(3).backoff( true );
+
+    await job.save(function(err){
+      if( err ) console.log( job.id, err);
+      //else console.log( job.id, option);
+    });
+    return job;
+  }
+  const resource = req.body.resource;
+  const job = await queJob(resource);
+  job.on('complete', function(result){
+    console.log('Job completed with data ', result);
+  }).on('failed', function(errorMessage){
+    console.log('Job failed');  
+  }).on('progress', function(progress, data){
+    console.log('\r  job #' + job.id + ' ' + progress + '% complete with data ', data );
+    return res.json(data);
+  });
+
 });
 
 router.post('/gsblookupurl/', async function(req, res) {
@@ -124,6 +158,49 @@ router.get('/website/:id', async function(req, res) {
       return res.json({error:err.message});
     })
 });
+
+router.post('/yara', async function(req, res) {
+  var result = {};
+  var source = req.body.source;
+  if(!source) return res.json(result);
+  var reqbuf = {buffer: Buffer.from(source)};
+
+  var options = {
+    rules: [
+      {filename: "/home/node/config/rules/index.yar"},
+    ]
+  }
+  yara.initialize(function(error) {
+  if (error) {
+    console.error(error)
+  } else {
+    var scanner = yara.createScanner()
+    scanner.configure(options, function(error, warnings) {
+      if (error) {
+        //if (error instanceof yara.CompileRulesError) console.error(error.message + ": " + JSON.stringify(error.errors))
+        console.error(error)
+      } else {
+        if (warnings.length) {
+          console.error("Compile warnings: " + JSON.stringify(warnings))
+        } else {
+          scanner.scan(reqbuf, function(error, result) {
+            if (error) {
+              console.error("scan failed: %s", error.message)
+            } else {
+              console.log(result);
+              if (result.rules.length) {
+                console.log("matched: %s", JSON.stringify(result))
+                res.json(result);
+              }
+            }
+          });
+        }
+      }
+    });
+  }
+  })
+})
+
 
 router.post('/check', async function(req, res) {
   async function queJob(webpage){

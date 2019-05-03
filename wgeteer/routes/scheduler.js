@@ -33,19 +33,8 @@ queue.on('error', function( err ) {
 queue.on('schedule error', function(error) {
   console.log( 'Oops... ', error);
 });
-
 queue.on('schedule success', function(job) {
-
-  job.on('complete', function(result) {
-  console.log('Job completed with data ', result);
-  }).on('failed attempt', function(errorMessage, doneAttempts) {
-  console.log('Job failed', errorMessage);
-  }).on('failed', function(errorMessage) {
-  console.log('Job failed', errorMessage);
-  }).on('progress', function(progress, data) {
-  console.log('job #' + job.id + ' ' + progress + '% complete with data ' + data);
-  });
-
+  console.log('job scheduled ' + job.id);
 });
 
 queue.process('wgeteer', 2, (job, done) => {
@@ -76,17 +65,37 @@ const getWeb = async (job, done) => {
   });
 }
 
-queue.process('vt', 1, (job, done) => {
-  getVT(job, done);
+queue.process('vtPayload', 1, async (job, done) => {
+  await payloadVT(job, done);
 });
-const getVT = async (job, done) => {
-  await vt.vt(job.data.payloadId)
+const payloadVT = async (job, done) => {
+  await vt.vtPayload(job.data.payloadId)
   .then((success) => {
+    console.log("success", success);
+    job.progress(1, 1, {"job": "vtPayload", "success":success});
     done();
   })
   .catch((err)=>{
-    console.log(err);
+    console.log("error", err);
+    job.progress(1, 1, {"job": "vtPayload", "error":err});
+    done(err);
+  });
+}
+
+queue.process('vt', 1, async (job, done) => {
+  await getVT(job, done);
+});
+const getVT = async (job, done) => {
+  await vt.vt(job.data.resource)
+  .then((success) => {
+    console.log("success", success);
+    job.progress(1, 1, {"job": "vt", "success":success});
     done();
+  })
+  .catch((err)=>{
+    console.log("error", err);
+    job.progress(1, 1, {"job": "vt", "error":err});
+    done(err);
   });
 }
 

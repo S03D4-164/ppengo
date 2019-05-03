@@ -1,46 +1,52 @@
-var request = require('request');
+var request = require('request-promise');
 var qs = require('querystring');
-
-const mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost:27017/wgeteer', { useNewUrlParser: true });
-mongoose.Promise = global.Promise;
-var db = mongoose.connection;
-db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
 const Payload = require('./models/payload');
 
+const ak = '';
+const vtApiEndpoint = 'https://www.virustotal.com/vtapi/v2/';
+
+async function vtFileReport(resource){
+    var arg = {
+        apikey:ak,
+        resource:resource,
+    }
+    var options = {
+        url: vtApiEndpoint + 'file/report?' + qs.stringify(arg),
+        json:true,
+        method:"GET"
+    }
+    console.log(options);
+    var res = await request(options)
+    .then((body)=>{
+        //console.log(body);
+        return body;
+    })
+    .catch((err)=>{
+        console.log(err);
+        return {"error":err.message};
+    })
+    return res;
+}
+
 module.exports = {
-    async vt (payloadId){
-        var payload = await Payload.findById(payloadId)
-        .then((doc) => {
-            return doc;
+    async vt (resource){
+        const body = await vtFileReport(resource);
+        return body;
+    },
+    async vtPayload (payloadId){
+        var result = await Payload.findById(payloadId)
+        .then(async (payload) => {
+            var resource = payload.md5;
+            const body = await vtFileReport(resource);
+            payload.vt = body;
+            await payload.save();
+            return body;    
         })
         .catch(err =>{
-          console.log(err);
+            console.log(err);
+            return {"error":err.message};
         });
-
-        var resource = payload.md5;
-        console.log(resource);
-
-        var ak = '';
-        var vtApiEndpoint = 'https://www.virustotal.com/vtapi/v2/';
-
-        var method = "file"
-        var arg = {
-            apikey:ak,
-            resource:resource,
-        }
-        var options = {
-            url: vtApiEndpoint + method + '/report?' + qs.stringify(arg),
-            json: true,
-        }
-        await request(options, async function (error, response, body) {
-            console.log(body);
-            if (body){
-                payload.vt = body;
-                await payload.save();
-            }
-    
-        })
+        return result;
     },
 };

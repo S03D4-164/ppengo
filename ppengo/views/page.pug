@@ -71,9 +71,9 @@ block content
                 dd= "protocol: " + securityDetails.protocol
                 dd= "subjectName: " + securityDetails.subjectName
                 - const from = securityDetails.validFrom
-                dd= "validFrom: " + moment.unix(from).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(from).fromNow()
+                dd= "From: " + moment.unix(from).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(from).fromNow()
                 - const to = securityDetails.validTo
-                dd= "validTo: " + moment.unix(to).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(to).fromNow()
+                dd= "To: " + moment.unix(to).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(to).fromNow()
             else
                 p empty
     ul.nav.nav-tabs
@@ -143,8 +143,8 @@ block content
        .row
         if webpage.content
           div.col-md-1
-            h5= "Content"
-            p= "size: " + webpage.content.length
+            h4= "Content"
+            p= "text size: " + webpage.content.length
           div.col-md-10
             pre#content.prettyprint.linenums(style="white-space: pre-wrap") #{webpage.content}
           div.col-md-1
@@ -156,14 +156,14 @@ block content
          div.alert
           p No data
       div#diff-tab.tab-pane
-        .row
           if diff
-            h5= "Diff"
-            p
-              a(href=rootPath + "page/" + previous._id) previous: #{previous.id}
-            button.btn.btn-sm.btn-primary(onclick="diff('side-by-side')") side-by-side
-            button.btn.btn-sm.btn-primary(onclick="diff('line-by-line')") line-by-line
+            h4 Diff
+            h5 previous: 
+              a(href=rootPath + "page/" + previous._id) #{previous.id}
             div.col-md-12
+              button.btn.btn-outline-primary(onclick="diff('side-by-side')") side-by-side
+              button.btn.btn-outline-primary(onclick="diff('line-by-line')") line-by-line            
+
               #diff
                 pre.prettyprint.linenums(style="white-space: pre-wrap") #{diff}
           else

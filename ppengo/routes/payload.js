@@ -54,7 +54,7 @@ router.get('/download/:id', function(req, res) {
     });
   });
 
-//router.get('/yara/:id', csrfProtection, function(req, res, next) {
+/*
 router.get('/yara/:id', function(req, res) {
     const id = req.params.id;
     Payload.findById(id)
@@ -68,7 +68,7 @@ router.get('/yara/:id', function(req, res) {
           //console.log(process.cwd())
           var options = {
             rules: [
-              {filename: "public/rules.yara"},
+              {filename: "config/rules/index.yar"},
             ]
           }
           scanner.configure(options, function(error, warnings) {
@@ -103,6 +103,7 @@ router.get('/yara/:id', function(req, res) {
     await res.redirect(req.baseUrl + "/" + id);
     });
 });
+*/
 
 //router.get('/:id', csrfProtection, function(req, res, next) {
 router.get('/:id', function(req, res) {

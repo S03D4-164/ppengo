@@ -10,15 +10,15 @@ block content
         if request
           .row.col-md-12
             h4 Request: 
-              a(href=rootPath + "search/request?url=" +  encodeURIComponent(request.url)) #{request.url}🔍
+              a(href=rootPath + "search/request?url=" +  encodeURIComponent(request.url)) #{request.url} 🔍
           p= "createdAt: " + moment(request.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
           .row
-            .col-12
+            .col-6
               h5= request.method  + " " + request.resourceType
               a= "Failure: " + JSON.stringify(request.failure)
               br
               a= "isNavigationRequest: " + request.isNavigationRequest
-              br
+            .col-6
               h5= "redirectChain:"
               if request.redirectChain
                 each chain in request.redirectChain
@@ -30,8 +30,8 @@ block content
        .p-2.bg-light.shadow-lg
         if response
           .row.col-md-12
-            h4 Response: #{response.url}
-              a(href=rootPath + "search/response?url=" + encodeURIComponent(response.url)) 🔍
+            h4 Response: 
+              a(href=rootPath + "search/response?url=" + encodeURIComponent(response.url)) #{response.url} 🔍
         p= "createdAt: " + moment(response.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
         h5= "status: " + response.status + " " + response.statusText
         //p= "ok: " + webpage.ok
@@ -62,8 +62,6 @@ block content
               br
               a= "subjectName: " + securityDetails.subjectName
               br
-              a= "valid"
-              br
               - const from = securityDetails.validFrom
               a= "From: " + moment.unix(from).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(from).fromNow()
               br
@@ -73,7 +71,7 @@ block content
               p empty
 
     .row
-        .col-6
+      .p-2.col-6
           h6 Request Headers:
             if request
               if request.headers
@@ -81,14 +79,14 @@ block content
                   each value, key in request.headers
                     | #{key}: #{value}
                     |
-        .col-6
+      .p-2.col-6
           h6 Response Headers: 
             if response.headers
               pre.prettyprint.linenums(style="white-space: pre-wrap")
                 each value, key in response.headers
                   | #{key}: #{value}
                   |
-        
+    .row
         .col-md-12
           hr              
         div.col-md-1

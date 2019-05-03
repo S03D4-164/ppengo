@@ -3,14 +3,17 @@ var router = express.Router();
 
 const Screenshot = require('./models/screenshot');
 
+/*
 var cookieParser = require('cookie-parser');
 var csrf = require('csurf');
 var bodyParser = require('body-parser');
 var csrfProtection = csrf({ cookie: true });
 var parseForm = bodyParser.urlencoded({ extended: false });
 router.use(cookieParser());
+*/
 
-router.get('/',  csrfProtection, function(req, res, next) {
+//router.get('/',  csrfProtection, function(req, res, next) {
+router.get('/', function(req, res) {
   //const now = date.now();
   Screenshot.find()
     .sort("-createdAt")
@@ -21,7 +24,7 @@ router.get('/',  csrfProtection, function(req, res, next) {
         'screenshots', {
           title: "Screenshot", 
           payloads,
-          csrfToken:req.csrfToken(),
+          //csrfToken:req.csrfToken(),
         });
     })
     .catch((err) => { 
@@ -30,7 +33,8 @@ router.get('/',  csrfProtection, function(req, res, next) {
     });
 });
 
-router.get('/:id', csrfProtection, function(req, res, next) {
+//router.get('/:id', csrfProtection, function(req, res, next) {
+router.get('/:id', function(req, res) {
   const id = req.params.id;
   //console.log(id);
   Screenshot.findById(id)

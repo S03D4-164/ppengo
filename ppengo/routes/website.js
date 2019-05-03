@@ -15,7 +15,7 @@ router.get('/', function(req, res, next) {
         'websites', {
           websites,
           title:'Websites',
-          csrfToken:req.csrfToken(),
+          //csrfToken:req.csrfToken(),
         });
     })
     .catch((err) => { 
@@ -99,7 +99,7 @@ router.post('/:id', async function(req, res, next) {
     res.render('website', {
           website, webpages,
           title: "Results",
-          csrfToken:req.csrfToken(), 
+          //csrfToken:req.csrfToken(), 
     });
 });
 

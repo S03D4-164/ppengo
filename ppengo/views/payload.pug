@@ -3,6 +3,7 @@ extends layout
 block content
     h1 Payload
     if payload
+      h2 id:  #{payload._id}
       h2 md5:  #{payload.md5}
       h3 buffer size: #{payload.payload.length}
       h3 text size: #{payload.payload.toString().length}
@@ -24,8 +25,9 @@ block content
 
       div.tab-content
         div#vt-tab.tab-pane
-          a.btn.btn-primary(href=rootPath + "api/vt/" + payload._id) VT search
-          pre= JSON.stringify(payload.vt, null, " ")
+          //a.btn.btn-primary(href=rootPath + "api/vtpayload/" + payload._id) VT search
+          button.btn.btn-sm.btn-primary(onclick="vt()") VT search
+          pre#vt= JSON.stringify(payload.vt, null, " ")
 
         div#request-tab.tab-pane
           .col-12
@@ -46,6 +48,21 @@ block content
         div#content-tab.tab-pane.active
             pre.prettyprint.linenums(style="white-space: pre-wrap")= payload.payload.toString() 
       
+        script.
+            function vt(){
+              var apiPath = #{rootPath};
+              $.ajax({
+                type: "post",
+                url: apiPath + "api/vtpayload",
+                data:JSON.stringify({"id":"#{payload._id}"}),
+                contentType: 'application/json',
+                dataType: "json",            
+                success: function(result) { 
+                  $('pre#vt').text(JSON.stringify(result, null, " "));
+                },
+              })
+            };
+
     else
       div.alert.alert-warning
         p No data

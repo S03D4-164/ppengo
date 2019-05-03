@@ -26,7 +26,7 @@ router.get('/',  function(req, res) {
           'pages', {
             title: "Page",
             webpages,
-            csrfToken:req.csrfToken(),
+            //csrfToken:req.csrfToken(),
           });
       })
       .catch((err) => { 
@@ -88,7 +88,7 @@ router.get('/:id', async function(req, res, next) {
           website,
           previous:previous,
           diff,
-          csrfToken:req.csrfToken(), 
+          //csrfToken:req.csrfToken(), 
     });
 });
 
