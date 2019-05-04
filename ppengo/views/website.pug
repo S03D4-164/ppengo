@@ -57,9 +57,9 @@ block content
         = "Page List " 
         .btn-group
           a.btn.btn-primary(href=rootPath + "website/" + website._id) simple
-          a.btn.btn-secondary(href=rootPath + "website/" + website._id + "?ex=1") verbose
+          a.btn.btn-secondary(href=rootPath + "website/" + website._id + "?verbose=on") verbose
       if webpages
-        if ex===true
+        if verbose === true
           include include/table.pug
         else
           include include/pagelist.pug

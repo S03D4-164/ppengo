@@ -3,16 +3,6 @@ var router = express.Router();
 
 const Response = require('./models/response');
 
-/*
-var cookieParser = require('cookie-parser');
-var csrf = require('csurf');
-var bodyParser = require('body-parser');
-var csrfProtection = csrf({ cookie: true });
-//var parseForm = bodyParser.urlencoded({ extended: false });
-router.use(cookieParser());
-*/
-
-//router.get('/',  csrfProtection, function(req, res, next) {
 router.get('/', function(req, res) {
   Response
     .find()
@@ -24,7 +14,6 @@ router.get('/', function(req, res) {
           'responses', {
             title: "Response", 
             webpages, 
-            // csrfToken:req.csrfToken(),
           });
       })
       .catch((err) => { 
@@ -33,7 +22,6 @@ router.get('/', function(req, res) {
       });
 });
   
-//router.get('/:id', csrfProtection, async function(req, res, next) {
 router.get('/:id', async function(req, res) {
   const id = req.params.id;
     const response = await Response.findById(id)
@@ -60,7 +48,6 @@ router.get('/:id', async function(req, res) {
       request:request,
       response:response,
       previous,
-      //csrfToken:req.csrfToken(),
       //payload: payload,
       //model:'response',
     });  

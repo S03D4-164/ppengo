@@ -10,7 +10,7 @@ mixin webpages-include(webpages, title)
         input.form-control.mr-2(type="text" name="status", id="status" placeholder='' value=search?search.status:"")
         label.mr-2(for="source") source:  
         input.form-control.mr-2(type="text" name="source", id="source" placeholder='' value=search?search.source:"")
-      if search
+      if search.length
         h4= "Search: " + JSON.stringify(search) + " - Total: " + webpages.length
 
       table.table.table-bordered.table-sm

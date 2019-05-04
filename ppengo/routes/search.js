@@ -54,6 +54,7 @@ router.get('/page', function(req, res) {
         res.render('pages', { 
           title: "Page: "+ JSON.stringify(req.query),
           webpages:webpage,
+          search:req.query,
         });
       });
 });
@@ -145,8 +146,8 @@ router.get('/response', function(req, res) {
     if(typeof req.query.url !== 'undefined' && req.query.url !== null){
       search.push({"url": req.query.url});
     }
-    if(typeof req.query.rurl !== 'undefined' && req.query.rurl !== null){
-      search.push({"url":new RegExp(RegExp.escape(req.query.rurl))});
+    if(typeof req.query.rurl !== 'undefined' && req.query.rurl){
+      search.push({"url":new RegExp(req.query.rurl)});
     }
 
     if(typeof req.query.ip !== 'undefined' && req.query.ip !== null){
@@ -158,11 +159,11 @@ router.get('/response', function(req, res) {
     if(typeof req.query.issuer !== 'undefined' && req.query.issuer !== null){
       search.push({"securityDetails.issuer":new RegExp(req.query.issuer)});
     }
-    if(typeof req.query.text !== 'undefined' && req.query.text !== null){
-      search.push({"text":new RegExp(RegExp.escape(req.query.text))});
+    if(typeof req.query.text !== 'undefined' && req.query.text){
+      search.push({"text":new RegExp(req.query.text)});
     }
 
-    if(typeof req.query.status !== 'undefined' && req.query.status !== null){
+    if(typeof req.query.status !== 'undefined' && req.query.status){
       search.push({"status":req.query.status});
     }
 
@@ -171,14 +172,21 @@ router.get('/response', function(req, res) {
     }
 
     console.log(req.query, search);
-    Response.find()
-    .and(search).sort("-createdAt")
-    .limit(100)
+    var find;
+    if (search.length){
+      find =  Response.find().and(search);
+    }else{
+      find =  Response.find();
+
+    }
+    //Response.find().and(search)
+    find
+    .sort("-createdAt").limit(100)
     .then((webpage) => {
         res.render('responses', { 
-          title: "Search: "+ JSON.stringify(req.query),
+          //title: "Search: "+ JSON.stringify(req.query),
           webpages:webpage,
-          csrfToken:req.csrfToken(),
+          search:req.query,
         });
       })
       .catch((err) => { 

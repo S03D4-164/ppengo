@@ -22,9 +22,9 @@ block content
             a(href=rootPath + "website/" + website._id) #{webpage.input}
             //a(href=rootPath + "search/page?input=" + encodeURIComponent(webpage.input)) 🔍
           if webpage.error
-            h5= "Error: " + webpage.error
+            h4= "Error: " + webpage.error
           else
-            h5= "Error: none"
+            h4= "Error: none"
           h5 Option
           if webpage.option
             each value, key in webpage.option
@@ -87,8 +87,19 @@ block content
     div.tab-content
       div#request-tab.tab-pane.active
           if requests
-            if requests.length
+            if requests.length 
               h3= "Requests: "+ requests.length + " / Responses: " + responses.length
+              
+              form.form-inline(method="get" action=rootPath + "page/" + webpage._id)
+                input.form-control.mr-2.btn.btn-sm.btn-danger(type="submit" value="search")
+                label.mr-2(for="rurl") url:  
+                input.form-control.mr-2(type="text" name="rurl", id="rurl" placeholder='regex value' value=search?search.rurl:"")
+                label.mr-2(for="status") status:  
+                input.form-control.mr-2(type="text" name="status", id="status" placeholder='' value=search?search.status:"")
+                label.mr-2(for="source") source:  
+                input.form-control.mr-2(type="text" name="source", id="source" placeholder='' value=search?search.source:"")
+              if search.length
+                h4= "Search: " + JSON.stringify(search) + " - Total: " + responses.length
               table.table.table-bordered.table-sm
                 tr.thead-light.d-flex
                   th.col-2 createdAt

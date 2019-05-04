@@ -25,14 +25,14 @@ router.get('/', function(req, res, next) {
 
 router.get('/:id', async function(req, res, next) {
     const id = req.params.id;
-    const ex = req.query.ex?true:false;
-    console.log(req.query, ex);
+    const verbose = req.query.verbose?true:false;
+    console.log(req.query);
     const website = await Website.findById(id)
       .then((document)=>{return document})
       .catch((err)=>{return err});
 
     var search = [];
-    if(typeof req.query.rurl !== 'undefined' && req.query.rurll){
+    if(typeof req.query.rurl !== 'undefined' && req.query.rurl){
       search.push({"url":new RegExp(RegExp.escape(req.query.rurl))});
     }
     if(typeof req.query.source !== 'undefined' && req.query.source){
@@ -75,7 +75,7 @@ router.get('/:id', async function(req, res, next) {
       webpages,
       title: "Results",
       search: req.query,
-      ex,
+      verbose,
     });
 });
 

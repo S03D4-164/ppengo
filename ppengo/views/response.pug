@@ -105,28 +105,31 @@ block content
           else
             h5 No Content.
         div.col-md-1
-          p Beautify
-              button.btn.btn-sm.btn-primary(onclick="beautify(\"script\")") JS
-              br
-              button.btn.btn-sm.btn-primary(onclick="beautify(\"stylesheet\")") CSS
-              br
-              button.btn.btn-sm.btn-primary(onclick="beautify(\"html\")") HTML
-          p
-            button.btn.btn-sm.btn-primary(onclick="prettyPrint()") prettyPrint
 
+          a Beautify
+          .btn-group-vertical
+              button.btn.btn-sm.btn-outline-primary(onclick="beautify(\"script\")") JS
+              button.btn.btn-sm.btn-outline-primary(onclick="beautify(\"stylesheet\")") CSS
+              button.btn.btn-sm.btn-outline-primary(onclick="beautify(\"html\")") HTML
+              button.btn.btn-sm.btn-outline-primary(onclick="prettyPrint()") prettyPrint
+          hr
           p Deobfuscate
-              button.btn.btn-sm.btn-primary(onclick="jstillery()") JStillery
+            button.btn.btn-sm.btn-primary(onclick="jstillery()") JStillery
+          hr
+          p
+            button.btn.btn-sm.btn-primary(onclick="yara()") yara
           p
             button.btn.btn-sm.btn-primary(onclick="reset()") reset
 
-
           script.
+              var apiPath = #{rootPath};
+
               function reset(){
                 var content=$("#tmp").text();
                 $('pre#content').text(content);
+                $('pre#content').removeClass("prettyprinted");
               };
               function jstillery(){
-                var apiPath = #{rootPath};
                 var content=$("#content").text();
                 $.ajax({
                   type: "post",
@@ -151,6 +154,23 @@ block content
                 else if (type==="stylesheet") beautified = css_beautify(content);
                 else beautified = html_beautify(content);
                 $('pre#content').text(beautified);
+              };
+              function yara(){
+                var content=$("#input").val();
+                $.ajax({
+                  type: "post",
+                  url: apiPath + "api/yara",
+                  data: JSON.stringify({"source":content}),
+                  contentType: 'application/json',
+                  dataType: "json",            
+                  success: function(result) { 
+                    console.log(result)
+                    $('pre#content').text(JSON.stringify(result, null, " "));
+                  },
+                error: function(err) {
+                    $('pre#content').text(err);
+                  }
+                })
               };
   else
     div.alert.alert-warning

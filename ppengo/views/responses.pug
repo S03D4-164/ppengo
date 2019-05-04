@@ -2,8 +2,21 @@ extends layout
 
 block content
   if webpages
-    if webpages.length
-      h3= title + " - total: " + webpages.length
+    if webpages.length >= 0
+      if search
+          h4= "Search: " + JSON.stringify(search) + " - Total: " + webpages.length
+      else
+          h3 Responses
+    
+      form.form-inline(method="get" action=rootPath + "search/response/")
+        input.form-control.mr-2.btn.btn-sm.btn-danger(type="submit" value="search")
+        label.mr-2(for="rurl") url:  
+        input.form-control.mr-2(type="text" name="rurl", id="rurl" placeholder='regex value' value=search?search.rurl:"")
+        label.mr-2(for="status") status:  
+        input.form-control.mr-2(type="text" name="status", id="status" placeholder='' value=search?search.status:"")
+        label.mr-2(for="source") source:  
+        input.form-control.mr-2(type="text" name="source", id="source" placeholder='' value=search?search.source:"")
+
       table.table.table-bordered.table-sm
         tr.thead-light.d-flex
           th.col-2 createdAt
