@@ -2,8 +2,24 @@ extends layout
 
 block content
   if websites
-      if websites.length
-          h2= title + " - total: "+websites.length 
+      if websites.length >=0 
+          if search
+            h2= title + " Search: " + JSON.stringify(search) + " - total: " + websites.length
+          else
+            h2= title
+          form.form-inline(method="get" action=rootPath+"search/website")
+            input.form-control.mr-2.btn.btn-sm.btn-danger(type="submit" value="search")
+            label.mr-2(for="rurl") url:  
+            input.form-control.mr-2(type="text" name="rurl", id="rurl" placeholder='regex value' value=search?search.rurl:"")
+            label.mr-2(for="tagkey") tag: 
+            input.form-control.mr-2(type="text" name="tagkey", id="tagkey" placeholder='key' value=search?search.tagkey:"")
+            label.mr-2(for="tagval") : 
+            input.form-control.mr-2(type="text" name="tagval", id="tagval" placeholder='value' value=search?search.tagval:"")
+            label.mr-2= " " 
+            .form-check.mr-2
+              label.form-check-label
+                input.form-check-input(type="checkbox" name="track" id="track")
+                a track
           table.table.table-bordered.table-sm
             tr.thead-light.d-flex
               th.col-3 capture

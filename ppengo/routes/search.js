@@ -7,22 +7,13 @@ const Webpage = require('./models/webpage');
 const Payload = require('./models/payload');
 const Request = require('./models/response');
 
-/*
-var cookieParser = require('cookie-parser');
-var csrf = require('csurf');
-//var bodyParser = require('body-parser');
-var csrfProtection = csrf({ cookie: true });
-//var parseForm = bodyParser.urlencoded({ extended: false });
-router.use(cookieParser());
-*/
-
 var ObjectId = require('mongoose').Types.ObjectId
 
 RegExp.escape= function(s) {
   return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 };
+RegExp.prototype.toJSON = RegExp.prototype.toString;
 
-//router.get('/page', csrfProtection, function(req, res, next) {
 router.get('/page', function(req, res) {
   var search = []
     if(typeof req.query.input !== 'undefined' && req.query.input !== null){
@@ -61,44 +52,74 @@ router.get('/page', function(req, res) {
     Webpage.find().and(search).sort("-createdAt")
     .then((webpage) => {
         res.render('pages', { 
-          title: "Search: "+ JSON.stringify(req.query),
+          title: "Page: "+ JSON.stringify(req.query),
           webpages:webpage,
-          csrfToken:req.csrfToken(),
         });
       });
 });
 
-//router.get('/website', csrfProtection, function(req, res, next) {
 router.get('/website', function(req, res) {
   var search = []
-  if(typeof req.query.tagkey !== 'undefined' && req.query.tagkey !== null){
+  if(typeof req.query.tagkey !== 'undefined' && req.query.tagkey){
     var elem = {};
     elem[req.query.tagkey] = {"$regex":"^.*$"};
-    if(typeof req.query.tagval !== 'undefined' && req.query.tagval !== null){
+    if(typeof req.query.tagval !== 'undefined' && req.query.tagval){
       elem[req.query.tagkey] = req.query.tagval;
     }
     search.push({"tag": {"$elemMatch":elem}});
   }
-  if(typeof req.query.url !== 'undefined' && req.query.url !== null){
+
+  if(typeof req.query.tag !== 'undefined' && req.query.tag){
+    var elem = {};
+    elem[req.query.tagkey] = {"$regex":"^.*$"};
+    if(typeof req.query.tagval !== 'undefined' && req.query.tagval){
+      elem[req.query.tagkey] = req.query.tagval;
+    }
+    search.push({"tag": {"$elemMatch":elem}});
+  }
+
+  if(typeof req.query.url !== 'undefined' && req.query.url){
     search.push({"url": req.query.url});
   }
 
-  if(typeof req.query.rurl !== 'undefined' && req.query.rurl !== null){
-    search.push({"url":new RegExp(RegExp.escape(req.query.rurl))});
+  if(typeof req.query.rurl !== 'undefined' && req.query.rurl){
+    //search.push({"url":new RegExp(RegExp.escape(req.query.rurl))});
+    search.push({"url":new RegExp(req.query.rurl)});
+
+  }
+
+  if(typeof req.query.track !== 'undefined' && req.query.track){
+    search.push({"track.counter": {"$gt":0}});
   }
 
   console.log(search);
-  Website.find().and(search).sort("-createdAt").populate("last")
+  var find = Website.find();
+  if(search.length)find = find.and(search);
+  find.sort("-createdAt").populate("last")
   .then((websites) => {
+      var tmp = []
+      if(typeof req.query.tagval !== 'undefined' && req.query.tagval){
+        for (let site of websites){
+          console.log(site)
+          if(site.tag.length){
+            for (let tag of site.tag){
+              for (let key in tag){
+                if(tag[key]===req.query.tagval)tmp.push(site)
+                break;
+              }   
+            }
+          }
+        } 
+        if (tmp) websites = tmp
+      }
       res.render('websites', { 
-        title: "Search: "+ JSON.stringify(req.query),
+        title: "Website",
+        search:req.query,
         websites,
-        csrfToken:req.csrfToken(),
       });
     });
 });
 
-//router.get('/request', csrfProtection, function(req, res, next) {
 router.get('/request', function(req, res) {
   var search = []
   if(typeof req.query.url !== 'undefined' && req.query.url !== null){
@@ -111,7 +132,6 @@ router.get('/request', function(req, res) {
       res.render('requests', { 
         title: "Search: "+ JSON.stringify(req.query),
         webpages:webpage,
-        csrfToken:req.csrfToken(),
       });
     })
     .catch((err) => { 
@@ -120,7 +140,6 @@ router.get('/request', function(req, res) {
     });
 });
 
-//router.get('/response', csrfProtection, function(req, res, next) {
 router.get('/response', function(req, res) {
   var search = []
     if(typeof req.query.url !== 'undefined' && req.query.url !== null){
@@ -168,7 +187,6 @@ router.get('/response', function(req, res) {
       });
 });
 
-//router.get('/payload', csrfProtection, function(req, res, next) {
 router.get('/payload', function(req, res) {
     var search = []
     if(typeof req.query.md5 !== 'undefined' && req.query.md5 !== null){
@@ -183,7 +201,6 @@ router.get('/payload', function(req, res) {
       res.render(
         'payloads', {
           payloads,
-          csrfToken:req.csrfToken(),
         });
     });
   });

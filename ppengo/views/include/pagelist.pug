@@ -1,7 +1,18 @@
 mixin webpages-include(webpages, title)
   if webpages
-    if webpages.length
-      h3= title + " - Total: " + webpages.length
+    if webpages.length >= 0
+
+      form.form-inline(method="get" action=rootPath + "website/" + website._id)
+        input.form-control.mr-2.btn.btn-sm.btn-danger(type="submit" value="search")
+        label.mr-2(for="rurl") url:  
+        input.form-control.mr-2(type="text" name="rurl", id="rurl" placeholder='regex value' value=search?search.rurl:"")
+        label.mr-2(for="status") status:  
+        input.form-control.mr-2(type="text" name="status", id="status" placeholder='' value=search?search.status:"")
+        label.mr-2(for="source") source:  
+        input.form-control.mr-2(type="text" name="source", id="source" placeholder='' value=search?search.source:"")
+      if search
+        h4= "Search: " + JSON.stringify(search) + " - Total: " + webpages.length
+
       table.table.table-bordered.table-sm
         tr.thead-light.d-flex
           th.col-2 createdAt
@@ -60,4 +71,4 @@ mixin webpages-include(webpages, title)
     div.alert.alert-warning
       p No data
 
-+webpages-include(webpages, title)
++webpages-include(webpages, title, website)

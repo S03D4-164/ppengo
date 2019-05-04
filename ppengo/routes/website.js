@@ -15,7 +15,6 @@ router.get('/', function(req, res, next) {
         'websites', {
           websites,
           title:'Websites',
-          //csrfToken:req.csrfToken(),
         });
     })
     .catch((err) => { 
@@ -26,13 +25,34 @@ router.get('/', function(req, res, next) {
 
 router.get('/:id', async function(req, res, next) {
     const id = req.params.id;
-    console.log(req.query);
+    const ex = req.query.ex?true:false;
+    console.log(req.query, ex);
     const website = await Website.findById(id)
       .then((document)=>{return document})
       .catch((err)=>{return err});
-    const webpages = await Webpage.find()
-      .where({"input":website.url}).sort("-createdAt")
+
+    var search = [];
+    if(typeof req.query.rurl !== 'undefined' && req.query.rurll){
+      search.push({"url":new RegExp(RegExp.escape(req.query.rurl))});
+    }
+    if(typeof req.query.source !== 'undefined' && req.query.source){
+      search.push({"content": new RegExp(RegExp.escape(req.query.source))});
+    }
+    if(typeof req.query.status !== 'undefined' && req.query.status){
+      //search.push({"status": new RegExp(RegExp.escape(req.query.status))});
+      search.push({"$where": `/${req.query.status}/.test(this.status)`});
+
+    }
+    var webpages;
+    if(search.length){
+      const findPage = await Webpage.find().where({"input":website.url}).and(search).sort("-createdAt")
       .then((document)=>{return document});
+      webpages = findPage
+    } else{
+      const findPage = await Webpage.find().where({"input":website.url}).sort("-createdAt")
+      .then((document)=>{return document});
+      webpages = findPage
+    } 
  
     if(typeof req.query.rmtag !== 'undefined' && req.query.rmtag !== null){
       var key = req.query.rmtag.split(":")[0];
@@ -54,6 +74,8 @@ router.get('/:id', async function(req, res, next) {
       website,
       webpages,
       title: "Results",
+      search: req.query,
+      ex,
     });
 });
 
@@ -99,7 +121,6 @@ router.post('/:id', async function(req, res, next) {
     res.render('website', {
           website, webpages,
           title: "Results",
-          //csrfToken:req.csrfToken(), 
     });
 });
 

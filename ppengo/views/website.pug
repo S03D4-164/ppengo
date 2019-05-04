@@ -7,13 +7,12 @@ block content
       .row
         .col-12
           h2= "URL: " 
-            a(href=rootPath + "website/" + website._id)= website.url
-            a(href=rootPath + "search/website?rurl=" + encodeURIComponent(website.url)) 🔍
+            a(href=rootPath + "search/website?rurl=" + encodeURIComponent(website.url))= website.url + " 🔍"
           h6= "createdAt: " + website.createdAt
           //h6= "updatedAt: " + website.updatedAt
       .row
-        .col-4
-          h5= "tag: "
+        .col-6
+          h4= "tag: "
             each tag in website.tag
               each val, key in tag
                 span.badge.badge-primary
@@ -21,23 +20,19 @@ block content
                   a.text-light(href=rootPath + "website/" + website._id + "?rmtag=" + key +":"+val)= " [x]"
                 a= " "
 
-          form(method="post" action=rootPath + "website/" + website._id)
-            .row
-              .col-2
-                input.btn.btn-sm.btn-outline-primary(type="submit" name="submit", value="add")
-              .col-5
-                input(type="text" name="type" id="type" placeholder="type")
-              .col-5
-                input(type="text" name="tag" id="tag" placeholder="value")
+          form.form-inline(method="post" action=rootPath + "website/" + website._id)
+              input.form-control.btn.btn-danger(type="submit" name="submit", value="add tag")
+              input.form-control(type="text" name="type" id="type" placeholder="key")
+              input.form-control(type="text" name="tag" id="tag" placeholder="value")
               input(type="hidden" name="_csrf", value=csrfToken)
-        .col-8
-          button.btn.btn-sm.btn-outline-primary(data-toggle="collapse" data-target="#track") track ▽
+        .col-6
+          button.btn.btn-outline-primary(data-toggle="collapse" data-target="#track") track ▽
           div#track.collapse
-            a.btn.btn-sm.btn-primary(data-toggle="modal",data-target="#update_form", style="color:white;cursor:pointer;") Update
+            a.btn.btn-primary(data-toggle="modal",data-target="#update_form", style="color:white;cursor:pointer;") Update
             pre= JSON.stringify(website.track, null, " ")
           br
           br
-          button.btn.btn-sm.btn-outline-primary(data-toggle="collapse" data-target="#gsb") Google Safe Browsing ▽
+          button.btn.btn-outline-primary(data-toggle="collapse" data-target="#gsb") Google Safe Browsing ▽
           div#gsb.collapse
             //a.btn.btn-sm.btn-primary(href=rootPath + "api/gsblookup/" + website._id) Lookup
             button.btn.btn-sm.btn-primary(onclick="lookup()") Lookup
@@ -57,11 +52,18 @@ block content
                   },
                 })
               };
-
+      hr
+      h3
+        = "Page List " 
+        .btn-group
+          a.btn.btn-primary(href=rootPath + "website/" + website._id) simple
+          a.btn.btn-secondary(href=rootPath + "website/" + website._id + "?ex=1") verbose
       if webpages
-        include include/pagelist.pug
-        //include include/table.pug
-
+        if ex===true
+          include include/table.pug
+        else
+          include include/pagelist.pug
+  
   else
     div.alert.alert-warning
       p No data

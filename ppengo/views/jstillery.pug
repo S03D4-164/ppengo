@@ -1,11 +1,11 @@
 extends layout
 
 block content
-  h3= "JS"
+  h3= title
   .row
-        div.col-md-11
-              textarea#input(rows=10 style="width:100%")
-              pre#content.prettyprint.linenums(style="white-space: pre-wrap") result
+        div.form-group.col-md-11
+            textarea#input.form-control(rows=10 style="width:100%")
+            pre#content.prettyprint.linenums(style="white-space: pre-wrap") result
         div.col-md-1
           a Beautify
           .btn-group-vertical
@@ -24,7 +24,7 @@ block content
           script.
               var apiPath = #{rootPath};
               function reset(){
-                $('pre#content').text("");
+                $('pre#content').text("result");
                 $('pre#content').removeClass("prettyprinted");
               };
               function jstillery(){
