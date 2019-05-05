@@ -7,12 +7,17 @@ block content
           table.table.table-striped.table-bordered.table-hover.table-sm
             tr.thead-light.d-flex
               th.col-3 createdAt
-              th.col-8 md5
+              th.col-7 md5
+              th.col-1 VT
               th.col-1 size
             each payload in payloads
                 tr.d-flex
                   td.col-3= moment(payload.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
-                  td.col-8= payload.md5
+                  td.col-7= payload.md5
+                  td.col-1
+                    if payload.vt
+                      if payload.vt.total >= 0 && payload.vt.positives >= 0
+                        a= payload.vt.positives + "/" + payload.vt.total 
                   td.col-1
                     a(href=rootPath + "payload/" + payload._id)= payload.payload.length
   else 

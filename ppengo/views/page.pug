@@ -157,12 +157,27 @@ block content
             h4= "Content"
             p= "text size: " + webpage.content.length
           div.col-md-10
+            pre#yara
             pre#content.prettyprint.linenums(style="white-space: pre-wrap") #{webpage.content}
+            div(hidden="")
+              pre#tmp(style="white-space: pre-wrap") #{webpage.content}
+
           div.col-md-1
+            a Beautify
+            .btn-group-vertical
+                button.btn.btn-sm.btn-outline-primary(onclick="beautify(\"script\")") JS
+                button.btn.btn-sm.btn-outline-primary(onclick="beautify(\"stylesheet\")") CSS
+                button.btn.btn-sm.btn-outline-primary(onclick="beautify(\"html\")") HTML
+                button.btn.btn-sm.btn-outline-primary(onclick="prettyPrint()") prettyPrint
+            hr
+            p Deobfuscate
+              button.btn.btn-sm.btn-primary(onclick="jstillery()") JStillery
+            hr
             p
-              button.btn.btn-sm.btn-primary(onclick="prettyPrint()") prettyPrint
+              button.btn.btn-sm.btn-primary(onclick="yara()") yara
             p
-              button.btn.btn-sm.btn-primary(onclick="beautify()") beautify
+              button.btn.btn-sm.btn-primary(onclick="reset()") reset
+
         else
          div.alert
           p No data
@@ -181,6 +196,68 @@ block content
             div.alert
               p No data
     script.
+              var apiPath = #{rootPath};
+              function reset(){
+                var content=$("pre#tmp").text();
+                $('pre#content').text(content);
+                $('pre#content').removeClass("prettyprinted");
+              };
+              function jstillery(){
+                var content=$("pre#content").text();
+                $.ajax({
+                  type: "post",
+                  url: apiPath + "api/jstillery",
+                  data:JSON.stringify({"source":content}),
+                  contentType: 'application/json',
+                  dataType: "json",            
+                  success: function(result) { 
+                    $('pre#content').text(result["source"]);
+                  },
+                  error: function() {
+                    $('pre#content').text("jstillery error");
+                  }
+                })
+              };
+              function beautify(type){
+                //console.log(type);
+                var content=$("pre#content").text();
+                var beautified;
+                var opts = {"unescape-strings":true};
+                if (type==="script") beautified = js_beautify(content, opts);
+                else if (type==="stylesheet") beautified = css_beautify(content);
+                else beautified = html_beautify(content);
+                $('pre#content').text(beautified);
+              };
+              function yara(){
+                var content=$("pre#content").text();
+                $.ajax({
+                  type: "post",
+                  url: apiPath + "api/yara",
+                  data: JSON.stringify({"source":content}),
+                  contentType: 'application/json',
+                  dataType: "json",            
+                  success: function(result) { 
+                    console.log(result)
+                    $('pre#yara').text(JSON.stringify(result, null, " "));
+                    if ("rules" in result){
+                      for(let rule of result["rules"]){
+                        console.log(rule)
+                        if("matches" in rule){
+                          for(let match of rule["matches"]){
+                            highlight = content.substr(match["offset"], match["length"])
+                            $("pre#content").highlight(highlight);
+                          }
+                        }
+                      }
+                    }
+                  },
+                error: function(err) {
+                    $('pre#yara').text(err);
+                  }
+                })
+              };
+
+    //script.
         function beautify(){
           var content=$("#content").text();
           var beautified = html_beautify(content);

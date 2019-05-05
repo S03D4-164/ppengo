@@ -62,7 +62,7 @@ queue.on('job enqueue', function(id, type){
 
 
 queue.on('already scheduled', function (job) {
-  console.log('job already scheduled' + job.id);
+  console.log('job already scheduled ' + job.id);
 });
 queue.on('error', function( err ) {
   console.log( 'Oops... ', err );
@@ -71,7 +71,7 @@ queue.on('schedule error', function(error) {
   console.log( 'Oops... ', error);
 });
 queue.on('schedule success', function(job) {
-  console.log('job scheduled' + job.id);
+  console.log('job scheduled ' + job.id);
 });
 
 const crawlWeb = async (job, done) => {

@@ -22,7 +22,7 @@ mongoose.connect('mongodb://mongodb/wgeteer', {
   useNewUrlParser: true,
   useCreateIndex: true,
   useFindAndModify: false
-}).then(() =>  console.log('connection succesful'))
+}).then(() =>  console.log('[mongoose] connect completed'))
 .catch((err) => console.error(err));
 mongoose.set('debug', function (coll, method, query, doc) {
   console.log(coll + " " + method + " " + JSON.stringify(query) + " " + JSON.stringify(doc));
@@ -47,7 +47,7 @@ var mongo_express_config = require('./config/mongo_express_config.js')
 app.use(rootPath + 'mongo_express/', mongo_express(mongo_express_config))
 
 app.use(bodyParser.urlencoded({ extended: false }))
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '32mb' }));
 app.use(rootPath + "api", require('./routes/api'));
 
 kueUiExpress(app, rootPath + 'kue/', rootPath + 'kue-api/');

@@ -159,12 +159,12 @@ router.get('/website/:id', async function(req, res) {
     })
 });
 
-router.post('/yara', async function(req, res) {
+router.post('/yara', function(req, res) {
   var result = {};
   var source = req.body.source;
   if(!source) return res.json(result);
   var reqbuf = {buffer: Buffer.from(source)};
-
+  //console.log(reqbuf);
   var options = {
     rules: [
       {filename: "/home/node/config/rules/index.yar"},
@@ -190,8 +190,8 @@ router.post('/yara', async function(req, res) {
               console.log(result);
               if (result.rules.length) {
                 console.log("matched: %s", JSON.stringify(result))
-                res.json(result);
               }
+              return res.json(result);
             }
           });
         }
@@ -199,6 +199,7 @@ router.post('/yara', async function(req, res) {
     });
   }
   })
+  //return res.json(result);
 })
 
 

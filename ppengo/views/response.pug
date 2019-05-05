@@ -49,7 +49,8 @@ block content
               if response.remoteAddress.geoip[0]
                 a= "geoip country: " + response.remoteAddress.geoip[0].country
                 br
-            pre= "bgp: " + JSON.stringify(response.remoteAddress.bgp[0], null, ' ')
+            a bgp:
+            pre= JSON.stringify(response.remoteAddress.bgp[0], null, ' ')
           .col-6
             if webpage.wappalyzer
               h6= "wappalyzer: " + webpage.wappalyzer
@@ -98,9 +99,15 @@ block content
 
         div.col-md-10
           if response.text
+              button.mr-2.btn.btn-outline-primary(data-toggle="collapse" data-target="#yara") yara ▽
+              div#yara.collapse
+                pre#yarascan
+              button.mr-2.btn.btn-outline-primary(data-toggle="collapse" data-target="#JStillery") JStillery ▽
+              div#JStillery.collapse
+                pre#js
               pre#content.prettyprint.linenums(style="white-space: pre-wrap") #{response.text}
               div(hidden="")
-                pre#tmp.prettyprint.linenums(style="white-space: pre-wrap") #{response.text}
+                pre#tmp(style="white-space: pre-wrap") #{response.text}
 
           else
             h5 No Content.
@@ -123,7 +130,6 @@ block content
 
           script.
               var apiPath = #{rootPath};
-
               function reset(){
                 var content=$("#tmp").text();
                 $('pre#content').text(content);
@@ -138,10 +144,10 @@ block content
                   contentType: 'application/json',
                   dataType: "json",            
                   success: function(result) { 
-                    $('pre#content').text(result["source"]);
+                    $('pre#js').text(result["source"]);
                   },
                   error: function() {
-                    $('pre#content').text("jstillery error");
+                    $('pre#js').text("jstillery error");
                   }
                 })
               };
@@ -155,8 +161,9 @@ block content
                 else beautified = html_beautify(content);
                 $('pre#content').text(beautified);
               };
+              
               function yara(){
-                var content=$("#input").val();
+                var content=$("pre#content").text();
                 $.ajax({
                   type: "post",
                   url: apiPath + "api/yara",
@@ -165,13 +172,25 @@ block content
                   dataType: "json",            
                   success: function(result) { 
                     console.log(result)
-                    $('pre#content').text(JSON.stringify(result, null, " "));
+                    $('pre#yarascan').text(JSON.stringify(result, null, " "));
+                    if ("rules" in result){
+                      for(let rule of result["rules"]){
+                        console.log(rule)
+                        if("matches" in rule){
+                          for(let match of rule["matches"]){
+                            highlight = content.substr(match["offset"], match["length"])
+                            $("pre#content").highlight(highlight);
+                          }
+                        }
+                      }
+                    }
                   },
                 error: function(err) {
-                    $('pre#content').text(err);
+                    $('pre#yara').text(err);
                   }
                 })
               };
+
   else
     div.alert.alert-warning
       p No data

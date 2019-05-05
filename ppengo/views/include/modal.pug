@@ -6,15 +6,14 @@
 - var googlebot = 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
 
 #register_form.modal.col-12(role="dialog")
-  .modal-dialog.modal-dialog-centered(style="max-width:50%;")
+  .modal-dialog.modal-dialog-centered(style="max-width:600px;")
     .modal-content
       .modal-body
         form(method="post" action=rootPath)
           label(for="url") URL: 
           textarea.col-12(id="url", name="url", rows=2) http://
           br
-          label.col-2(for="track_url") Track URL
-          //input.col-1(type="checkbox", name="track", id="track" value="")
+          label.col-2(for="track_url") Track:
           select.col-10(name='track_url' id='track_url')
               option(value=0, selected= true) -
               option(value=1) 1hx24 (no overwrite) 
@@ -46,12 +45,14 @@
           label.col-2(for="proxy") Proxy: 
           input.col-10(type="text" name="proxy", id="proxy", placeholder="ip:port")
           br
-          label.col-3(for="timeout") Timeout(s): 
-          input.col-2(type="number" name="timeout", id="timeout", max="300", min="30", step="30", value="30")
-          label.col-2(for="delay") Delay(s): 
-          input.col-2(type="number" name="delay", id="delay", max="60", min="0", step="5", value="5")
-          //label.col-2(for="disableScript") Disable Script
-          //input.col-1(type="checkbox", name="disableScript", id="disableScript" value="")
+          br
+          div(style="vertical-align:middle;")
+            label.col-2(for="timeout") Timeout(s): 
+            input.col-2(type="number" name="timeout", id="timeout", max="300", min="30", step="30", value="30")
+            label.col-2(for="delay") Delay(s): 
+            input.col-2(type="number" name="delay", id="delay", max="60", min="0", step="5", value="5")
+            label.col-2(for="disableScript") no script:
+            input.col-1(type="checkbox", name="disableScript", id="disableScript" value="")
           br
           label(for="exHeaders") Extra Headers: 
           textarea.col-12(id="exHeaders", name="exHeaders", rows=2)

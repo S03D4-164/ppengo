@@ -1,18 +1,26 @@
-const kue = require('kue-scheduler')
-const wgeteer = require('./wgeteer')
-const vt = require('./vt')
-const gsblookup = require('./gsblookup')
-
 const mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost:27017/wgeteer', {
+mongoose.connection.on('connecting', ()=>{console.log("[mongoose] connecting.")});
+mongoose.connection.on('connected', ()=>{console.log("[mongoose] connected.")});
+mongoose.connection.on('disconnecting', ()=>{console.log("[mongoose] disconnecting.")});
+mongoose.connection.on('disconnected', ()=>{console.log("[mongoose] disconnected.")});
+mongoose.connection.on('reconnected', ()=>{console.log("[mongoose] reconnected.")});
+mongoose.connection.on('reconnectFailed', ()=>{console.log("[mongoose] reconnect failed.")});
+mongoose.connection.on('error', (err)=>{console.log("[mongoose] error", err)});
+
+mongoose.connect('mongodb://127.0.0.1:27017/wgeteer', {
   useNewUrlParser: true,
   useCreateIndex: true,
   autoReconnect:true,
   reconnectInterval: 5000,
   reconnectTries: 60,
   useFindAndModify: false,
-}).then(() =>  console.log('connection succesful'))
-.catch((err) => console.error(err));
+}).then(() =>  console.log('[mongoose] connect completed'))
+.catch((err) => console.error('[mongoose] connect error', err));
+
+const kue = require('kue-scheduler')
+const wgeteer = require('./wgeteer')
+const vt = require('./vt')
+const gsblookup = require('./gsblookup')
 
 const Webpage = require('./models/webpage');
 
@@ -71,12 +79,12 @@ queue.process('vtPayload', 1, async (job, done) => {
 const payloadVT = async (job, done) => {
   await vt.vtPayload(job.data.payloadId)
   .then((success) => {
-    console.log("success", success);
+    console.log("vtPayload success", success);
     job.progress(1, 1, {"job": "vtPayload", "success":success});
     done();
   })
   .catch((err)=>{
-    console.log("error", err);
+    console.log("vtPayload error", err);
     job.progress(1, 1, {"job": "vtPayload", "error":err});
     done(err);
   });
@@ -88,12 +96,12 @@ queue.process('vt', 1, async (job, done) => {
 const getVT = async (job, done) => {
   await vt.vt(job.data.resource)
   .then((success) => {
-    console.log("success", success);
+    console.log("vt success", success);
     job.progress(1, 1, {"job": "vt", "success":success});
     done();
   })
   .catch((err)=>{
-    console.log("error", err);
+    console.log("vt error", err);
     job.progress(1, 1, {"job": "vt", "error":err});
     done(err);
   });
@@ -105,12 +113,12 @@ queue.process('gsblookup', async (job, done) => {
 const gsbLookup = async (job, done) => {
   await gsblookup.lookupSite(job.data.websiteId)
   .then((success) => {
-    console.log("success", success);
+    console.log("gsblookup success", success);
     job.progress(1, 1, {"job": "gsbLookup", "success":success});
     done();
   })
   .catch((err)=>{
-    console.log("error", err);
+    console.log("gsblookup error", err);
     job.progress(1, 1, {"job": "gsbLookup", "error":err});
     done(err);
   });
@@ -122,12 +130,12 @@ queue.process('gsblookupUrl', async (job, done) => {
 const gsbLookupUrl = async (job, done) => {
   await gsblookup.lookupUrl(job.data.url)
   .then((success) => {
-    console.log("success", success);
+    console.log("gsblookupUrl success", success);
     job.progress(1, 1, {"job": "gsbLookupUrl", "success":success});
     done();
   })
   .catch((err)=>{
-    console.log("error", err);
+    console.log("gsblookupUrl error", err);
     job.progress(1, 1, {"job": "gsbLookupUrl", "error":err});
     done(err);
   });

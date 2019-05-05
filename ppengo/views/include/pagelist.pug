@@ -1,4 +1,4 @@
-mixin webpages-include(webpages, title)
+mixin webpages-include(webpages, title, website, search)
   if webpages
     if webpages.length >= 0
 
@@ -10,7 +10,7 @@ mixin webpages-include(webpages, title)
         input.form-control.mr-2(type="text" name="status", id="status" placeholder='' value=search?search.status:"")
         label.mr-2(for="source") source:  
         input.form-control.mr-2(type="text" name="source", id="source" placeholder='' value=search?search.source:"")
-      if search.length
+      if search
         h4= "Search: " + JSON.stringify(search) + " - Total: " + webpages.length
 
       table.table.table-bordered.table-sm
@@ -71,4 +71,4 @@ mixin webpages-include(webpages, title)
     div.alert.alert-warning
       p No data
 
-+webpages-include(webpages, title, website)
++webpages-include(webpages, title, website, search)

@@ -41,6 +41,10 @@ const responseSchema = new mongoose.Schema({
     wappalyzer: {
       type: [String]
     },
+    yara:{
+      id: {type: String},
+      matched: {type: [String]},
+    },
     webpage : { type: mongoose.Schema.Types.ObjectId, ref: 'Webpage' },
     request : { type: mongoose.Schema.Types.ObjectId, ref: 'Request' },
     payload : { type: mongoose.Schema.Types.ObjectId, ref: 'Payload' },

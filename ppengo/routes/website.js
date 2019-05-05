@@ -39,9 +39,7 @@ router.get('/:id', async function(req, res, next) {
       search.push({"content": new RegExp(RegExp.escape(req.query.source))});
     }
     if(typeof req.query.status !== 'undefined' && req.query.status){
-      //search.push({"status": new RegExp(RegExp.escape(req.query.status))});
       search.push({"$where": `/${req.query.status}/.test(this.status)`});
-
     }
     var webpages;
     if(search.length){
@@ -69,7 +67,6 @@ router.get('/:id', async function(req, res, next) {
         }
       }
     }
-   
     res.render('website', {
       website,
       webpages,

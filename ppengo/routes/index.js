@@ -21,7 +21,17 @@ router.post('/', async function(req, res, next) {
     return job;
   }
 
-  async function saveInput(inputUrl, option){
+  async function gsbJob(id){
+    const job = await queue.create('gsblookup', {
+      websiteId:id,
+    }).ttl(60*1000).attempts(3).backoff( true );
+    await job.save(function(err){
+      if( err ) console.log( job.id, err);
+    });
+    return job;
+  }
+
+  async function saveInput(inputUrl, option, track){
     inputUrl = inputUrl
     .replace(/^ */, '')
     .replace(/\[:\]/g, ':')
@@ -47,20 +57,24 @@ router.post('/', async function(req, res, next) {
       },
       {"new":true,"upsert":true},
     );
-    if (option['track'] > 0){
+    if (!website.gsb.lookup) await gsbJob(website._id);
+    else console.log("gsb checked");
+    //if (option['track'] > 0){
+    if (track > 0){
       counter = 24;
       period = 1;
       website.track.counter = counter;
       website.track.period = period;
       website.track.option = option;
-       
-      if (option['track'] = 2){
+      //if (option['track'] = 2){       
+      if (track === 2){
         await website.save(function (err, success){
           if(err) console.log(err);
           else console.log(website);
         });
-    
-      } else if (option['track'] = 1){
+      //} else if (option['track'] = 1){
+      } else if (track === 1){
+
         if (!website.track.counter){
           await website.save(function (err, success){
             if(err) console.log(err);
@@ -69,12 +83,11 @@ router.post('/', async function(req, res, next) {
         } 
       }
     }
-
     return webpage;
     //console.log(ids);
   }
 
-  //console.log(req.body);
+  console.log(req.body);
   const input = req.body['url'];
   const urls = input.split('\r\n');
 
@@ -98,9 +111,12 @@ router.post('/', async function(req, res, next) {
         option['exHeaders'] = req.body['exHeaders'];
         option['lang'] = lang[lkey];
         option['userAgent'] = userAgent[ukey];
-        option['track'] = req.body['track_url'];
-        console.log(option);
-        const webpage = await saveInput(inputUrl, option);
+        if ("disableScript" in req.body) option["disableScript"] = true;
+        //option['track'] = req.body['track_url'];
+        var track = req.body['track_url'];
+
+        console.log("option", option);
+        const webpage = await saveInput(inputUrl, option, track);
         console.log(webpage);
         ids.push(webpage._id.toString());
         webpages.push(webpage);  
@@ -116,7 +132,6 @@ router.post('/', async function(req, res, next) {
     title:"Progress",
     webpages, 
     ids:String(ids),
-    //csrfToken:req.csrfToken(),
   });
 });
 
@@ -138,6 +153,7 @@ router.post('/progress', function(req, res, next) {
         webpages, 
         "title":"Progress",
         completed: completed,
+        ids
     });
   });
 });

@@ -17,28 +17,21 @@ module.exports = {
 
   async wget (pageId, option){
 
-      //console.log(pageId);
       const webpage = await Webpage.findById(pageId)
       .then(doc => { return doc; })
       .catch(err =>{ console.log(err);});
       console.log(webpage);
       const url = webpage.input;
       var option = webpage.option;
-
-      //console.log(option);
-      //var userAgent = option['userAgent'];
       var userAgent = ("userAgent" in option) ? option['userAgent'] : undefined;
       var referer = option['referer'];
       var timeout = option['timeout'];
       timeout = (timeout >= 30 && timeout <= 300) ? timeout * 1000 : 30000; 
       var delay = option['delay'];
       delay = (delay > 0 && delay <= 60) ? delay * 1000 : 0;
-      /*
-      var jsEnabled = true;
-      if (!option['jsEnabled']){
-        var jsEnabled = false;
-      }
-      */
+      
+      var jsEnabled = ("disableScript" in option) ? false:true;
+      
       var exHeaders = {};
       var lang = option['lang'];
       if (lang) exHeaders["Accept-Language"] = lang;
@@ -100,16 +93,14 @@ module.exports = {
       const page = await browser.newPage();
       if (userAgent) await page.setUserAgent(userAgent);
       if (exHeaders) await page.setExtraHTTPHeaders(exHeaders);
-      await page.setJavaScriptEnabled(true);
+      await page.setJavaScriptEnabled(jsEnabled);
       const client = await page.target().createCDPSession();
 
       await client.send('Network.enable');
-      //const requestCache = new Map();
       const urlPatterns = ['*']
       await client.send('Network.setRequestInterception', { 
         patterns: urlPatterns.map(pattern => ({
           urlPattern: pattern,
-          //resourceType: 'Document',
           interceptionStage: 'HeadersReceived'
         }))
       });

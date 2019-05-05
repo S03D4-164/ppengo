@@ -16,47 +16,49 @@ RegExp.prototype.toJSON = RegExp.prototype.toString;
 
 router.get('/page', function(req, res) {
   var search = []
-    if(typeof req.query.input !== 'undefined' && req.query.input !== null){
-      search.push({"input": req.query.input});
-    }
-    if(typeof req.query.rinput !== 'undefined' && req.query.rinput !== null){
-      search.push({"input": new RegExp(RegExp.escape(req.query.rinput))});
-    }
+  if(typeof req.query.input !== 'undefined' && req.query.input){
+    search.push({"input": req.query.input});
+  }
+  if(typeof req.query.rinput !== 'undefined' && req.query.rinput){
+    search.push({"input": new RegExp(RegExp.escape(req.query.rinput))});
+  }
 
-    if(typeof req.query.title !== 'undefined' && req.query.title !== null){
-      search.push({"title": new RegExp(req.query.title)});
-    }
-    if(typeof req.query.url !== 'undefined' && req.query.url !== null){
-      search.push({"url": req.query.url});
-    }
-    if(typeof req.query.rurl !== 'undefined' && req.query.rurl !== null){
-      search.push({"url":new RegExp(RegExp.escape(req.query.rurl))});
-    }
+  if(typeof req.query.title !== 'undefined' && req.query.title){
+    search.push({"title": new RegExp(req.query.title)});
+  }
+  if(typeof req.query.url !== 'undefined' && req.query.url){
+    search.push({"url": req.query.url});
+  }
+  if(typeof req.query.rurl !== 'undefined' && req.query.rurl){
+    search.push({"url":new RegExp(req.query.rurl)});
+  }
 
-    if(typeof req.query.content !== 'undefined' && req.query.content !== null){
-      search.push({"content": new RegExp(RegExp.escape(req.query.content))});
-    }
-    if(typeof req.query.ip !== 'undefined' && req.query.ip !== null){
-        search.push({"remoteAddress.ip":new RegExp(req.query.ip)});
-    }
-    if(typeof req.query.country !== 'undefined' && req.query.country !== null){
-      search.push({"remoteAddress.geoip.country":new RegExp(req.query.country)});
-    }
-    if(typeof req.query.tagkey !== 'undefined' && req.query.tagkey !== null){
-      var elem = {};
-      elem[req.query.tagkey] = new RegExp('.*');
-      search.push({"tag": {"$elemMatch":elem}});
-     }
+  if(typeof req.query.source !== 'undefined' && req.query.source){
+    search.push({"content": new RegExp(req.query.source)});
+  }
+  if(typeof req.query.ip !== 'undefined' && req.query.ip){
+      search.push({"remoteAddress.ip":new RegExp(req.query.ip)});
+  }
+  if(typeof req.query.country !== 'undefined' && req.query.country){
+    search.push({"remoteAddress.geoip.country":new RegExp(req.query.country)});
+  }
+  if(typeof req.query.status !== 'undefined' && req.query.status){
+    search.push({"$where": `/${req.query.status}/.test(this.status)`});
+  }
 
-    console.log(search);
-    Webpage.find().and(search).sort("-createdAt")
-    .then((webpage) => {
-        res.render('pages', { 
-          title: "Page: "+ JSON.stringify(req.query),
-          webpages:webpage,
-          search:req.query,
-        });
+  console.log(req.query, search);
+  var find = Webpage.find();
+  if(search.length)find = find.and(search);
+
+  //Webpage.find().and(search)
+  find.sort("-createdAt")
+  .then((webpage) => {
+      res.render('pages', { 
+        title: "Page: "+ JSON.stringify(req.query),
+        webpages:webpage,
+        search:req.query,
       });
+    });
 });
 
 router.get('/website', function(req, res) {
@@ -123,7 +125,7 @@ router.get('/website', function(req, res) {
 
 router.get('/request', function(req, res) {
   var search = []
-  if(typeof req.query.url !== 'undefined' && req.query.url !== null){
+  if(typeof req.query.url !== 'undefined' && req.query.url){
     search.push({"url":new req.query.url});
   }
   Request.find()
@@ -143,20 +145,20 @@ router.get('/request', function(req, res) {
 
 router.get('/response', function(req, res) {
   var search = []
-    if(typeof req.query.url !== 'undefined' && req.query.url !== null){
+    if(typeof req.query.url !== 'undefined' && req.query.url){
       search.push({"url": req.query.url});
     }
     if(typeof req.query.rurl !== 'undefined' && req.query.rurl){
       search.push({"url":new RegExp(req.query.rurl)});
     }
 
-    if(typeof req.query.ip !== 'undefined' && req.query.ip !== null){
+    if(typeof req.query.ip !== 'undefined' && req.query.ip){
       search.push({"remoteAddress.ip":new RegExp(req.query.ip)});
     }
-    if(typeof req.query.country !== 'undefined' && req.query.country !== null){
+    if(typeof req.query.country !== 'undefined' && req.query.country){
       search.push({"remoteAddress.geoip.country":new RegExp(req.query.country)});
     }
-    if(typeof req.query.issuer !== 'undefined' && req.query.issuer !== null){
+    if(typeof req.query.issuer !== 'undefined' && req.query.issuer){
       search.push({"securityDetails.issuer":new RegExp(req.query.issuer)});
     }
     if(typeof req.query.text !== 'undefined' && req.query.text){
@@ -167,7 +169,7 @@ router.get('/response', function(req, res) {
       search.push({"status":req.query.status});
     }
 
-    if(typeof req.query.webpage !== 'undefined' && req.query.webpage !== null){
+    if(typeof req.query.webpage !== 'undefined' && req.query.webpage){
       search.push({"webpage": new ObjectId(req.query.webpage)});
     }
 
@@ -184,7 +186,6 @@ router.get('/response', function(req, res) {
     .sort("-createdAt").limit(100)
     .then((webpage) => {
         res.render('responses', { 
-          //title: "Search: "+ JSON.stringify(req.query),
           webpages:webpage,
           search:req.query,
         });

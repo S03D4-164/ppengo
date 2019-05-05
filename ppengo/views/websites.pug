@@ -2,7 +2,7 @@ extends layout
 
 block content
   if websites
-      if websites.length >=0 
+      if websites.length >=0
           if search
             h2= title + " Search: " + JSON.stringify(search) + " - total: " + websites.length
           else
@@ -25,7 +25,7 @@ block content
               th.col-3 capture
               th.col-2 timestamps
               th.col-5 site
-              th.col-2 tag
+              th.col-2 info
             each webpage in websites
                 if webpage.last
                   - var status = webpage.last.status || null
@@ -83,6 +83,18 @@ block content
                       a error: #{webpage.last.error||"none"}
                       br
                   td.col-2
+                    if webpage.gsb.lookup
+                        a gsb:
+                        -var matches = webpage.gsb.lookup.matches
+                        if matches
+                          each match in matches
+                            span.badge.badge-danger
+                              a= match.threatType
+                            br
+                        else
+                          span.badge.badge-info
+                            a none
+                          br
                     each tag in webpage.tag
                       each val, key in tag
                         a(href=rootPath + "search/website/?tagkey=" + key)= key
