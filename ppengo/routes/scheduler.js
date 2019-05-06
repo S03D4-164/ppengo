@@ -1,7 +1,6 @@
 const kue = require('kue-scheduler')
-
 const mail = require("./mail");
-
+const yara = require("./yara");
 const Website = require('./models/website');
 const Webpage = require('./models/webpage');
 
@@ -37,8 +36,11 @@ queue.on('job enqueue', function(id, type){
     if (progress===100 && data){
       if(data["job"]==="wgeteer"){
         //console.log(data);
-        var previous = data["previous"];
         var webpage = data["webpage"];
+        if(webpage){
+          yara.yaraPage(webpage._id);
+        }
+        var previous = data["previous"];
         if (previous && webpage){
           var message = {
             from: 'ppengo@localhost',

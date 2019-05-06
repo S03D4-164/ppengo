@@ -8,18 +8,21 @@ block content
           else
             h2= title
           form.form-inline(method="get" action=rootPath+"search/website")
-            input.form-control.mr-2.btn.btn-sm.btn-danger(type="submit" value="search")
-            label.mr-2(for="rurl") url:  
-            input.form-control.mr-2(type="text" name="rurl", id="rurl" placeholder='regex value' value=search?search.rurl:"")
-            label.mr-2(for="tagkey") tag: 
-            input.form-control.mr-2(type="text" name="tagkey", id="tagkey" placeholder='key' value=search?search.tagkey:"")
-            label.mr-2(for="tagval") : 
-            input.form-control.mr-2(type="text" name="tagval", id="tagval" placeholder='value' value=search?search.tagval:"")
-            label.mr-2= " " 
-            .form-check.mr-2
-              label.form-check-label
-                input.form-check-input(type="checkbox" name="track" id="track")
-                a track
+            .form-group.mr-5
+              input.form-control.mr-2.btn.btn-sm.btn-danger(type="submit" value="search")
+              label.mr-2(for="rurl") url:  
+              input.form-control.mr-2(type="text" name="rurl", id="rurl" placeholder='regex value' value=search?search.rurl:"")
+              label.mr-2(for="tagkey") tag: 
+              input.form-control.mr-2(type="text" name="tagkey", id="tagkey" placeholder='key' value=search?search.tagkey:"")
+              label.mr-2(for="tagval") : 
+              input.form-control.mr-2(type="text" name="tagval", id="tagval" placeholder='value' value=search?search.tagval:"")
+            .form-group
+              .checkbox-inline.mr-5
+                  label.mr-2.form-check-label track
+                    input.mr-2.form-check-input(type="checkbox" name="track" id="track")
+              .checkbox-inline
+                  label.form-check-label export CSV
+                    input.form-check-input(type="checkbox" name="csv" id="csv")
           table.table.table-bordered.table-sm
             tr.thead-light.d-flex
               th.col-3 capture

@@ -40,7 +40,7 @@ router.get('/:id', async function(req, res) {
         //console.log(document);
         return document;
       });
-  
+      
     res.render(
       'response', { 
       title: "Response", 

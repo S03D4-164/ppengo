@@ -9,6 +9,8 @@ const Request = require('./models/response');
 
 var ObjectId = require('mongoose').Types.ObjectId
 
+const json2csv = require('json2csv');
+
 RegExp.escape= function(s) {
   return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 };
@@ -53,11 +55,19 @@ router.get('/page', function(req, res) {
   //Webpage.find().and(search)
   find.sort("-createdAt")
   .then((webpage) => {
-      res.render('pages', { 
-        title: "Page: "+ JSON.stringify(req.query),
-        webpages:webpage,
-        search:req.query,
-      });
+      if(typeof req.query.csv !== 'undefined' && req.query.csv){
+        var fields = ['createdAt', 'input', 'title', 'error', 'status', 'remoteAddress.ip', 'remoteAddress.reverse', 'remoteAddress.geoip', 'wappalyzer', 'securityDetails.issuer', 'securityDetails.validFrom', 'securityDetails.validTo', 'url'];
+        const csv = json2csv.parse(webpage, { fields });
+        res.setHeader('Content-disposition', 'attachment; filename=webpages.csv');
+        res.setHeader('Content-Type', 'text/csv; charset=UTF-8');
+        res.send(csv);
+      }else{
+        res.render('pages', { 
+          title: "Page: "+ JSON.stringify(req.query),
+          webpages:webpage,
+          search:req.query,
+        });
+    }
     });
 });
 
@@ -115,12 +125,21 @@ router.get('/website', function(req, res) {
         } 
         if (tmp) websites = tmp
       }
-      res.render('websites', { 
-        title: "Website",
-        search:req.query,
-        websites,
-      });
-    });
+
+      if(typeof req.query.csv !== 'undefined' && req.query.csv){
+        var fields = ['createdAt', 'updatedAt', 'url', 'tag', 'gsb.lookup'];
+        const csv = json2csv.parse(websites, { fields });
+        res.setHeader('Content-disposition', 'attachment; filename=websites.csv');
+        res.setHeader('Content-Type', 'text/csv; charset=UTF-8');
+        res.send(csv);
+      }else{
+        res.render('websites', { 
+          title: "Website",
+          search:req.query,
+          websites,
+        });
+      }
+    })
 });
 
 router.get('/request', function(req, res) {

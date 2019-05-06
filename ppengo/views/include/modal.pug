@@ -9,58 +9,54 @@
   .modal-dialog.modal-dialog-centered(style="max-width:600px;")
     .modal-content
       .modal-body
-        form(method="post" action=rootPath)
-          label(for="url") URL: 
-          textarea.col-12(id="url", name="url", rows=2) http://
-          br
-          label.col-2(for="track_url") Track:
-          select.col-10(name='track_url' id='track_url')
-              option(value=0, selected= true) -
-              option(value=1) 1hx24 (no overwrite) 
-              option(value=2) 1hx24 (overwrite)
-
-          br
-          .row
+        form.form-group(method="post" action=rootPath)
+          .form-group
+            label(for="url") URL: 
+            textarea.form-control(id="url", name="url", rows=2) http://
+          .form-group.row
+            label.col-2(for="track_url") Track:
+            select.form-control.col-9(name='track_url' id='track_url')
+                option(value=0, selected= true) -
+                option(value=1) 1hx24 (no overwrite) 
+                option(value=2) 1hx24 (overwrite)
+          .form-group.row
             div.col-6
-              label.col-12(for="userAgent") User-Agent: 
-              select.col-12(name='userAgent' id='userAgent' multiple)
+              label(for="userAgent") User-Agent: 
+              select.form-control(name='userAgent' id='userAgent' multiple)
                 option(value=win10Chrome, selected= true) win10-chrome
                 option(value=winFirefox) win-Firefox
                 option(value=winIE11) win-IE11
                 option(value=iphone6) iphone6
                 option(value=win10Edge) win10-edge
                 option(value=googlebot) googlebot
-
             div.col-6
-              label.col-12(for="lang") Browser Language: 
-              select.col-12(name='lang' id='lang' multiple)
+              label(for="lang") Browser Language: 
+              select.form-control(name='lang' id='lang' multiple)
                 option(value='ja', selected= true) ja
                 option(value='en') en
                 option(value='zh') zh
-
-          br
-          label.col-2(for="referer") Referer: 
-          input.col-10(type="text" name="referer", id="referer")
-          br
-          label.col-2(for="proxy") Proxy: 
-          input.col-10(type="text" name="proxy", id="proxy", placeholder="ip:port")
-          br
-          br
-          div(style="vertical-align:middle;")
-            label.col-2(for="timeout") Timeout(s): 
-            input.col-2(type="number" name="timeout", id="timeout", max="300", min="30", step="30", value="30")
-            label.col-2(for="delay") Delay(s): 
-            input.col-2(type="number" name="delay", id="delay", max="60", min="0", step="5", value="5")
-            label.col-2(for="disableScript") no script:
-            input.col-1(type="checkbox", name="disableScript", id="disableScript" value="")
-          br
-          label(for="exHeaders") Extra Headers: 
-          textarea.col-12(id="exHeaders", name="exHeaders", rows=2)
-
+          .form-group.row
+            label.col-2(for="referer") Referer: 
+            input.col-9.form-control(type="text" name="referer", id="referer")
+          .form-group.row
+            label.col-2(for="proxy") Proxy: 
+            input.col-9.form-control(type="text" name="proxy", id="proxy", placeholder="ip:port")
+          .form-inline
+            .form-group.mr-5
+              label.mr-2(for="timeout") Timeout(s): 
+              input.mr-2.form-control(type="number" name="timeout", id="timeout", max="300", min="30", step="30", value="30")
+              label.mr-2(for="delay") Delay(s): 
+              input.mr-2.form-control(type="number" name="delay", id="delay", max="60", min="0", step="5", value="5")
+            .form-group
+              .form-check-inline
+                label.form-check-label(for="disableScript") disable script:
+                  input.form-check-input(type="checkbox", name="disableScript", id="disableScript" value="")
+          .form-group
+            label(for="exHeaders") Extra Headers: 
+            textarea.form-control(id="exHeaders", name="exHeaders", rows=2)
           //label(for="postData") Post Data: 
           //br
           //textarea(id="postData", name="postData", rows=3, cols=50)
           //br
           input(type="hidden" name="_csrf", value=csrfToken)
-          br
           input(type="submit" name="submit", value="submit")

@@ -99,12 +99,21 @@ block content
 
         div.col-md-10
           if response.text
-              button.mr-2.btn.btn-outline-primary(data-toggle="collapse" data-target="#yara") yara ▽
-              div#yara.collapse
-                pre#yarascan
               button.mr-2.btn.btn-outline-primary(data-toggle="collapse" data-target="#JStillery") JStillery ▽
               div#JStillery.collapse
                 pre#js
+              button.mr-2.btn.btn-outline-primary(data-toggle="collapse" data-target="#yara") yara ▽
+              if response.yara
+                if response.yara.rules
+                  each rule in response.yara.rules
+                    if rule.id
+                      span.badge.badge-warning
+                        a= rule.id
+              div#yara.collapse
+                if response.yara
+                  pre#yarascan= JSON.stringify(response.yara, null, " ")
+                else
+                  pre#yarascan
               pre#content.prettyprint.linenums(style="white-space: pre-wrap") #{response.text}
               div(hidden="")
                 pre#tmp(style="white-space: pre-wrap") #{response.text}

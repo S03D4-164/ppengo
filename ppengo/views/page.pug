@@ -104,10 +104,10 @@ block content
                 tr.thead-light.d-flex
                   th.col-2 createdAt
                   th.col-3 url
-                  th.col-2 request
-                  th.col-1 response
-                  th.col-2 ipAddress
+                  th.col-1 request
+                  th.col-2 response
                   th.col-2 securityDetails
+                  th.col-2 yara
                 each request in requests
                   tr.d-flex(class={
                       "table-info":request.isNavigationRequest===true,
@@ -122,31 +122,48 @@ block content
                         else
                           a(href=rootPath + "response/" + request.response._id) #{request.url}
                         a(href=rootPath + "search/response?url=" + encodeURIComponent(request.url)) 🔍
-                    td.col-2
+                    td.col-1
                       if request.response
-                        a(href=rootPath + "response/" + request.response._id) #{request.method} / #{request.resourceType}
+                        a(href=rootPath + "response/" + request.response._id) #{request.method}
+                        br
                       else
-                        a #{request.method} / #{request.resourceType}
+                        a #{request.method}
+                        br
+                      if request.resourceType
+                        a #{request.resourceType}
+                        br
                       if request.redirectChain
-                        a= " / chain:" +request.redirectChain.length
+                        a= "chain:" +request.redirectChain.length
+                        br
                       if request.failure
                         a= " -> " + request.failure.errorText
                     each response in responses
                       if request.response && response._id
                        if request.response.toString()==response._id.toString()
-                        td.col-1
+                        td.col-2
+                          a= "status: "
                           if response.status
                             a(href=rootPath + "response/" + response._id) #{response.status}
+                          br
+                          a= " size: "
                           if response.text
-                            a(href=rootPath + "response/" + response._id)  (#{response.text.length})
+                            a(href=rootPath + "response/" + response._id)  #{response.text.length}
                           else
-                            a(href=rootPath + "response/" + response._id)  (-)
-                        td.col-2
+                            a(href=rootPath + "response/" + response._id)  -
+                          br
+                          a= "ip: "
                           a(href=rootPath + "search/response?ip=" + response.remoteAddress.ip) #{response.remoteAddress.ip}
                           if response.remoteAddress.geoip
                             if response.remoteAddress.geoip[0]
                               a= " - " + response.remoteAddress.geoip[0].country
                         td.col-2= response.securityDetails.issuer
+                        td.col-2
+                          if response.yara
+                            if response.yara.rules
+                              each rule in response.yara.rules
+                                if rule.id
+                                  span.badge.badge-warning
+                                    a= rule.id
                       else
                         td.col-5 no response
                         - break
@@ -156,8 +173,23 @@ block content
           div.col-md-1
             h4= "Content"
             p= "text size: " + webpage.content.length
+
           div.col-md-10
-            pre#yara
+            //button.mr-2.btn.btn-outline-primary(data-toggle="collapse" data-target="#JStillery") JStillery ▽
+             div#JStillery.collapse
+              pre#js
+            button.mr-2.btn.btn-outline-primary(data-toggle="collapse" data-target="#yara") yara ▽
+            if webpage.yara
+                a matched:
+                each rule in webpage.yara.rules
+                  if rule.id
+                    span.badge.badge-warning
+                      a= rule.id
+            div#yara.collapse
+              if webpage.yara
+                pre#yarascan= JSON.stringify(webpage.yara, null, " ")
+              else
+                pre#yarascan
             pre#content.prettyprint.linenums(style="white-space: pre-wrap") #{webpage.content}
             div(hidden="")
               pre#tmp(style="white-space: pre-wrap") #{webpage.content}
@@ -170,9 +202,9 @@ block content
                 button.btn.btn-sm.btn-outline-primary(onclick="beautify(\"html\")") HTML
                 button.btn.btn-sm.btn-outline-primary(onclick="prettyPrint()") prettyPrint
             hr
-            p Deobfuscate
+            //p Deobfuscate
               button.btn.btn-sm.btn-primary(onclick="jstillery()") JStillery
-            hr
+            //hr
             p
               button.btn.btn-sm.btn-primary(onclick="yara()") yara
             p
@@ -211,10 +243,10 @@ block content
                   contentType: 'application/json',
                   dataType: "json",            
                   success: function(result) { 
-                    $('pre#content').text(result["source"]);
+                    $('pre#js').text(result["source"]);
                   },
                   error: function() {
-                    $('pre#content').text("jstillery error");
+                    $('pre#js').text("jstillery error");
                   }
                 })
               };
@@ -238,7 +270,7 @@ block content
                   dataType: "json",            
                   success: function(result) { 
                     console.log(result)
-                    $('pre#yara').text(JSON.stringify(result, null, " "));
+                    $('pre#yarascan').text(JSON.stringify(result, null, " "));
                     if ("rules" in result){
                       for(let rule of result["rules"]){
                         console.log(rule)
@@ -252,28 +284,11 @@ block content
                     }
                   },
                 error: function(err) {
-                    $('pre#yara').text(err);
+                    $('pre#yarascan').text(err);
                   }
                 })
               };
 
-    //script.
-        function beautify(){
-          var content=$("#content").text();
-          var beautified = html_beautify(content);
-          $('pre#content').text(beautified);
-        };
-        function diff(output){
-          var udiff =$("#diff").text();
-          var diffHtml = Diff2Html.getPrettyHtml(udiff, {
-            inputFormat: 'diff',
-            showFiles: false,
-            matching: "none",
-            outputFormat: output,
-            //outputFormat: 'line-by-line',
-          });
-          document.getElementById("diff").innerHTML = diffHtml;
-        };
   else
     div.alert.alert-warning
       p No data

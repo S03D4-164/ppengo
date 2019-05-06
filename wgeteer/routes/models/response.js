@@ -42,8 +42,7 @@ const responseSchema = new mongoose.Schema({
       type: [String]
     },
     yara:{
-      id: {type: String},
-      matched: {type: [String]},
+      type: Object,
     },
     webpage : { type: mongoose.Schema.Types.ObjectId, ref: 'Webpage' },
     request : { type: mongoose.Schema.Types.ObjectId, ref: 'Request' },

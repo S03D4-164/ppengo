@@ -21,6 +21,7 @@
     "express-session": "^1.16.1",
     "http-errors": "~1.6.2",
     "jquery": "^3.3.1",
+    "json2csv": "^4.5.1",
     "kue": "^0.11.6",
     "kue-scheduler": "^0.8.1",
     "kue-ui-express": "^1.1.1",

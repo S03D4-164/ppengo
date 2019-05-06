@@ -89,7 +89,7 @@ router.get('/:id', async function(req, res, next) {
   .then((document) => {
     return document;
   });
-  
+  console.log(webpage.yara)  
   res.render('page', { 
         webpage,
         requests,

@@ -53,6 +53,9 @@ const webpageSchema = new mongoose.Schema({
   wappalyzer: {
     type: [String]
   },
+  yara:{
+    type: Object,
+  },
   requests : [{ type: mongoose.Schema.Types.ObjectId, ref: 'Request' }],
   responses : [{ type: mongoose.Schema.Types.ObjectId, ref: 'Response' }],
   //response : { type: mongoose.Schema.Types.ObjectId, ref: 'Response' },
