@@ -1,4 +1,28 @@
 mixin webpages-include(webpages, title, website, search)
+  if result
+    - var webpages = result.docs
+    a= "Total: " + result.totalDocs
+    if paginate.hasPreviousPages || paginate.hasNextPages(result.totalPages)
+        ul.pagination
+          li.page-item
+            if result.prevPage
+              a.page-link(href=paginate.href(true, null)) Previous
+            else
+              a.page-link Previous
+          if pages
+            each page in pages
+              if page.number === result.page
+                li.page-item.active
+                  a.page-link(href=page.url)= page.number
+              else
+                li.page-item
+                  a.page-link(href=page.url)= page.number
+          li.page-item
+            if result.nextPage
+              a.page-link(href=paginate.href()) Next
+            else
+              a.page-link Next
+
   if webpages
     if webpages.length >= 0
       if website
@@ -28,7 +52,7 @@ mixin webpages-include(webpages, title, website, search)
                 a verbose
       if search
         h4= "Search: " + JSON.stringify(search) + " - Total: " + webpages.length
-      
+
       table.table.table-bordered.table-sm
         tr.thead-light.d-flex
           th.col-5 input

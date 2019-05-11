@@ -1,5 +1,7 @@
 var express = require('express');
 var router = express.Router();
+var paginate = require('express-paginate');
+
 var Diff = require('diff');
 
 const Webpage = require('./models/webpage');
@@ -8,6 +10,20 @@ const Response = require('./models/response');
 const Website = require('./models/website');
 
 router.get('/',  function(req, res) {
+  Webpage.paginate({}, {
+    sort:{"createdAt":-1},
+    page: req.query.page,
+    limit: req.query.limit
+  }, function(err, result) {
+    console.log(paginate)
+    console.log(res.locals.paginate)
+    res.render('pages', {
+      result,
+      //paginate,
+      pages: paginate.getArrayPages(req)(5, result.totalPages, req.query.page)
+    });
+  });
+  /*
   Webpage.find()
       .sort("-createdAt")
       .limit(100)
@@ -22,6 +38,7 @@ router.get('/',  function(req, res) {
         console.log(err);
         res.send(err); 
       });
+      */
 });
 
 router.get('/:id', async function(req, res, next) {

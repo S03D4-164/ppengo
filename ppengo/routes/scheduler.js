@@ -1,6 +1,8 @@
 const kue = require('kue-scheduler')
 const mail = require("./mail");
 const yara = require("./yara");
+const wappalyze = require("./wappalyze");
+
 const Website = require('./models/website');
 const Webpage = require('./models/webpage');
 
@@ -39,6 +41,7 @@ queue.on('job enqueue', function(id, type){
         var webpage = data["webpage"];
         if(webpage){
           yara.yaraPage(webpage._id);
+          wappalyze.analyze(webpage._id);
         }
         var previous = data["previous"];
         if (previous && webpage){
@@ -133,7 +136,8 @@ module.exports = {
     });
     
     var job = queue.createJob('crawl', {})
-    .unique('crawl').ttl(10*60*1000);
+    .ttl(10*60*1000);
+    //.unique('crawl')
 
     queue.every('* * * * *', job);
 

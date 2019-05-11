@@ -102,35 +102,38 @@ block content
                 h4= "Search: " + JSON.stringify(search) + " - Total: " + responses.length
               table.table.table-bordered.table-sm
                 tr.thead-light.d-flex
-                  th.col-2 createdAt
+                  //th.col-2 createdAt
+                  th.col-1 seq
                   th.col-3 url
-                  th.col-1 request
+                  th.col-2 request
                   th.col-2 response
                   th.col-2 securityDetails
                   th.col-2 yara
+                - var seq = 0
                 each request in requests
                   tr.d-flex(class={
                       "table-info":request.isNavigationRequest===true,
                       "table-danger":request.url===webpage.url,
                       "table-warning":request.failure,
                       })
-                    td.col-2= moment(request.createdAt).format('YYYY-MM-DD HH:mm:ss.SS')
+                    - seq += 1
+                    td.col-1= seq
+                      //= moment(request.createdAt).format('YYYY-MM-DD HH:mm:ss.SS')
                     td.col-3
-                      if request.response
-                        if request.url.length > 100
-                          a(href=rootPath + "response/" + request.response._id) #{request.url.slice(0,100)}(truncated)
-                        else
-                          a(href=rootPath + "response/" + request.response._id) #{request.url}
                         a(href=rootPath + "search/response?url=" + encodeURIComponent(request.url)) 🔍
-                    td.col-1
+                        if request.url.length > 100
+                          a #{request.url.slice(0,100)}(truncated)
+                        else
+                          a #{request.url}
+                    td.col-2
                       if request.response
                         a(href=rootPath + "response/" + request.response._id) #{request.method}
                         br
                       else
-                        a #{request.method}
+                        a = request.method
                         br
                       if request.resourceType
-                        a #{request.resourceType}
+                        a= request.resourceType
                         br
                       if request.redirectChain
                         a= "chain:" +request.redirectChain.length
@@ -165,7 +168,7 @@ block content
                                   span.badge.badge-warning
                                     a= rule.id
                       else
-                        td.col-5 no response
+                        td.col-6 no response
                         - break
       div#content-tab.tab-pane
        .row
@@ -288,6 +291,16 @@ block content
                   }
                 })
               };
+              function diff(output){
+                var udiff = $("#diff").text();
+                var diffHtml = Diff2Html.getPrettyHtml(udiff,{
+                  inputFormat: 'diff',
+                  showFiles: false,
+                  matching: "none",
+                  outputFormat: output
+                });
+                document.getElementById("diff").innerHTML = diffHtml;
+              }
 
   else
     div.alert.alert-warning

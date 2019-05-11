@@ -36,12 +36,12 @@ block content
           button.mr-2.btn.btn-outline-primary(data-toggle="collapse" data-target="#gsb") Google Safe Browsing ▽
           if website.gsb.lookup
             if website.gsb.lookup.matches
-              if website.gsb.lookup.matches.length
-                span.badge.badge-danger
-                  a matched
-            else
-            span.badge.badge-info
-                a not matched
+              - var matches =  website.gsb.lookup.matches
+              if matches.length
+                each match in matches
+                  span.badge.badge-danger
+                    a= match.threatType
+
           div#gsb.collapse
             //a.btn.btn-sm.btn-primary(href=rootPath + "api/gsblookup/" + website._id) Lookup
             button.btn.btn-sm.btn-primary(onclick="lookup()") Lookup

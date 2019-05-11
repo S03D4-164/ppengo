@@ -91,11 +91,7 @@ router.post('/register', async function(req, res, next) {
 });
 
 router.post('/', passport.authenticate('local'), function(req, res) {
-    //res.redirect(req.baseUrl);
-    res.render('auth', {
-        user : req.user,
-        message: "user authenticated."
-    });
+    res.redirect(req.baseUrl + "/../");
 });
 
 router.get('/logout', function(req, res) {

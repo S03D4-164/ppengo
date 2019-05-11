@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const mongoosePaginate = require('mongoose-paginate-v2');
 
 const websiteSchema = new mongoose.Schema({
     url: {
@@ -29,5 +30,7 @@ const websiteSchema = new mongoose.Schema({
 
 websiteSchema.index({updatedAt:-1});
 websiteSchema.index({url:1});
+
+websiteSchema.plugin(mongoosePaginate);
 
 module.exports = mongoose.model('Website', websiteSchema);

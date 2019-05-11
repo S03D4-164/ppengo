@@ -1,6 +1,30 @@
 extends layout
 
 block content
+  if result
+    - var websites = result.docs
+    a= "Total: " + result.totalDocs
+    if paginate.hasPreviousPages || paginate.hasNextPages(pageCount)
+        ul.pagination
+          li.page-item
+            if result.prevPage
+              a.page-link(href="?page=" + result.prevPage +  "&limit="+result.limit) Previous
+            else
+              a.page-link Previous
+          if pages
+            each page in pages
+              if page.number === result.page
+                li.page-item.active
+                  a.page-link(href=page.url)= page.number
+              else
+                li.page-item
+                  a.page-link(href=page.url)= page.number
+          li.page-item
+            if result.nextPage
+              a.page-link(href="?page=" + result.nextPage +  "&limit="+result.limit) Next
+            else
+              a.page-link Next
+
   if websites
       if websites.length >=0
           if search
@@ -23,6 +47,7 @@ block content
               .checkbox-inline
                   label.form-check-label export CSV
                     input.form-check-input(type="checkbox" name="csv" id="csv")
+
           table.table.table-bordered.table-sm
             tr.thead-light.d-flex
               th.col-3 capture

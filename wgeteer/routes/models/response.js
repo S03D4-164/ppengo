@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const mongoosePaginate = require('mongoose-paginate-v2');
 
 const responseSchema = new mongoose.Schema({
     url: {
@@ -53,5 +54,7 @@ const responseSchema = new mongoose.Schema({
 responseSchema.index({createdAt:-1});
 responseSchema.index({text:'text'});
 responseSchema.index({webpage:1});
+
+responseSchema.plugin(mongoosePaginate);
 
 module.exports = mongoose.model('Response', responseSchema);

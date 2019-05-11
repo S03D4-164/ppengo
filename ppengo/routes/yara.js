@@ -23,17 +23,21 @@ async function yaraScan(source){
           if (warnings.length) {
             console.error("Compile warnings: " + JSON.stringify(warnings))
           } else {
-            scanner.scan(buf, function(error, result) {
-              if (error) {
-                console.error("scan failed: %s", error.message)
-              } else {
-                console.log(result);
-                if (result.rules.length) {
-                  console.log("matched: %s", JSON.stringify(result))
+            try{
+              scanner.scan(buf, function(error, result) {
+                if (error) {
+                  console.error("scan failed: %s", error.message)
+                } else {
+                  console.log(result);
+                  if (result.rules.length) {
+                    console.log("matched: %s", JSON.stringify(result))
+                  }
+                  resolve(result);
                 }
-                resolve(result);
-              }
-            });
+              });
+            }catch(err){
+              console.log(err);
+            }
           }
         }
       });
@@ -49,18 +53,22 @@ module.exports = {
   async yaraPage(id){
     await Webpage.findById(id)
     .then(async (page) => {
-      page.yara = await yaraScan(page.content);
-      await page.save();
-      console.log(page.yara)
+      if(page.content){
+        page.yara = await yaraScan(page.content);
+        await page.save();
+        console.log(page.yara)  
+      }
     });
     await Response.find({"webpage":id})
     .then(async (responses) => {
         console.log(responses.length);
         for(let res of responses){
-            console.log("url",res.url)
-            res.yara = await yaraScan(res.text);
-            await res.save();
-            console.log("yara",res.yara)
+            if(res.text){
+              console.log("url",res.url)
+              res.yara = await yaraScan(res.text);
+              await res.save();
+              console.log("yara",res.yara)
+            }
         }
     });
   }

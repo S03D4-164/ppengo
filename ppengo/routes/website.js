@@ -1,10 +1,27 @@
 var express = require('express');
 var router = express.Router();
+var paginate = require('express-paginate');
 
 const Website = require('./models/website');
 const Webpage = require('./models/webpage');
 
 router.get('/', function(req, res, next) {
+
+  Website.paginate({}, {
+    sort:{"createdAt":-1},
+    populate:'last',
+    page: req.query.page,
+    limit: req.query.limit
+  }, function(err, result) {
+    console.log(result)
+    console.log(paginate)
+    res.render('websites', {
+      result,
+      paginate,
+      pages: paginate.getArrayPages(req)(5, result.totalPages, req.query.page)
+    });
+  });
+  /*
   Website.find()
     .sort("-updatedAt")
     .limit(100)
@@ -21,6 +38,7 @@ router.get('/', function(req, res, next) {
       console.log(err);
       res.send(err); 
     });
+    */
 });
 
 router.get('/:id', async function(req, res, next) {

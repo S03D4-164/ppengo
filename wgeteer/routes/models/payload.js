@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const mongoosePaginate = require('mongoose-paginate-v2');
 
 const payloadSchema = new mongoose.Schema({
     payload: {
@@ -20,6 +21,8 @@ const payloadSchema = new mongoose.Schema({
     },
 },{timestamps:true},
 );
+
+payloadSchema.plugin(mongoosePaginate);
 
 module.exports = mongoose.model('Payload', payloadSchema);
  

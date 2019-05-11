@@ -18,8 +18,8 @@ async function gsbLookup(url){
         method:"POST"
     }
 
-   var res = await request(options)
-   .then((body)=>{
+    var res = await request(options)
+    .then((body)=>{
         if ("matches" in body){
             return body;
         }else{

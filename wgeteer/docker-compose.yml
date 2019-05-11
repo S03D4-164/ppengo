@@ -9,7 +9,6 @@ services:
     container_name: wgeteer
     volumes:
       - ./routes:/home/node/app
-      #- ./download:/home/node/download
     network_mode: "host"
     working_dir: /home/node/app
     #command: /bin/sh
@@ -25,4 +24,6 @@ services:
     ports:
       - 127.0.0.1:3001:3001
     working_dir: /app
-    command: ./bin/sbserver -db="/tmp/gosb/gsbv4.db" -srvaddr="0.0.0.0:3001" -apikey="APIKEY"
+    command: ./bin/sbserver -db="/tmp/gosb/gsbv4.db" -srvaddr="0.0.0.0:3001" -apikey=$${APIKEY}
+    env_file: ../.env
+

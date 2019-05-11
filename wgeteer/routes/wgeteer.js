@@ -179,7 +179,6 @@ module.exports = {
               {"new":true,"upsert":true},
             );
             payloadId = payload._id;
-            //console.log(payload._id, payload.md5);
         }
 
         try{
@@ -217,7 +216,7 @@ module.exports = {
             text:text,
             request: request._id,
           });
-
+          /*
           try{
             let cookies;
             const wapps = await wapptr(
@@ -231,7 +230,7 @@ module.exports = {
           }catch(err){
             console.log(err);
           }
-
+          */
           if (response.remoteAddress){
             const host = response.remoteAddress.ip;
             var hostinfo;
@@ -352,13 +351,17 @@ module.exports = {
     });
 
     try{
-      var finalResponse;
-      await page.goto(url,{
-        timeout:timeout,
-        referer:referer,
-        waitUntil: 'networkidle2',
-      });
-      await page.waitFor(delay);    
+        await page.goto(url,{
+          timeout:timeout,
+          referer:referer,
+          waitUntil: 'networkidle2',
+        });
+        await page.waitFor(delay);      
+      }catch(err){
+        console.log(err);
+    }
+
+    try{
 
       const pageTitle = await page.title()
       webpage.title = pageTitle;
@@ -394,6 +397,7 @@ module.exports = {
       webpage.screenshot = ss._id;
 
       webpage.url = page.url();
+      var finalResponse;
       if(webpage.url){
         for(let num in responses){
           if (responses[num].url){
@@ -404,6 +408,7 @@ module.exports = {
         }
       }
 
+      /*
       try{
         const cookies = await page.cookies();
         //console.log(cookies, finalResponse.headers);
@@ -420,6 +425,7 @@ module.exports = {
       }catch(err){
         console.log(err);
       }
+      */
     }catch(error){
         console.log(error);
         webpage.error = error.message;
@@ -433,7 +439,6 @@ module.exports = {
     }finally{
       webpage.requests = requests;
       webpage.responses = responses;
-
       if(finalResponse){
         webpage.status = finalResponse.status;
         webpage.headers = finalResponse.headers;

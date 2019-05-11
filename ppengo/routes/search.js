@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+var paginate = require('express-paginate');
 
 const Response = require('./models/response');
 const Website = require('./models/website');
@@ -48,6 +49,21 @@ router.get('/page', function(req, res) {
     search.push({"$where": `/${req.query.status}/.test(this.status)`});
   }
 
+  Webpage.paginate(
+    {"$and":search}, {
+    sort:{"createdAt":-1},
+    page: req.query.page,
+    limit: req.query.limit
+  }, function(err, result) {
+    console.log(result)
+    console.log(paginate)
+    res.render('pages', {
+      search,
+      result,
+      pages: paginate.getArrayPages(req)(5, result.totalPages, req.query.page)
+    });
+  });
+  /*
   console.log(req.query, search);
   var find = Webpage.find();
   if(search.length)find = find.and(search);
@@ -69,6 +85,7 @@ router.get('/page', function(req, res) {
         });
     }
     });
+    */
 });
 
 router.get('/website', function(req, res) {
@@ -105,6 +122,29 @@ router.get('/website', function(req, res) {
     search.push({"track.counter": {"$gt":0}});
   }
 
+  if(typeof req.query.gsb !== 'undefined' && req.query.gsb){
+    var elem = {"threatType": new RegExp(req.query.gsb, "i")};
+    search.push({"gsb.lookup.matches": {"$elemMatch":elem}});
+  }
+
+
+  Website.paginate(
+    {"$and":search}, {
+    sort:{"createdAt":-1},
+    populate:'last',
+    page: req.query.page,
+    limit: req.query.limit
+  }, function(err, result) {
+    console.log(result)
+    console.log(paginate)
+    res.render('websites', {
+      result,
+      paginate,
+      pages: paginate.getArrayPages(req)(3, result.totalPages, req.query.page)
+    });
+  });
+
+  /*
   console.log(search);
   var find = Website.find();
   if(search.length)find = find.and(search);
@@ -140,6 +180,7 @@ router.get('/website', function(req, res) {
         });
       }
     })
+    */
 });
 
 router.get('/request', function(req, res) {
@@ -180,8 +221,8 @@ router.get('/response', function(req, res) {
     if(typeof req.query.issuer !== 'undefined' && req.query.issuer){
       search.push({"securityDetails.issuer":new RegExp(req.query.issuer)});
     }
-    if(typeof req.query.text !== 'undefined' && req.query.text){
-      search.push({"text":new RegExp(req.query.text)});
+    if(typeof req.query.source !== 'undefined' && req.query.source){
+      search.push({"text":new RegExp(req.query.source)});
     }
 
     if(typeof req.query.status !== 'undefined' && req.query.status){

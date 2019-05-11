@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 
 const Webpage = require('./models/webpage');
+const Response = require('./models/response');
 const Website = require('./models/website');
 
 const kue = require('kue-scheduler')
@@ -116,8 +117,16 @@ router.post('/gsblookup/', async function(req, res) {
 });
 
 router.get('/page/', async function(req, res) {
-  await Webpage.find().select({"_id": 1, "input": 1, "createdAt": 1, })
-    .then((document) => {
+  await Webpage.find().select({
+      "_id": 1,
+      "createdAt": 1,
+      "url": 1,
+      "status": 1,
+      "title": 1,
+      "remoteAddress.ip": 1,
+      "remoteAddress.geoip": 1,
+      "wappalyzer": 1,
+    }).then((document) => {
       return res.json(document);
     })
     .catch((err) => {
@@ -128,6 +137,38 @@ router.get('/page/', async function(req, res) {
 
 router.get('/page/:id', async function(req, res) {
   await Webpage.findById(req.params.id)
+    .then((document) => {
+      return res.json(document);
+    })
+    .catch((err) => {
+      console.log(err)
+      return res.json({error:err.message});
+    })
+});
+
+router.get('/response/', async function(req, res) {
+  await Response.find()
+  .select({
+      "_id": 1,
+      "createdAt": 1,
+      "url": 1,
+      "status": 1,
+      "title": 1,
+      "remoteAddress.ip": 1,
+      "remoteAddress.geoip": 1,
+      "wappalyzer": 1,
+    })
+    .then((document) => {
+      return res.json(document);
+    })
+    .catch((err) => {
+      console.log(err)
+      return res.json({error:err.message});
+    })
+});
+
+router.get('/response/:id', async function(req, res) {
+  await Response.findById(req.params.id)
     .then((document) => {
       return res.json(document);
     })

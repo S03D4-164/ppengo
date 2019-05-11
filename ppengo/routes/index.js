@@ -158,23 +158,11 @@ router.post('/progress', function(req, res, next) {
   });
 });
 
-/*
-
-router.get('/delete/page/:id', csrfProtection, async function(req, res, next) {
+router.get('/delete/website/:id', async function(req, res) {
   const id = req.params.id;
-  await Webpage.findByIdAndDelete(id)
+  await Website.findByIdAndDelete(id)
   res.redirect(req.baseUrl);
 });
-
-router.get('/drop/payload',  csrfProtection, function(req, res, next) {
-
-  Payload.collection.drop();
-  Screenshot.collection.drop();
-
-  res.redirect(req.baseUrl);
-});
-
-*/
 
 const request = require("./request");
 router.use('/request', request);
