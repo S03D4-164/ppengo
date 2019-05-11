@@ -3,9 +3,10 @@ extends layout
 block content
   if result
     - var websites = result.docs
-    a= "Total: " + result.totalDocs
     if paginate.hasPreviousPages || paginate.hasNextPages(pageCount)
-        ul.pagination
+        ul.p-2.pagination
+          h3.mr-3= "Sites "
+            a= "total: " + result.totalDocs
           li.page-item
             if result.prevPage
               a.page-link(href="?page=" + result.prevPage +  "&limit="+result.limit) Previous
@@ -28,10 +29,8 @@ block content
   if websites
       if websites.length >=0
           if search
-            h2= title + " Search: " + JSON.stringify(search) + " - total: " + websites.length
-          else
-            h2= title
-          form.form-inline(method="get" action=rootPath+"search/website")
+            h4= " Search: " + JSON.stringify(search) + " - total: " + websites.length
+          form.form-inline(method="get" action=rootPath+"website")
             .form-group.mr-5
               input.form-control.mr-2.btn.btn-sm.btn-danger(type="submit" value="search")
               label.mr-2(for="rurl") url:  

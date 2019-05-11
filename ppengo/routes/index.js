@@ -191,7 +191,7 @@ router.use('/page', webpage);
 const auth = require("./auth");
 router.use('/auth', auth);
 
-const jstillery = require("./jstillery/index");
+const jstillery = require("./jstillery");
 router.use('/jstillery', jstillery);
 
 router.use('/', website);

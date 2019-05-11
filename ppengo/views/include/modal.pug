@@ -6,12 +6,14 @@
 - var googlebot = 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
 
 #register_form.modal.col-12(role="dialog")
+
   .modal-dialog.modal-dialog-centered(style="max-width:600px;")
     .modal-content
       .modal-body
         form.form-group(method="post" action=rootPath)
           .form-group
             label(for="url") URL: 
+            a#paste= ""
             textarea.form-control(id="url", name="url", rows=2) http://
           .form-group.row
             label.col-2(for="track_url") Track:
@@ -60,3 +62,30 @@
           //br
           input(type="hidden" name="_csrf", value=csrfToken)
           input(type="submit" name="submit", value="submit")
+  script.
+    document.getElementById("url").addEventListener("paste", function (e) {
+        var clipboardData = e.clipboardData || window.clipboardData;
+        var clipboardText = clipboardData.getData('Text');
+        var text = clipboardText
+        .replace(/^ */, '')
+        .replace(/\[:\]/g, ':')
+        .replace(/\[.\]/g, '.')
+        .replace(/^URL./, '')
+        .replace(/^url./, '')
+        .replace(/^hXXp/, 'http')
+        .replace(/^hxxp/, 'http');
+        var paste = document.getElementById('url');
+        if (paste.selectionStart || paste.selectionStart == '0') {
+            var startPos = paste.selectionStart;
+            var endPos = paste.selectionEnd;
+            paste.value = paste.value.substring(0, startPos)
+                + text
+                + paste.value.substring(endPos, paste.value.length);
+            paste.selectionEnd= endPos + text.length;
+        } else {
+            paste.value += text;
+        }
+        if(text!=clipboardText)$('a#paste').text("replaced");
+        else $('a#paste').text("");
+        e.preventDefault();
+    });

@@ -13,8 +13,8 @@ router.get('/', function(req, res, next) {
     page: req.query.page,
     limit: req.query.limit
   }, function(err, result) {
-    console.log(result)
-    console.log(paginate)
+    //console.log(result)
+    //console.log(paginate)
     res.render('websites', {
       result,
       paginate,

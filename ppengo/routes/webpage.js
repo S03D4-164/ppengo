@@ -9,6 +9,7 @@ const Request = require('./models/request');
 const Response = require('./models/response');
 const Website = require('./models/website');
 
+/*
 router.get('/',  function(req, res) {
   Webpage.paginate({}, {
     sort:{"createdAt":-1},
@@ -23,22 +24,79 @@ router.get('/',  function(req, res) {
       pages: paginate.getArrayPages(req)(5, result.totalPages, req.query.page)
     });
   });
+});
+*/
+
+router.get('/', function(req, res) {
+  var search = []
+  if(typeof req.query.input !== 'undefined' && req.query.input){
+    search.push({"input": req.query.input});
+  }
+  if(typeof req.query.rinput !== 'undefined' && req.query.rinput){
+    search.push({"input": new RegExp(RegExp.escape(req.query.rinput))});
+  }
+
+  if(typeof req.query.title !== 'undefined' && req.query.title){
+    search.push({"title": new RegExp(req.query.title)});
+  }
+  if(typeof req.query.url !== 'undefined' && req.query.url){
+    search.push({"url": req.query.url});
+  }
+  if(typeof req.query.rurl !== 'undefined' && req.query.rurl){
+    search.push({"url":new RegExp(req.query.rurl)});
+  }
+
+  if(typeof req.query.source !== 'undefined' && req.query.source){
+    search.push({"content": new RegExp(req.query.source)});
+  }
+  if(typeof req.query.ip !== 'undefined' && req.query.ip){
+      search.push({"remoteAddress.ip":new RegExp(req.query.ip)});
+  }
+  if(typeof req.query.country !== 'undefined' && req.query.country){
+    search.push({"remoteAddress.geoip.country":new RegExp(req.query.country)});
+  }
+  if(typeof req.query.status !== 'undefined' && req.query.status){
+    //search.push({"$where": `/${req.query.status}/.test(this.status)`});
+    search.push({"status": req.query.status});
+  }
+  var query = search.length?{"$and":search}:{};
+  Webpage.paginate(
+    query, {
+    sort:{"createdAt":-1},
+    page: req.query.page,
+    limit: req.query.limit
+  }, function(err, result) {
+    //console.log(result)
+    console.log(paginate)
+    res.render('pages', {
+      search,
+      result,
+      pages: paginate.getArrayPages(req)(5, result.totalPages, req.query.page)
+    });
+  });
   /*
-  Webpage.find()
-      .sort("-createdAt")
-      .limit(100)
-      .then((webpages) => {
-        res.render(
-          'pages', {
-            title: "Page",
-            webpages,
-          });
-      })
-      .catch((err) => { 
-        console.log(err);
-        res.send(err); 
-      });
-      */
+  console.log(req.query, search);
+  var find = Webpage.find();
+  if(search.length)find = find.and(search);
+
+  //Webpage.find().and(search)
+  find.sort("-createdAt")
+  .then((webpage) => {
+      if(typeof req.query.csv !== 'undefined' && req.query.csv){
+        var fields = ['createdAt', 'input', 'title', 'error', 'status', 'remoteAddress.ip', 'remoteAddress.reverse', 'remoteAddress.geoip', 'wappalyzer', 'securityDetails.issuer', 'securityDetails.validFrom', 'securityDetails.validTo', 'url'];
+        const csv = json2csv.parse(webpage, { fields });
+        res.setHeader('Content-disposition', 'attachment; filename=webpages.csv');
+        res.setHeader('Content-Type', 'text/csv; charset=UTF-8');
+        res.send(csv);
+      }else{
+        res.render('pages', { 
+          title: "Page: "+ JSON.stringify(req.query),
+          webpages:webpage,
+          search:req.query,
+        });
+    }
+    });
+    */
 });
 
 router.get('/:id', async function(req, res, next) {

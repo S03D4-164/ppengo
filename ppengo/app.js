@@ -49,6 +49,8 @@ app.use(rootPath + 'mongo_express/', mongo_express(mongo_express_config))
 
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json({ limit: '32mb' }));
+
+app.use(paginate.middleware(100, 100));
 app.use(rootPath + "api", require('./routes/api'));
 
 kueUiExpress(app, rootPath + 'kue/', rootPath + 'kue-api/');
@@ -80,7 +82,6 @@ app.use(function (req, res, next) {
 });
 
 var indexRouter = require('./routes/index');
-app.use(paginate.middleware(10, 10));
 app.use(rootPath, indexRouter);
 
 // view engine setup

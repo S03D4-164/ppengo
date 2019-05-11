@@ -1,9 +1,11 @@
 mixin webpages-include(webpages, title, website, search)
   if result
     - var webpages = result.docs
-    a= "Total: " + result.totalDocs
+
     if paginate.hasPreviousPages || paginate.hasNextPages(result.totalPages)
-        ul.pagination
+        ul.p-2.pagination
+          h3.mr-3= "Pages "
+            a= "total: " + result.totalDocs
           li.page-item
             if result.prevPage
               a.page-link(href=paginate.href(true, null)) Previous
@@ -22,13 +24,17 @@ mixin webpages-include(webpages, title, website, search)
               a.page-link(href=paginate.href()) Next
             else
               a.page-link Next
+    else
+      ul.p-1.pagination
+        h3.mr-5= "Pages "
+          a= "total: " + result.totalDocs
 
   if webpages
     if webpages.length >= 0
       if website
         - var actionPath = rootPath + "website/" + website._id
       else
-        - var actionPath = rootPath + "search/page"
+        - var actionPath = rootPath + "page"
       if ids || completed
         h4= "Progress - Total: " + webpages.length
       else

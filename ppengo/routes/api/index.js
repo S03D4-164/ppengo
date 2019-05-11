@@ -1,9 +1,10 @@
 var express = require('express');
 var router = express.Router();
+var paginate = require('express-paginate');
 
-const Webpage = require('./models/webpage');
-const Response = require('./models/response');
-const Website = require('./models/website');
+const Webpage = require('../models/webpage');
+const Response = require('../models/response');
+const Website = require('../models/website');
 
 const kue = require('kue-scheduler')
 let queue = kue.createQueue({
@@ -15,6 +16,8 @@ let queue = kue.createQueue({
 });
 
 var yara = require('yara');
+
+router.get('/', async function(res) {return res.json();})
 
 router.post('/vtpayload/', async function(req, res) {
   async function queJob(id){
@@ -116,8 +119,9 @@ router.post('/gsblookup/', async function(req, res) {
   return;
 });
 
-router.get('/page/', async function(req, res) {
-  await Webpage.find().select({
+router.get('/page', function(req, res) {
+  Webpage.paginate({}, {
+    select:{
       "_id": 1,
       "createdAt": 1,
       "url": 1,
@@ -126,13 +130,14 @@ router.get('/page/', async function(req, res) {
       "remoteAddress.ip": 1,
       "remoteAddress.geoip": 1,
       "wappalyzer": 1,
-    }).then((document) => {
-      return res.json(document);
-    })
-    .catch((err) => {
-      console.log(err)
-      return res.json({error:err.message});
-    })
+    },
+    sort:{"createdAt":-1},
+    page: req.query.page,
+    limit: req.query.limit
+  }, function(err, result) {
+    //console.log(result)
+    res.json(result);
+  });
 });
 
 router.get('/page/:id', async function(req, res) {
@@ -146,9 +151,9 @@ router.get('/page/:id', async function(req, res) {
     })
 });
 
-router.get('/response/', async function(req, res) {
-  await Response.find()
-  .select({
+router.get('/response', function(req, res) {
+  Response.paginate({}, {
+    select:{
       "_id": 1,
       "createdAt": 1,
       "url": 1,
@@ -157,14 +162,14 @@ router.get('/response/', async function(req, res) {
       "remoteAddress.ip": 1,
       "remoteAddress.geoip": 1,
       "wappalyzer": 1,
-    })
-    .then((document) => {
-      return res.json(document);
-    })
-    .catch((err) => {
-      console.log(err)
-      return res.json({error:err.message});
-    })
+    },
+    sort:{"createdAt":-1},
+    page: req.query.page,
+    limit: req.query.limit
+  }, function(err, result) {
+    console.log(result)
+    res.json(result);
+  });
 });
 
 router.get('/response/:id', async function(req, res) {
@@ -178,15 +183,15 @@ router.get('/response/:id', async function(req, res) {
     })
 });
 
-router.get('/website/', async function(req, res) {
-  await Website.find()
-    .then((document) => {
-      return res.json(document);
-    })
-    .catch((err) => {
-      console.log(err)
-      return res.json({error:err.message});
-    })
+router.get('/website', function(req, res) {
+  Website.paginate({}, {
+    sort:{"createdAt":-1},
+    page: req.query.page,
+    limit: req.query.limit
+  }, function(err, result) {
+    //console.log(result)
+    res.json(result);
+  });
 });
 
 router.get('/website/:id', async function(req, res) {

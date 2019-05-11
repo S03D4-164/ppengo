@@ -137,10 +137,12 @@ router.get('/website', function(req, res) {
   }, function(err, result) {
     console.log(result)
     console.log(paginate)
+    var pages = result?paginate.getArrayPages(req)(3, result.totalPages, req.query.page):undefined;
     res.render('websites', {
       result,
       paginate,
-      pages: paginate.getArrayPages(req)(3, result.totalPages, req.query.page)
+      pages,
+      search
     });
   });
 
