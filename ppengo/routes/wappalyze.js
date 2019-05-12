@@ -3,6 +3,7 @@ const processHtml = require('wappalyzer/driver').processHtml;
 const processJs = require('wappalyzer/driver').processJs;
 
 const Webpage = require('./models/webpage');
+const Response = require('./models/response');
 
 const wappalyze = async function (url, headers, text, cookies){
   let Browser,

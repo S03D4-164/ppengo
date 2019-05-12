@@ -118,26 +118,30 @@ router.post('/gsblookup/', async function(req, res) {
 
 router.post('/register', async function(req, res) {
  
-console.log(req.body);
-const inputUrl = req.body['url'];
-if(inputUrl){
+  console.log(req.body);
+  const inputUrl = req.body['url'];
+  if(inputUrl){
     var option = {
       timeout:30,
       delay:5,
       userAgent:'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'
     };
+    if (req.body['lang']) option['lang'] = req.body['lang'];
+    if (req.body['userAgent']) option['userAgent'] = req.body['userAgent'];
+    
     if (req.body['timeout']) option['timeout'] = req.body['timeout'];
     if (req.body['delay']) option['delay'] = req.body['delay'];
     if (req.body['referer']) option['referer'] = req.body['referer'];
     if (req.body['proxy']) option['proxy'] = req.body['proxy'];
-    //option['exHeaders'] = req.body['exHeaders'];
-    if (req.body['lang']) option['lang'] = req.body['lang'];
-    if (req.body['user-agent']) option['userAgent'] = req.body['user-agent'];
-    //if (req.body['track']) option['track'] = req.body['track'];
-    console.log(option);
-    //const webpage = await saveInput(inputUrl, option);
-    const webpage = await wgeteer.registerUrl(inputUrl, option);
-    const job = await wgeteer.queJob(webpage);
+    if (req.body['exHeaders']) option['exHeaders'] = req.body['exHeaders'];
+    if ("disableScript" in req.body) option["disableScript"] = true;
+
+    var track = ("track" in req.body)?req.body['track']:0;
+
+    console.log(option, track);
+
+    const webpage = await wgeteer.registerUrl(inputUrl, option, track);
+    const job = await wgeteer.wgetJob(webpage);
     res.json(webpage);
   }else{
     res.json({error:"no url"});

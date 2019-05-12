@@ -1,8 +1,3 @@
-- var win10Chrome = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'
-- var win10Edge = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134'
-- var winFirefox = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:62.0) Gecko/20100101 Firefox/62.0'
-- var winIE11 = 'Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko'
-- var iphone6 = 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1'
 
 mixin sitemodal-include(url, id, counter=0, period=0)
  #update_form.modal.col-12(role="dialog")
@@ -20,6 +15,8 @@ mixin sitemodal-include(url, id, counter=0, period=0)
             div.col-6
               label.col-12(for="userAgent") User-Agent: 
               select.col-12(name='userAgent' id='userAgent')
+                include ua.pug
+              //select.col-12(name='userAgent' id='userAgent')
                 option(value=win10Chrome, selected= true) win10-chrome
                 option(value=winFirefox) win-Firefox
                 option(value=winIE11) win-IE11
@@ -32,6 +29,8 @@ mixin sitemodal-include(url, id, counter=0, period=0)
                 option(value='ja', selected= true) ja
                 option(value='en') en
           br
+          include form.pug
+        //div
           label.col-2(for="referer") Referer: 
           input.col-10(type="text" name="referer", id="referer")
           br

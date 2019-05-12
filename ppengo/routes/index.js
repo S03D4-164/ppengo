@@ -4,88 +4,13 @@ var router = express.Router();
 const Webpage = require('./models/webpage');
 const Website = require('./models/website');
 
+const wgeteer = require('./wgeteer');
+
 const scheduler = require('./scheduler');
 
 var queue = scheduler.start();
 
 router.post('/', async function(req, res, next) {
-  async function queJob(webpage){
-    const job = await queue.create('wgeteer', {
-      pageId: webpage._id,
-      options:webpage.option,
-    }).ttl(30*60*1000);
-    await job.save(function(err){
-      if( err ) console.log( job.id, err);
-      //else console.log( job.id, option);
-    });
-    return job;
-  }
-
-  async function gsbJob(id){
-    const job = await queue.create('gsblookup', {
-      websiteId:id,
-    }).ttl(60*1000).attempts(3).backoff( true );
-    await job.save(function(err){
-      if( err ) console.log( job.id, err);
-    });
-    return job;
-  }
-
-  async function saveInput(inputUrl, option, track){
-    inputUrl = inputUrl
-    .replace(/^ */, '')
-    .replace(/\[:\]/g, ':')
-    .replace(/\[.\]/g, '.')
-    .replace(/^URL./, '')
-    .replace(/^url./, '')
-    .replace(/^hXXp/, 'http')
-    .replace(/^hxxp/, 'http');
-
-    const webpage = await new Webpage({
-      input: inputUrl,
-      option: option,
-    });
-    await webpage.save(function (err, success){
-      if(err) console.log(err);
-      //else console.log(webpage);
-    });
-
-    const website = await Website.findOneAndUpdate(
-      {"url": inputUrl},
-      {
-        "last": webpage._id,
-      },
-      {"new":true,"upsert":true},
-    );
-    if (!website.gsb.lookup) await gsbJob(website._id);
-    else console.log("gsb checked");
-    //if (option['track'] > 0){
-    if (track > 0){
-      counter = 24;
-      period = 1;
-      website.track.counter = counter;
-      website.track.period = period;
-      website.track.option = option;
-      //if (option['track'] = 2){       
-      if (track === 2){
-        await website.save(function (err, success){
-          if(err) console.log(err);
-          else console.log(website);
-        });
-      //} else if (option['track'] = 1){
-      } else if (track === 1){
-
-        if (!website.track.counter){
-          await website.save(function (err, success){
-            if(err) console.log(err);
-            else console.log(website);
-          });
-        } 
-      }
-    }
-    return webpage;
-    //console.log(ids);
-  }
 
   console.log(req.body);
   const input = req.body['url'];
@@ -96,36 +21,37 @@ router.post('/', async function(req, res, next) {
  
   for (var inputUrl of urls){
     if(inputUrl){
-    var lang = req.body['lang'];
-    if (typeof lang === 'string') lang = [lang];
-    var userAgent = req.body['userAgent'];
-    if (typeof userAgent === 'string') userAgent = [userAgent];
+      var lang = req.body['lang'];
+      if (typeof lang === 'string') lang = [lang];
+      var userAgent = req.body['userAgent'];
+      if (typeof userAgent === 'string') userAgent = [userAgent];
+      for (var lkey in lang){
+        for (var ukey in userAgent){
+          var option = {
+            timeout:30,
+            delay:5,
+          }
+          option['lang'] = lang[lkey];
+          option['userAgent'] = userAgent[ukey];
+          if (req.body['timeout']) option['timeout'] = req.body['timeout'];
+          if (req.body['delay']) option['delay'] = req.body['delay'];
+          if (req.body['referer']) option['referer'] = req.body['referer'];
+          if (req.body['proxy']) option['proxy'] = req.body['proxy'];
+          if (req.body['exHeaders']) option['exHeaders'] = req.body['exHeaders'];
+          if ("disableScript" in req.body) option["disableScript"] = true;
 
-    for (var lkey in lang){
-      for (var ukey in userAgent){
-        var option = {};
-        option['referer'] = req.body['referer'];
-        option['proxy'] = req.body['proxy'];
-        option['timeout'] = req.body['timeout'];
-        option['delay'] = req.body['delay'];
-        option['exHeaders'] = req.body['exHeaders'];
-        option['lang'] = lang[lkey];
-        option['userAgent'] = userAgent[ukey];
-        if ("disableScript" in req.body) option["disableScript"] = true;
-        //option['track'] = req.body['track_url'];
-        var track = req.body['track_url'];
-
-        console.log("option", option);
-        const webpage = await saveInput(inputUrl, option, track);
-        console.log(webpage);
-        ids.push(webpage._id.toString());
-        webpages.push(webpage);  
-        const job = await queJob(webpage);
-      }      
+          var track = ("track" in req.body)?req.body['track']:0;
+      
+          console.log(option, track);
+          const webpage = await wgeteer.registerUrl(inputUrl, option, track);
+          //console.log(webpage);
+          ids.push(webpage._id.toString());
+          webpages.push(webpage);  
+          const job = await wgeteer.wgetJob(webpage);
+        }      
+      }
     }
   }
-  }
-
   //console.log(ids);
   res.render(
     'progress', {
@@ -184,9 +110,6 @@ router.use('/response', response);
 
 const webpage = require("./webpage");
 router.use('/page', webpage);
-
-//const api = require("./api");
-//router.use('/api', api);
 
 const auth = require("./auth");
 router.use('/auth', auth);

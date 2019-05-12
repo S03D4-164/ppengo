@@ -1,0 +1,26 @@
+div
+            .form-group.row
+                label.col-2(for="referer") Referer: 
+                input.col-9.form-control(type="text" name="referer", id="referer")
+            .form-group.row
+                label.col-2(for="proxy") Proxy: 
+                input.col-9.form-control(type="text" name="proxy", id="proxy", placeholder="ip:port")
+            .form-inline
+                .form-group.mr-5
+                label.mr-2(for="timeout") Timeout(s): 
+                input.mr-2.form-control(type="number" name="timeout", id="timeout", max="300", min="30", step="30", value="30")
+                label.mr-2(for="delay") Delay(s): 
+                input.mr-2.form-control(type="number" name="delay", id="delay", max="60", min="0", step="5", value="5")
+                .form-group
+                .form-check-inline
+                    label.form-check-label(for="disableScript") disable script:
+                    input.form-check-input(type="checkbox", name="disableScript", id="disableScript" value="")
+            .form-group
+                label(for="exHeaders") Extra Headers: 
+                textarea.form-control(id="exHeaders", name="exHeaders", rows=2)
+            //label(for="postData") Post Data: 
+            //br
+            //textarea(id="postData", name="postData", rows=3, cols=50)
+            //br
+            input(type="hidden" name="_csrf", value=csrfToken)
+            input(type="submit" name="submit", value="submit")

@@ -1,10 +1,3 @@
-- var win10Chrome = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'
-- var win10Edge = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134'
-- var winFirefox = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:62.0) Gecko/20100101 Firefox/62.0'
-- var winIE11 = 'Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko'
-- var iphone6 = 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1'
-- var googlebot = 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
-
 #register_form.modal.col-12(role="dialog")
 
   .modal-dialog.modal-dialog-centered(style="max-width:600px;")
@@ -16,8 +9,8 @@
             a#paste= ""
             textarea.form-control(id="url", name="url", rows=2) http://
           .form-group.row
-            label.col-2(for="track_url") Track:
-            select.form-control.col-9(name='track_url' id='track_url')
+            label.col-2(for="track") Track:
+            select.form-control.col-9(name='track' id='track')
                 option(value=0, selected= true) -
                 option(value=1) 1hx24 (no overwrite) 
                 option(value=2) 1hx24 (overwrite)
@@ -25,18 +18,15 @@
             div.col-6
               label(for="userAgent") User-Agent: 
               select.form-control(name='userAgent' id='userAgent' multiple)
-                option(value=win10Chrome, selected= true) win10-chrome
-                option(value=winFirefox) win-Firefox
-                option(value=winIE11) win-IE11
-                option(value=iphone6) iphone6
-                option(value=win10Edge) win10-edge
-                option(value=googlebot) googlebot
+                include ua.pug
             div.col-6
               label(for="lang") Browser Language: 
               select.form-control(name='lang' id='lang' multiple)
                 option(value='ja', selected= true) ja
                 option(value='en') en
                 option(value='zh') zh
+          include form.pug
+        //div        
           .form-group.row
             label.col-2(for="referer") Referer: 
             input.col-9.form-control(type="text" name="referer", id="referer")
@@ -67,13 +57,11 @@
         var clipboardData = e.clipboardData || window.clipboardData;
         var clipboardText = clipboardData.getData('Text');
         var text = clipboardText
-        .replace(/^ */, '')
+        .replace(/^ +/, '')
         .replace(/\[:\]/g, ':')
         .replace(/\[.\]/g, '.')
-        .replace(/^URL./, '')
-        .replace(/^url./, '')
-        .replace(/^hXXp/, 'http')
-        .replace(/^hxxp/, 'http');
+        .replace(/^url./i, '')
+        .replace(/^hxxp/i, 'http');
         var paste = document.getElementById('url');
         if (paste.selectionStart || paste.selectionStart == '0') {
             var startPos = paste.selectionStart;

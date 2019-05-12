@@ -5,41 +5,80 @@ var paginate = require('express-paginate');
 const Website = require('./models/website');
 const Webpage = require('./models/webpage');
 
-router.get('/', function(req, res, next) {
+const json2csv = require('json2csv');
 
-  Website.paginate({}, {
-    sort:{"updatedAt":-1},
-    populate:'last',
-    page: req.query.page,
-    limit: req.query.limit
-  }, function(err, result) {
-    //console.log(result)
-    //console.log(paginate)
-    res.render('websites', {
-      result,
-      paginate,
-      pages: paginate.getArrayPages(req)(5, result.totalPages, req.query.page)
-    });
-  });
-  /*
-  Website.find()
-    .sort("-updatedAt")
-    .limit(100)
-    .populate('last')
+router.get('/', function(req, res) {
+  var search = []
+  if(typeof req.query.tagkey !== 'undefined' && req.query.tagkey){
+    var elem = {};
+    elem[req.query.tagkey] = {"$regex":"^.*$"};
+    if(typeof req.query.tagval !== 'undefined' && req.query.tagval){
+      elem[req.query.tagkey] = req.query.tagval;
+    }
+    search.push({"tag": {"$elemMatch":elem}});
+  }
+
+  if(typeof req.query.tag !== 'undefined' && req.query.tag){
+    var elem = {};
+    elem[req.query.tagkey] = {"$regex":"^.*$"};
+    if(typeof req.query.tagval !== 'undefined' && req.query.tagval){
+      elem[req.query.tagkey] = req.query.tagval;
+    }
+    search.push({"tag": {"$elemMatch":elem}});
+  }
+
+  if(typeof req.query.url !== 'undefined' && req.query.url){
+    search.push({"url": req.query.url});
+  }
+
+  if(typeof req.query.rurl !== 'undefined' && req.query.rurl){
+    //search.push({"url":new RegExp(RegExp.escape(req.query.rurl))});
+    search.push({"url":new RegExp(req.query.rurl)});
+
+  }
+
+  if(typeof req.query.track !== 'undefined' && req.query.track){
+    search.push({"track.counter": {"$gt":0}});
+  }
+
+  if(typeof req.query.gsb !== 'undefined' && req.query.gsb){
+    var elem = {"threatType": new RegExp(req.query.gsb, "i")};
+    search.push({"gsb.lookup.matches": {"$elemMatch":elem}});
+  }
+
+  if(typeof req.query.csv !== 'undefined' && req.query.csv){
+    var find = Website.find();
+    if(search.length)find = find.and(search);
+    find.sort("-createdAt").populate("last")
     .then((websites) => {
-      //console.log(websites);
-      res.render(
-        'websites', {
-          websites,
-          title:'Websites',
-        });
-    })
-    .catch((err) => { 
-      console.log(err);
-      res.send(err); 
+        var fields = ['createdAt', 'updatedAt', 'url', 'tag', 'gsb.lookup'];
+        const csv = json2csv.parse(websites, { fields });
+        res.setHeader('Content-disposition', 'attachment; filename=websites.csv');
+        res.setHeader('Content-Type', 'text/csv; charset=UTF-8');
+        res.send(csv);
     });
-    */
+  }else{
+    var query = search.length?{"$and":search}:{};
+    Website.paginate(
+      query, {
+      sort:{"updatedAt":-1},
+      populate:'last',
+      page: req.query.page,
+      limit: req.query.limit
+    }, function(err, result) {
+      //console.log(result)
+      //console.log(paginate)
+      var pages = result?paginate.getArrayPages(req)(3, result.totalPages, req.query.page):undefined;
+      res.render('websites', {
+        title:"Sites",
+        result,
+        pages,
+        search:req.query
+      });
+    });
+  }
 });
+
 
 router.get('/:id', async function(req, res, next) {
     const id = req.params.id;

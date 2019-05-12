@@ -11,12 +11,11 @@ const imageThumbnail = require('image-thumbnail');
 const crypto = require("crypto");
 
 const ipInfo = require('./ipInfo')
-const wapptr = require('./wapptr')
+//const wapptr = require('./wapptr')
 
 module.exports = {
 
   async wget (pageId, option){
-
       const webpage = await Webpage.findById(pageId)
       .then(doc => { return doc; })
       .catch(err =>{ console.log(err);});
@@ -106,22 +105,47 @@ module.exports = {
       });
 
       var responseCache = [];
-      client.on('Network.requestIntercepted',
-        async ({ interceptionId, request, responseHeaders, resourceType }) => {
-        console.log(`[Intercepted] ${request.url} {interception id: ${interceptionId}}`);
-        //console.log(responseHeaders);
-        try{
-          const response = await client.send('Network.getResponseBodyForInterception', {interceptionId});
-          //console.log(response.body.length, response.base64Encoded);    
+      /*
+      client.on('Network.requestWillBeSent',
+        async ({requestId, request}) => {
+          console.log("[requestWillBeSent]", requestId, request);
+      });
+      */
 
+      client.on('Network.dataReceived',
+      async ({requestId, dataLength}) => {
+        console.log("[dataReceived]", requestId, dataLength);
+      });
+
+      client.on('Network.loadingFinished',
+      async ({requestId, encodedDataLength}) => {
+        const response = await client.send('Network.getResponseBody', { requestId });
+        if(response.body) console.log("[loadingFinished]", requestId, encodedDataLength, response.body.length, response.base64Encoded);
+        else console.log("[loadingFinished] no body", requestId, encodedDataLength, response.body, response.base64Encoded);
+      });
+
+      /*
+      client.on('Network.responseReceived',
+        async ({requestId, response}) => {
+          console.log("[responseReceived]", requestId);
+        });
+        */
+
+      client.on('Network.requestIntercepted',
+        async ({ interceptionId, request, isDownload, responseStatusCode, responseHeaders,requestId}) => {
+        console.log(`[Intercepted] ${requestId} ${request.url} ${responseStatusCode} ${isDownload}`);
+        try{  
+          const response = await client.send('Network.getResponseBodyForInterception', {interceptionId});
+          console.log("[Intercepted]", requestId, response.body.length, response.base64Encoded);    
           const newBody = response.base64Encoded ? Buffer.from(response.body, "base64") : response.body;
           var cache = {};
           cache[request.url] = newBody;
           responseCache.push(cache);
-        }catch(error){
-          console.log("[Intercepted] error", error);
+        }catch(err){
+          if (err.message) console.log("[Intercepted] error", err.message);
+          else console.log("[Intercepted] error", err);
         }
-        console.log(`Continuing interception ${interceptionId}`)
+        //console.log(`Continuing interception ${interceptionId}`)
         client.send('Network.continueInterceptedRequest', {
           interceptionId,
         })
@@ -167,11 +191,12 @@ module.exports = {
               }
             }
             responseBuffer = await interceptedResponse.buffer();
-        }catch(error){
-          console.log(error);
+        }catch(err){
+          console.log("[Response] failed on save buffer");
         }
 
         if (responseBuffer){
+          if(responseBuffer.length > 0){
             var md5Hash = crypto.createHash('md5').update(responseBuffer).digest('hex');
             const payload = await Payload.findOneAndUpdate(
               {"md5": md5Hash},
@@ -179,12 +204,13 @@ module.exports = {
               {"new":true,"upsert":true},
             );
             payloadId = payload._id;
+          }
         }
 
         try{
           text = await interceptedResponse.text();
         }catch(error){
-          console.log(error);
+          console.log("[Response] failed on save text");
         }    
           
         var securityDetails = {};
@@ -216,21 +242,7 @@ module.exports = {
             text:text,
             request: request._id,
           });
-          /*
-          try{
-            let cookies;
-            const wapps = await wapptr(
-              response.url,
-              response.headers,
-              response.text,
-              cookies,
-            );
-            //console.log(wapps);
-            if (wapps) response.wappalyzer = wapps;
-          }catch(err){
-            console.log(err);
-          }
-          */
+
           if (response.remoteAddress){
             const host = response.remoteAddress.ip;
             var hostinfo;
@@ -324,7 +336,6 @@ module.exports = {
         try{
           console.log(
             '[Request] ', 
-            //interceptedRequest,
             interceptedRequest.method(),
             interceptedRequest.resourceType(),
             interceptedRequest.url().slice(0,100),
@@ -338,12 +349,9 @@ module.exports = {
       try{
         console.log(
           '[Response] ', 
-          //interceptedResponse,
           interceptedResponse.status(),
           interceptedResponse.remoteAddress(),
           interceptedResponse.url().slice(0,100),
-          //interceptedResponse.securityDetails(),
-          //interceptedResponse.headers(),
         );
       }catch(error){
         console.log(error);

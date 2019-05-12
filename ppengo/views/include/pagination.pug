@@ -1,0 +1,23 @@
+mixin pagination-include(title, result, pages)
+    ul.p-2.pagination
+          h3.mr-3= title + ": " + result.totalDocs
+          li.page-item
+            if result.prevPage
+              a.page-link(href=paginate.href(true, null)) Previous
+            else
+              a.page-link Previous
+          if pages
+            each page in pages
+              if page.number === result.page
+                li.page-item.active
+                  a.page-link(href=page.url)= page.number
+              else
+                li.page-item
+                  a.page-link(href=page.url)= page.number
+          li.page-item
+            if result.nextPage
+              a.page-link(href=paginate.href()) Next
+            else
+              a.page-link Next
+
++pagination-include(title, result, pages)

@@ -10,9 +10,19 @@ let queue = kue.createQueue({
   }
 });
 
+async function gsbJob(id){
+  const job = await queue.create('gsblookup', {
+    websiteId:id,
+  }).ttl(60*1000).attempts(3).backoff( true );
+  await job.save(function(err){
+    if( err ) console.log( job.id, err);
+  });
+  return job;
+}
+
 module.exports = {
 
-  async queJob(webpage){
+  async wgetJob(webpage){
     const job = await queue.create('wgeteer', {
         pageId: webpage._id,
         options:webpage.option,
@@ -24,8 +34,7 @@ module.exports = {
     return job;
   },
 
-  async registerUrl(inputUrl, option){
-    inputUrl = inputUrl
+  async registerUrl(inputUrl, option, track){
 
     const webpage = await new Webpage({
       input: inputUrl,
@@ -43,20 +52,23 @@ module.exports = {
       },
       {"new":true,"upsert":true},
     );
-    if (option['track'] > 0){
+
+    if (!website.gsb.lookup) await gsbJob(website._id);
+    else console.log("gsb checked");
+
+    if (track > 0){
       counter = 24;
       period = 1;
       website.track.counter = counter;
       website.track.period = period;
       website.track.option = option;
-       
-      if (option['track'] = 2){
+      if (track = 2){
         await website.save(function (err, success){
           if(err) console.log(err);
           else console.log(website);
         });
-    
-      } else if (option['track'] = 1){
+      } else if (track = 1){
+
         if (!website.track.counter){
           await website.save(function (err, success){
             if(err) console.log(err);
@@ -65,6 +77,7 @@ module.exports = {
         } 
       }
     }
+
     return webpage;
   },
 }

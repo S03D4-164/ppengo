@@ -3,13 +3,13 @@ extends layout
 block content
   if result
     - var websites = result.docs
-    if paginate.hasPreviousPages || paginate.hasNextPages(pageCount)
-        ul.p-2.pagination
-          h3.mr-3= "Sites "
-            a= "total: " + result.totalDocs
+    //if paginate.hasPreviousPages || paginate.hasNextPages(result.totalPages)
+    include include/pagination.pug
+    //ul.p-2.pagination
+          h3.mr-3= "Sites: " + result.totalDocs
           li.page-item
             if result.prevPage
-              a.page-link(href="?page=" + result.prevPage +  "&limit="+result.limit) Previous
+              a.page-link(href=paginate.href(true, null)) Previous
             else
               a.page-link Previous
           if pages
@@ -22,14 +22,12 @@ block content
                   a.page-link(href=page.url)= page.number
           li.page-item
             if result.nextPage
-              a.page-link(href="?page=" + result.nextPage +  "&limit="+result.limit) Next
+              a.page-link(href=paginate.href()) Next
             else
               a.page-link Next
 
   if websites
       if websites.length >=0
-          if search
-            h4= " Search: " + JSON.stringify(search) + " - total: " + websites.length
           form.form-inline(method="get" action=rootPath+"website")
             .form-group.mr-5
               input.form-control.mr-2.btn.btn-sm.btn-danger(type="submit" value="search")
@@ -46,7 +44,9 @@ block content
               .checkbox-inline
                   label.form-check-label export CSV
                     input.form-check-input(type="checkbox" name="csv" id="csv")
-
+          if search
+            h4= " Search: " + JSON.stringify(search)
+            
           table.table.table-bordered.table-sm
             tr.thead-light.d-flex
               th.col-3 capture

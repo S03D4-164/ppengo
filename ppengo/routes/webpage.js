@@ -2,30 +2,13 @@ var express = require('express');
 var router = express.Router();
 var paginate = require('express-paginate');
 
+const json2csv = require('json2csv');
 var Diff = require('diff');
 
 const Webpage = require('./models/webpage');
 const Request = require('./models/request');
 const Response = require('./models/response');
 const Website = require('./models/website');
-
-/*
-router.get('/',  function(req, res) {
-  Webpage.paginate({}, {
-    sort:{"createdAt":-1},
-    page: req.query.page,
-    limit: req.query.limit
-  }, function(err, result) {
-    console.log(paginate)
-    console.log(res.locals.paginate)
-    res.render('pages', {
-      result,
-      //paginate,
-      pages: paginate.getArrayPages(req)(5, result.totalPages, req.query.page)
-    });
-  });
-});
-*/
 
 router.get('/', function(req, res) {
   var search = []
@@ -59,44 +42,35 @@ router.get('/', function(req, res) {
     //search.push({"$where": `/${req.query.status}/.test(this.status)`});
     search.push({"status": req.query.status});
   }
-  var query = search.length?{"$and":search}:{};
-  Webpage.paginate(
-    query, {
-    sort:{"createdAt":-1},
-    page: req.query.page,
-    limit: req.query.limit
-  }, function(err, result) {
-    //console.log(result)
-    console.log(paginate)
-    res.render('pages', {
-      search,
-      result,
-      pages: paginate.getArrayPages(req)(5, result.totalPages, req.query.page)
-    });
-  });
-  /*
-  console.log(req.query, search);
-  var find = Webpage.find();
-  if(search.length)find = find.and(search);
 
-  //Webpage.find().and(search)
-  find.sort("-createdAt")
-  .then((webpage) => {
-      if(typeof req.query.csv !== 'undefined' && req.query.csv){
-        var fields = ['createdAt', 'input', 'title', 'error', 'status', 'remoteAddress.ip', 'remoteAddress.reverse', 'remoteAddress.geoip', 'wappalyzer', 'securityDetails.issuer', 'securityDetails.validFrom', 'securityDetails.validTo', 'url'];
-        const csv = json2csv.parse(webpage, { fields });
-        res.setHeader('Content-disposition', 'attachment; filename=webpages.csv');
-        res.setHeader('Content-Type', 'text/csv; charset=UTF-8');
-        res.send(csv);
-      }else{
-        res.render('pages', { 
-          title: "Page: "+ JSON.stringify(req.query),
-          webpages:webpage,
+  if(typeof req.query.csv !== 'undefined' && req.query.csv){
+    var find = Webpage.find();
+    if(search.length)find = find.and(search);
+    find.sort("-createdAt").then((webpage) => {
+      var fields = ['createdAt', 'input', 'title', 'error', 'status', 'remoteAddress.ip', 'remoteAddress.reverse', 'remoteAddress.geoip', 'wappalyzer', 'securityDetails.issuer', 'securityDetails.validFrom', 'securityDetails.validTo', 'url'];
+      const csv = json2csv.parse(webpage, { fields });
+      res.setHeader('Content-disposition', 'attachment; filename=webpages.csv');
+      res.setHeader('Content-Type', 'text/csv; charset=UTF-8');
+      res.send(csv);
+    })
+  }else{
+    var query = search.length?{"$and":search}:{};
+    Webpage.paginate(
+      query, {
+      sort:{"createdAt":-1},
+      page: req.query.page,
+      limit: req.query.limit
+    }, function(err, result) {
+      //console.log(result)
+      //console.log(paginate)
+        res.render('pages', {
+          title:"Pages",
           search:req.query,
+          result,
+          pages: paginate.getArrayPages(req)(5, result.totalPages, req.query.page)
         });
-    }
     });
-    */
+  }
 });
 
 router.get('/:id', async function(req, res, next) {

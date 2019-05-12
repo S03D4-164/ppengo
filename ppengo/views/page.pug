@@ -150,9 +150,9 @@ block content
                           br
                           a= " size: "
                           if response.text
-                            a(href=rootPath + "response/" + response._id)  #{response.text.length}
+                            a #{response.text.length}
                           else
-                            a(href=rootPath + "response/" + response._id)  -
+                            a -
                           br
                           a= "ip: "
                           a(href=rootPath + "search/response?ip=" + response.remoteAddress.ip) #{response.remoteAddress.ip}
@@ -183,7 +183,6 @@ block content
               pre#js
             button.mr-2.btn.btn-outline-primary(data-toggle="collapse" data-target="#yara") yara ▽
             if webpage.yara
-                a matched:
                 each rule in webpage.yara.rules
                   if rule.id
                     span.badge.badge-warning

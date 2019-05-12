@@ -49,26 +49,9 @@ router.get('/page', function(req, res) {
     search.push({"$where": `/${req.query.status}/.test(this.status)`});
   }
 
-  Webpage.paginate(
-    {"$and":search}, {
-    sort:{"createdAt":-1},
-    page: req.query.page,
-    limit: req.query.limit
-  }, function(err, result) {
-    console.log(result)
-    console.log(paginate)
-    res.render('pages', {
-      search,
-      result,
-      pages: paginate.getArrayPages(req)(5, result.totalPages, req.query.page)
-    });
-  });
-  /*
   console.log(req.query, search);
   var find = Webpage.find();
   if(search.length)find = find.and(search);
-
-  //Webpage.find().and(search)
   find.sort("-createdAt")
   .then((webpage) => {
       if(typeof req.query.csv !== 'undefined' && req.query.csv){
@@ -85,7 +68,6 @@ router.get('/page', function(req, res) {
         });
     }
     });
-    */
 });
 
 router.get('/website', function(req, res) {
@@ -127,26 +109,6 @@ router.get('/website', function(req, res) {
     search.push({"gsb.lookup.matches": {"$elemMatch":elem}});
   }
 
-
-  Website.paginate(
-    {"$and":search}, {
-    sort:{"createdAt":-1},
-    populate:'last',
-    page: req.query.page,
-    limit: req.query.limit
-  }, function(err, result) {
-    console.log(result)
-    console.log(paginate)
-    var pages = result?paginate.getArrayPages(req)(3, result.totalPages, req.query.page):undefined;
-    res.render('websites', {
-      result,
-      paginate,
-      pages,
-      search
-    });
-  });
-
-  /*
   console.log(search);
   var find = Website.find();
   if(search.length)find = find.and(search);
@@ -182,7 +144,6 @@ router.get('/website', function(req, res) {
         });
       }
     })
-    */
 });
 
 router.get('/request', function(req, res) {
