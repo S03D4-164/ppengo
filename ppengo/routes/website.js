@@ -8,7 +8,7 @@ const Webpage = require('./models/webpage');
 router.get('/', function(req, res, next) {
 
   Website.paginate({}, {
-    sort:{"createdAt":-1},
+    sort:{"updatedAt":-1},
     populate:'last',
     page: req.query.page,
     limit: req.query.limit

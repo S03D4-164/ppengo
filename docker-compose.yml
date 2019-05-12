@@ -1,6 +1,8 @@
 version: "2"
+
 volumes:
   mongodata:
+
 services:
   mongodb:
     image: mongo
@@ -51,3 +53,10 @@ services:
       - ./ppengo/config:/home/node/config
     command: npm start
     #command: /bin/sh
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "10"
+    restart: on-failure
+    
