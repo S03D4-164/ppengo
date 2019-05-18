@@ -48,7 +48,7 @@ router.get('/', function(req, res) {
     if(search.length)find = find.and(search);
     find.sort("-createdAt").then((webpage) => {
       var fields = ['createdAt', 'input', 'title', 'error', 'status', 'remoteAddress.ip', 'remoteAddress.reverse', 'remoteAddress.geoip', 'wappalyzer', 'securityDetails.issuer', 'securityDetails.validFrom', 'securityDetails.validTo', 'url'];
-      const csv = json2csv.parse(webpage, { fields });
+      const csv = json2csv.parse(webpage, { withBOM:true, fields });
       res.setHeader('Content-disposition', 'attachment; filename=webpages.csv');
       res.setHeader('Content-Type', 'text/csv; charset=UTF-8');
       res.send(csv);
@@ -80,11 +80,12 @@ router.get('/:id', async function(req, res, next) {
       return document;
   });
   
-  var diff;
+  var previous, diff;
   if (webpage.content){
-    var previous = await Webpage.find({
+    previous = await Webpage.find({
       "input":webpage.input,
-      "createdAt":{$lt: webpage.createdAt}
+      "createdAt":{$lt: webpage.createdAt},
+      //"status":{$ge: 0}
     }).sort("-createdAt")
     .then((document) => {
       console.log(document.length);

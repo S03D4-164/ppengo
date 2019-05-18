@@ -17,5 +17,8 @@ const screenshotSchema = new mongoose.Schema({
 {timestamps:true},
 );
 
+screenshotSchema.index({createdAt:-1});
+screenshotSchema.index({md5:1});
+
 module.exports = mongoose.model('Screenshot', screenshotSchema);
     

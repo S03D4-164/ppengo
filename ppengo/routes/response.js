@@ -3,6 +3,8 @@ var router = express.Router();
 
 const Response = require('./models/response');
 
+var Diff = require('diff');
+
 router.get('/', function(req, res) {
   Response
     .find()
@@ -32,6 +34,27 @@ router.get('/:id', async function(req, res) {
       });
     const webpage = response.webpage;
     const request = response.request;
+
+    var previous, diff;
+    if (response.text){
+      previous = await Response.find({
+        "url":response.url,
+        "createdAt":{$lt: response.createdAt},
+        //"status":{$ge: 0}
+      }).sort("-createdAt")
+      .then((document) => {
+        console.log(document.length);
+        return document;
+      });
+      if (previous.length){
+        previous = previous[0];
+        if (previous.text && response.text){
+          diff =  Diff.createPatch("", previous.text, response.text, previous._id, response._id) 
+        }
+      }
+    }
+  
+    /*
     const previous = await Response.find({
         "url":response.url,
         "createdAt":{$lt: response.createdAt}
@@ -40,7 +63,8 @@ router.get('/:id', async function(req, res) {
         //console.log(document);
         return document;
       });
-      
+    */
+
     res.render(
       'response', { 
       title: "Response", 
@@ -48,6 +72,7 @@ router.get('/:id', async function(req, res) {
       request:request,
       response:response,
       previous,
+      diff,
       //payload: payload,
       //model:'response',
     });  

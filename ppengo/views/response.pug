@@ -10,15 +10,15 @@ block content
         if request
           .row.col-md-12
             h4 Request: 
-              a(href=rootPath + "search/request?url=" +  encodeURIComponent(request.url)) #{request.url} 🔍
+            h4
+              a(href=rootPath + "search/request?url=" +  encodeURIComponent(request.url)) 🔍 #{request.url} 
           p= "createdAt: " + moment(request.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
           .row
-            .col-6
+            .col-12
               h5= request.method  + " " + request.resourceType
               a= "Failure: " + JSON.stringify(request.failure)
               br
               a= "isNavigationRequest: " + request.isNavigationRequest
-            .col-6
               h5= "redirectChain:"
               if request.redirectChain
                 each chain in request.redirectChain
@@ -30,8 +30,9 @@ block content
        .p-2.bg-light.shadow-lg
         if response
           .row.col-md-12
-            h4 Response: 
-              a(href=rootPath + "search/response?url=" + encodeURIComponent(response.url)) #{response.url} 🔍
+            h4 Response:
+            h4 
+              a(href=rootPath + "search/response?url=" + encodeURIComponent(response.url)) 🔍 #{response.url} 
         p= "createdAt: " + moment(response.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
         h5= "status: " + response.status + " " + response.statusText
         //p= "ok: " + webpage.ok
@@ -71,71 +72,86 @@ block content
             else
               p empty
 
-    .row
-      .p-2.col-6
-          h6 Request Headers:
-            if request
-              if request.headers
-                pre.prettyprint.linenums(style="white-space: pre-wrap")
-                  each value, key in request.headers
-                    | #{key}: #{value}
-                    |
-      .p-2.col-6
-          h6 Response Headers: 
-            if response.headers
-              pre.prettyprint.linenums(style="white-space: pre-wrap")
-                each value, key in response.headers
-                  | #{key}: #{value}
-                  |
-    .row
-        .col-md-12
-          hr              
-        div.col-md-1
-          h5 Content:
-          if response.text
-            p size: #{response.text.length}
-          if response.payload
-            a(href=rootPath+"payload/"+response.payload) Payload
-
-        div.col-md-10
-          if response.text
-              button.mr-2.btn.btn-outline-primary(data-toggle="collapse" data-target="#JStillery") JStillery ▽
-              div#JStillery.collapse
-                pre#js
-              button.mr-2.btn.btn-outline-primary(data-toggle="collapse" data-target="#yara") yara ▽
-              if response.yara
-                if response.yara.rules
-                  each rule in response.yara.rules
-                    if rule.id
-                      span.badge.badge-warning
-                        a= rule.id
-              div#yara.collapse
+    ul.nav.nav-tabs
+      li.nav-item
+        a.nav-link.active(data-toggle="tab",href="#content-tab") Content
+      li.nav-item
+        a.nav-link(data-toggle="tab",href="#diff-tab") Diff
+      li.nav-item
+        a.nav-link(data-toggle="tab",href="#header-tab") header
+    div.tab-content
+      div#header-tab.tab-pane
+        .row
+          .p-2.col-6
+              h6 Request Headers:
+                if request
+                  if request.headers
+                    pre.prettyprint.linenums(style="white-space: pre-wrap")
+                      each value, key in request.headers
+                        | #{key}: #{value}
+                        |
+          .p-2.col-6
+              h6 Response Headers: 
+                if response.headers
+                  pre.prettyprint.linenums(style="white-space: pre-wrap")
+                    each value, key in response.headers
+                      | #{key}: #{value}
+                      |
+      div#diff-tab.tab-pane
+          if diff
+            h4 Diff
+            h5 previous: 
+              a(href=rootPath + "response/" + previous._id) #{previous.id}
+            div.col-md-12
+              button.btn.btn-outline-primary(onclick="diff('side-by-side')") side-by-side
+              button.btn.btn-outline-primary(onclick="diff('line-by-line')") line-by-line            
+              #diff
+                pre.prettyprint.linenums(style="white-space: pre-wrap") #{diff}
+      div#content-tab.tab-pane.active
+        .row
+          div.col-md-11
+            h5
+              if response.text
+                a=  "text size: " + response.text.length
+              if response.payload
+                a= " -> "
+                a(href=rootPath+"payload/"+response.payload)= "Payload"
+            if response.text
+                button.mr-2.btn.btn-outline-primary(data-toggle="collapse" data-target="#JStillery") JStillery ▽
+                div#JStillery.collapse
+                  pre#js
+                button.mr-2.btn.btn-outline-primary(data-toggle="collapse" data-target="#yara") yara ▽
                 if response.yara
-                  pre#yarascan= JSON.stringify(response.yara, null, " ")
-                else
-                  pre#yarascan
-              pre#content.prettyprint.linenums(style="white-space: pre-wrap") #{response.text}
-              div(hidden="")
-                pre#tmp(style="white-space: pre-wrap") #{response.text}
-
-          else
-            h5 No Content.
-        div.col-md-1
-
-          a Beautify
-          .btn-group-vertical
-              button.btn.btn-sm.btn-outline-primary(onclick="beautify(\"script\")") JS
-              button.btn.btn-sm.btn-outline-primary(onclick="beautify(\"stylesheet\")") CSS
-              button.btn.btn-sm.btn-outline-primary(onclick="beautify(\"html\")") HTML
-              button.btn.btn-sm.btn-outline-primary(onclick="prettyPrint()") prettyPrint
-          hr
-          p Deobfuscate
-            button.btn.btn-sm.btn-primary(onclick="jstillery()") JStillery
-          hr
-          p
-            button.btn.btn-sm.btn-primary(onclick="yara()") yara
-          p
-            button.btn.btn-sm.btn-primary(onclick="reset()") reset
+                  if response.yara.rules
+                    each rule in response.yara.rules
+                      if rule.id
+                        span.badge.badge-warning
+                          a= rule.id
+                div#yara.collapse
+                  if response.yara
+                    pre#yarascan= JSON.stringify(response.yara, null, " ")
+                  else
+                    pre#yarascan
+                pre#content.prettyprint.linenums(style="white-space: pre-wrap") #{response.text}
+                div(hidden="")
+                  pre#tmp(style="white-space: pre-wrap") #{response.text}
+            else
+              h5 No Content.
+          div.col-md-1
+            a Beautify
+            .btn-group-vertical
+                button.btn.btn-sm.btn-outline-primary(onclick="beautify(\"script\")") JS
+                button.btn.btn-sm.btn-outline-primary(onclick="beautify(\"stylesheet\")") CSS
+                button.btn.btn-sm.btn-outline-primary(onclick="beautify(\"html\")") HTML
+                button.btn.btn-sm.btn-outline-primary(onclick="prettyPrint()") prettyPrint
+            hr
+            p Deobfuscate
+              button.btn.btn-sm.btn-primary(onclick="jstillery()") JStillery
+            hr
+            p
+              button.btn.btn-sm.btn-primary(onclick="yara()") yara
+            p
+              button.btn.btn-sm.btn-primary(onclick="reset()") reset
 
           script.
               var apiPath = #{rootPath};

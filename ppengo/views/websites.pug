@@ -36,14 +36,14 @@ block content
               label.mr-2(for="tagkey") tag: 
               input.form-control.mr-2(type="text" name="tagkey", id="tagkey" placeholder='key' value=search?search.tagkey:"")
               label.mr-2(for="tagval") : 
-              input.form-control.mr-2(type="text" name="tagval", id="tagval" placeholder='value' value=search?search.tagval:"")
-            .form-group
-              .checkbox-inline.mr-5
-                  label.mr-2.form-check-label track
-                    input.mr-2.form-check-input(type="checkbox" name="track" id="track")
-              .checkbox-inline
-                  label.form-check-label export CSV
-                    input.form-check-input(type="checkbox" name="csv" id="csv")
+              input.form-control.mr-5(type="text" name="tagval", id="tagval" placeholder='value' value=search?search.tagval:"")
+              .form-inline
+                .checkbox-inline.mr-5
+                    label.mr-2.form-check-label track
+                      input.mr-2.form-check-input(type="checkbox" name="track" id="track")
+                .checkbox-inline
+                    label.form-check-label export CSV
+                      input.form-check-input(type="checkbox" name="csv" id="csv")
           if search
             h4= " Search: " + JSON.stringify(search)
             
@@ -65,7 +65,7 @@ block content
                     if webpage.last
                       if webpage.last.thumbnail
                         a.colorbox(href=rootPath + "screenshot/" +webpage.last.screenshot)
-                          img(src="data:image/png;base64," + webpage.last.thumbnail)
+                          img(width="100%" src="data:image/png;base64," + webpage.last.thumbnail)
 
                   td.col-2
                     a= "created: " + moment(webpage.createdAt).fromNow()
@@ -80,7 +80,7 @@ block content
                   td.col-5
                     a= "input: "
                     a(href=rootPath + "website/" +webpage._id) #{webpage.url}
-                    a(href=rootPath + "search/website?url=" + encodeURIComponent(webpage.url)) 🔍
+                    //a(href=rootPath + "search/website?url=" + encodeURIComponent(webpage.url)) 🔍
                     if webpage.track
                       br
                       a= "counter: " + webpage.track.counter + " / period: " + webpage.track.period
@@ -91,13 +91,13 @@ block content
                       a(href=rootPath + "page/" + webpage.last._id)= webpage.last.url
                       br
                       a= "status: " + webpage.last.status
-                      if webpage.last.content
+                      //if webpage.last.content
                         a= " / size: " + webpage.last.content.length
-                      else
+                      //else
                         a= " / size: -"
                       if webpage.last.remoteAddress
-                        a= " / ip: "
-                        a(href=rootPath + "search/page?ip=" + webpage.last.remoteAddress.ip)= webpage.last.remoteAddress.ip
+                        a= " / ip: " +  webpage.last.remoteAddress.ip
+                        a(href=rootPath + "search/page?ip=" + webpage.last.remoteAddress.ip) 🔍 
                         if webpage.last.remoteAddress.geoip.length
                           a= " - "
                           - var cc = webpage.last.remoteAddress.geoip[0].country

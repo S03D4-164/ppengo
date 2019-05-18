@@ -4,7 +4,7 @@ services:
     build: .
     environment:
       - NODE_ENV=development
-      #- DEBUG="puppeteer:*"
+      - VTKEY
     tty: true
     container_name: wgeteer
     volumes:
@@ -25,5 +25,4 @@ services:
     ports:
       - 127.0.0.1:3001:3001
     working_dir: /app
-    command: ./bin/sbserver -db="/tmp/gosb/gsbv4.db" -srvaddr="0.0.0.0:3001" -apikey=$${APIKEY}
-    env_file: ../.env
+    command: ./bin/sbserver -db "/tmp/gosb/gsbv4.db" -srvaddr "0.0.0.0:3001" -apikey ${GSBKEY}

@@ -52,7 +52,7 @@ router.get('/', function(req, res) {
     find.sort("-createdAt").populate("last")
     .then((websites) => {
         var fields = ['createdAt', 'updatedAt', 'url', 'tag', 'gsb.lookup'];
-        const csv = json2csv.parse(websites, { fields });
+        const csv = json2csv.parse(websites, { withBOM:true, fields });
         res.setHeader('Content-disposition', 'attachment; filename=websites.csv');
         res.setHeader('Content-Type', 'text/csv; charset=UTF-8');
         res.send(csv);
@@ -68,7 +68,7 @@ router.get('/', function(req, res) {
     }, function(err, result) {
       //console.log(result)
       //console.log(paginate)
-      var pages = result?paginate.getArrayPages(req)(3, result.totalPages, req.query.page):undefined;
+      var pages = result?paginate.getArrayPages(req)(5, result.totalPages, req.query.page):undefined;
       res.render('websites', {
         title:"Sites",
         result,

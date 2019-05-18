@@ -19,9 +19,14 @@ const payloadSchema = new mongoose.Schema({
     tag: {
         type: [Object]
     },
+    yara:{
+        type: Object,
+    },
 },{timestamps:true},
 );
 
+payloadSchema.index({createdAt:-1});
+payloadSchema.index({md5:1});
 payloadSchema.plugin(mongoosePaginate);
 
 module.exports = mongoose.model('Payload', payloadSchema);

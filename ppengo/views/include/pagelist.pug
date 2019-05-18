@@ -41,11 +41,7 @@ mixin webpages-include(webpages, title, website, search)
                   .col-10
                     if webpage.url
                       a(href=rootPath + "search/page?url=" + encodeURIComponent(webpage.url)) 🔍
-                      a(href=rootPath + "page/" +webpage._id)= webpage.url
-                  //.col-2 title
-                  //.col-10
-                    if webpage.title
-                      a(href=rootPath + "search/page?title=" + encodeURIComponent(webpage.title)) 🔍 #{webpage.title}
+                      a= webpage.url
                   .col-2 error
                   .col-10
                     if webpage.error

@@ -11,8 +11,7 @@ block content
               img(src="data:image/png;base64," + webpage.thumbnail)
           h5= "id: "
             a(href=rootPath + "page/" + webpage._id) #{webpage._id}
-          a= moment(webpage.createdAt).format('YYYY-MM-DD HH:mm:ss.SSS') +" / "+moment(webpage.createdAt).fromNow()
-
+          a= moment(webpage.createdAt).format('YYYY-MM-DD HH:mm:ss') + " / " +moment(webpage.createdAt).fromNow()
         div.col-md-9
           h3 Title: 
             a(href=rootPath + "search/page?title=" + encodeURIComponent(webpage.title)) #{webpage.title}
@@ -21,22 +20,32 @@ block content
           h3 from input: 
             a(href=rootPath + "website/" + website._id) #{webpage.input}
             //a(href=rootPath + "search/page?input=" + encodeURIComponent(webpage.input)) 🔍
+          if website.gsb.lookup
+            h4 GSB:
+              if website.gsb.lookup.matches
+                - var matches =  website.gsb.lookup.matches
+                if matches.length
+                  each match in matches
+                    span.badge.badge-danger
+                      a= match.threatType
           if webpage.error
             h4= "Error: " + webpage.error
           else
             h4= "Error: none"
-          h5 Option
-          if webpage.option
-            each value, key in webpage.option
-              if value
-                .row
-                  .col-2= key
-                  .col-10= value
+          button.btn.btn-outline-primary(data-toggle="collapse" data-target="#option") Option ▽
+          div#option.collapse
+            h5 Option
+            if webpage.option
+              each value, key in webpage.option
+                if value
+                  .row
+                    .col-2= key
+                    .col-10= value
       
     .row
       .p-2.col-12
        .p-2.bg-light.shadow-lg
-        h3= "finalResponse"
+        //h3= "finalResponse"
           a= " - status:" + webpage.status
         .row
           dl.col-3
@@ -128,18 +137,15 @@ block content
                     td.col-2
                       if request.response
                         a(href=rootPath + "response/" + request.response._id) #{request.method}
-                        br
                       else
                         a = request.method
-                        br
                       if request.resourceType
-                        a= request.resourceType
-                        br
+                        a= " / " + request.resourceType
                       if request.redirectChain
-                        a= "chain:" +request.redirectChain.length
-                        br
+                        a= " / chain:" +request.redirectChain.length
                       if request.failure
-                        a= " -> " + request.failure.errorText
+                        br
+                        a= request.failure.errorText
                     each response in responses
                       if request.response && response._id
                        if request.response.toString()==response._id.toString()
@@ -150,7 +156,8 @@ block content
                           br
                           a= " size: "
                           if response.text
-                            a #{response.text.length}
+                            a= response.text.length + " -> "
+                            a(href=rootPath + "payload/" + response.payload)= "payload"
                           else
                             a -
                           br
@@ -173,14 +180,9 @@ block content
       div#content-tab.tab-pane
        .row
         if webpage.content
-          div.col-md-1
-            h4= "Content"
-            p= "text size: " + webpage.content.length
 
-          div.col-md-10
-            //button.mr-2.btn.btn-outline-primary(data-toggle="collapse" data-target="#JStillery") JStillery ▽
-             div#JStillery.collapse
-              pre#js
+          div.col-md-11
+            h5= "text size: " + webpage.content.length
             button.mr-2.btn.btn-outline-primary(data-toggle="collapse" data-target="#yara") yara ▽
             if webpage.yara
                 each rule in webpage.yara.rules
