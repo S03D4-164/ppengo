@@ -9,80 +9,111 @@ block content
        .p-2.bg-light.shadow-lg
         if request
           .row.col-md-12
-            h4 Request: 
-            h4
-              a(href=rootPath + "search/request?url=" +  encodeURIComponent(request.url)) 🔍 #{request.url} 
-          p= "createdAt: " + moment(request.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
-          .row
-            .col-12
-              h5= request.method  + " " + request.resourceType
-              a= "Failure: " + JSON.stringify(request.failure)
-              br
-              a= "isNavigationRequest: " + request.isNavigationRequest
-              h5= "redirectChain:"
-              if request.redirectChain
-                each chain in request.redirectChain
-                  a= "- " + chain
-                  br
-              else
-                p empty          
+            h3 Request: 
+              a(href=rootPath + "search/request?url=" +  encodeURIComponent(request.url)) 🔍
+              a= request.url
+          table
+                tr
+                  th= "createdAt: "
+                  td= moment(request.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+
+                tr
+                  th= "method"
+                  td
+                    a= request.method  + " " 
+                tr
+                  th= "type"
+                  td= request.resourceType
+                tr
+                  th= "failure"
+                  td= JSON.stringify(request.failure)
+                tr
+                  th= "isNavigationRequest"
+                  td= request.isNavigationRequest
+                tr
+                  th= "redirectChain"
+                  td
+                    if request.redirectChain
+                      each chain in request.redirectChain
+                        a= chain
+                        br
       .p-2.col-6
        .p-2.bg-light.shadow-lg
         if response
-          .row.col-md-12
-            h4 Response:
-            h4 
-              a(href=rootPath + "search/response?url=" + encodeURIComponent(response.url)) 🔍 #{response.url} 
-        p= "createdAt: " + moment(response.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
-        h5= "status: " + response.status + " " + response.statusText
-        //p= "ok: " + webpage.ok
-        .row
-          .col-6
-            h6 remoteAddress
-            a= "ip - port: " + response.remoteAddress.ip + " - " + response.remoteAddress.port
-            br
-            a= "reverse: "
-            br
-            each reverse in response.remoteAddress.reverse
-              a= reverse
-              br
-            if response.remoteAddress.geoip
-              if response.remoteAddress.geoip[0]
-                a= "geoip country: " + response.remoteAddress.geoip[0].country
-                br
-            a bgp:
-            pre= JSON.stringify(response.remoteAddress.bgp[0], null, ' ')
-          .col-6
-            if webpage.wappalyzer
-              h6= "wappalyzer: " + webpage.wappalyzer
-            h6 securityDetails
-            - var securityDetails = response.securityDetails
-            if securityDetails.issuer
-              a= "issuer: " + securityDetails.issuer
-              br
-              a= "protocol: " + securityDetails.protocol
-              br
-              a= "subjectName: " + securityDetails.subjectName
-              br
-              - const from = securityDetails.validFrom
-              a= "From: " + moment.unix(from).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(from).fromNow()
-              br
-              - const to = securityDetails.validTo
-              a= "To: " + moment.unix(to).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(to).fromNow()
-            else
-              p empty
+            h3 Response:
+              a(href=rootPath + "search/response?url=" + encodeURIComponent(response.url)) 🔍
+              a= response.url
+            table
+              tr            
+                th= "createdAt"
+                td= moment(response.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+              tr
+                th= "status"
+                td= response.status + " " + response.statusText
+              if response.remoteAddress
+                - var remoteAddress = response.remoteAddress
+                tr
+                  th= "IP:Port"
+                  td
+                    a(href=rootPath + "response?ip=" + remoteAddress.ip)= " 🔍"
+                    a= remoteAddress.ip + ":" +  remoteAddress.port
+                tr
+                  th= "GeoIP"
+                  td
+                    if remoteAddress.geoip
+                      if remoteAddress.geoip[0]
+                          a= remoteAddress.geoip[0].country
+                tr
+                  th= "Reverse"
+                  td
+                    if remoteAddress.reverse
+                      a= remoteAddress.reverse
+                tr
+                  th= "Wappalyzer"
+                  td
+                    if response.wappalyzer
+                      a= response.wappalyzer
+            .row
+              .col-5
+                //button.mr-2.btn.btn-outline-primary(data-toggle="collapse" data-target="#cymruBgp") Cymru BGP ▽
+                //div#cymruBgp.collapse
+                h6 Cymru BGP
+                  if remoteAddress.bgp
+                    if remoteAddress.bgp.length  
+                      each bgp in remoteAddress.bgp
+                        pre=JSON.stringify(bgp, null, ' ')
+                    else
+                      h6 empty
 
-    ul.nav.nav-tabs
-      li.nav-item
-        a.nav-link.active(data-toggle="tab",href="#content-tab") Content
-      li.nav-item
-        a.nav-link(data-toggle="tab",href="#diff-tab") Diff
-      li.nav-item
-        a.nav-link(data-toggle="tab",href="#header-tab") header
-    div.tab-content
-      div#header-tab.tab-pane
-        .row
-          .p-2.col-6
+              .col-7
+                //button.mr-2.btn.btn-outline-primary(data-toggle="collapse" data-target="#securityDetails") securityDetails ▽
+                //div#securityDetails.collapse
+                h6 securityDetails
+                    if response.securityDetails
+                      - var securityDetails = response.securityDetails
+                      if securityDetails.issuer
+                        table
+                          tr
+                            th= "issuer"
+                            td= securityDetails.issuer
+                          tr
+                            th= "protocol"
+                            td= securityDetails.protocol
+                          tr
+                            th= "subjectName"
+                            td= securityDetails.subjectName
+                          - const from = securityDetails.validFrom
+                          tr
+                            th= "validFrom"
+                            td= moment.unix(from).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(from).fromNow()
+                          - const to = securityDetails.validTo
+                          tr
+                            th= "validTo"
+                            td= moment.unix(to).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(to).fromNow()
+                      else
+                        h6 empty
+    .row
+            .p-2.col-6
               h6 Request Headers:
                 if request
                   if request.headers
@@ -90,19 +121,26 @@ block content
                       each value, key in request.headers
                         | #{key}: #{value}
                         |
-          .p-2.col-6
+            .p-2.col-6
               h6 Response Headers: 
                 if response.headers
                   pre.prettyprint.linenums(style="white-space: pre-wrap")
                     each value, key in response.headers
                       | #{key}: #{value}
                       |
+
+    ul.nav.nav-tabs
+      li.nav-item
+        a.nav-link.active(data-toggle="tab",href="#content-tab") Content
+      li.nav-item
+        a.nav-link(data-toggle="tab",href="#diff-tab") Diff
+      //li.nav-item
+        a.nav-link(data-toggle="tab",href="#header-tab") Headers
+    div.tab-content
       div#diff-tab.tab-pane
           if diff
-            h4 Diff
-            h5 previous: 
-              a(href=rootPath + "response/" + previous._id) #{previous.id}
-            div.col-md-12
+              h5 previous: 
+                a(href=rootPath + "response/" + previous._id) #{previous.id}
               button.btn.btn-outline-primary(onclick="diff('side-by-side')") side-by-side
               button.btn.btn-outline-primary(onclick="diff('line-by-line')") line-by-line            
               #diff

@@ -2,27 +2,6 @@ mixin webpages-include(webpages, title, website, search)
   if result
     - var webpages = result.docs
     include pagination.pug
-    //if paginate.hasPreviousPages || paginate.hasNextPages(result.totalPages)
-    //ul.p-2.pagination
-          h3.mr-3= "Pages: " + result.totalDocs
-          li.page-item
-            if result.prevPage
-              a.page-link(href=paginate.href(true, null)) Previous
-            else
-              a.page-link Previous
-          if pages
-            each page in pages
-              if page.number === result.page
-                li.page-item.active
-                  a.page-link(href=page.url)= page.number
-              else
-                li.page-item
-                  a.page-link(href=page.url)= page.number
-          li.page-item
-            if result.nextPage
-              a.page-link(href=paginate.href()) Next
-            else
-              a.page-link Next
 
   if webpages
     if webpages.length >= 0
@@ -68,8 +47,9 @@ mixin webpages-include(webpages, title, website, search)
             td.col-5
               .row
                 .col-12
-                  h5 url: 🔍
-                    a(href=rootPath + "search/page?input=" + encodeURIComponent(webpage.input)) #{webpage.input}
+                  h5 url: 
+                    a(href=rootPath + "page?input=" + encodeURIComponent(webpage.input)) 🔍
+                    a #{webpage.input}
               .row
                 .col-3 createdAt
                 .col-9
@@ -93,12 +73,13 @@ mixin webpages-include(webpages, title, website, search)
                 .col-2 title
                 .col-10
                   if webpage.title
-                    a(href=rootPath + "search/page?title=" + encodeURIComponent(webpage.title)) 🔍 #{webpage.title}
+                    a(href=rootPath + "page?title=" + encodeURIComponent(webpage.title)) 🔍 #{webpage.title}
               .row
                 .col-2 url
                 .col-10
                   if webpage.url
-                    a(href=rootPath + "search/page?url=" + encodeURIComponent(webpage.url)) 🔍 #{webpage.url}
+                    //a(href=rootPath + "page?url=" + encodeURIComponent(webpage.url)) 🔍
+                    a #{webpage.url}
               .row
                 .col-2 error
                 .col-10
@@ -119,7 +100,8 @@ mixin webpages-include(webpages, title, website, search)
                 .col-2 ip
                 .col-10
                   if webpage.remoteAddress
-                    a(href=rootPath + "search/page?ip=" + webpage.remoteAddress.ip) 🔍 #{webpage.remoteAddress.ip}
+                    a(href=rootPath + "page?ip=" + webpage.remoteAddress.ip) 🔍
+                    a #{webpage.remoteAddress.ip}
                   if webpage.remoteAddress.geoip
                     if webpage.remoteAddress.geoip[0]
                       a= " (" + webpage.remoteAddress.geoip[0].country + ")"
@@ -127,7 +109,7 @@ mixin webpages-include(webpages, title, website, search)
             td.col-3
               if webpage.thumbnail
                 a.colorbox(href=rootPath + "screenshot/" +webpage.screenshot)
-                  img(src="data:image/png;base64," + webpage.thumbnail)
+                  img(width="100%" src="data:image/png;base64," + webpage.thumbnail)
   else
     div.alert.alert-warning
       p No data

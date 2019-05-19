@@ -16,7 +16,8 @@ mixin webpages-include(webpages, title, website, search)
       table.table.table-bordered.table-sm
         tr.thead-light.d-flex
           th.col-2 createdAt
-          th.col-6 result
+          th.col-5 result
+          th.col-1 status
           th.col-1 size
           th.col-2 ip
           th.col-1 capture
@@ -28,7 +29,7 @@ mixin webpages-include(webpages, title, website, search)
                   - var date = webpage.createdAt 
                   p= moment(date).format('YYYY-MM-DD HH:mm:ss.SSS')
                   p= moment(date).fromNow()
-            td.col-6
+            td.col-5
               if webpage._id
                 h6 id: 
                   a(href=rootPath + "page/" +webpage._id) #{webpage._id}
@@ -40,7 +41,7 @@ mixin webpages-include(webpages, title, website, search)
                   .col-2 url
                   .col-10
                     if webpage.url
-                      a(href=rootPath + "search/page?url=" + encodeURIComponent(webpage.url)) 🔍
+                      a(href=rootPath + "page?url=" + encodeURIComponent(webpage.url))= "🔍 "
                       a= webpage.url
                   .col-2 error
                   .col-10
@@ -49,15 +50,20 @@ mixin webpages-include(webpages, title, website, search)
                     else
                       a none
             td.col-1
+              if webpage.status
+                a= webpage.status
+            td.col-1
               if webpage.content
                 a= webpage.content.length
             td.col-2
               if webpage.remoteAddress
-                a(href=rootPath + "search/page?ip=" + webpage.remoteAddress.ip) #{webpage.remoteAddress.ip}
+                a(href=rootPath + "page?ip=" + webpage.remoteAddress.ip)= " 🔍" 
+                a= webpage.remoteAddress.ip
               if webpage.remoteAddress.geoip
                 if webpage.remoteAddress.geoip[0]
                   - var cc = webpage.remoteAddress.geoip[0].country
-                  a(href=rootPath + "search/page?country=" + cc)= " (" + cc + ")"
+                  a= " / " + cc
+                  a(href=rootPath + "page?country=" + cc)= " 🔍" 
 
             td.col-1
               if webpage.thumbnail

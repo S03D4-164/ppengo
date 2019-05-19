@@ -7,9 +7,46 @@ const Response = require('./models/response');
 var archiver = require('archiver');
 archiver.registerFormat('zip-encrypted', require("archiver-zip-encrypted"));
 
-var yara = require('yara');
+const yara = require('./yara');
+
+var paginate = require('express-paginate');
+const json2csv = require('json2csv');
 
 router.get('/',  function(req, res) {
+  var search = []
+  if(typeof req.query.md5 !== 'undefined' && req.query.md5 !== null){
+    search.push({"md5":new RegExp(req.query.md5)});
+  }
+
+  if(typeof req.query.csv !== 'undefined' && req.query.csv){
+    var find = Payload.find();
+    if(search.length)find = find.and(search);
+    find.sort("-createdAt").then((payload) => {
+      var fields = ['createdAt', 'md5', 'tag'];
+      const csv = json2csv.parse(payload, { withBOM:true, fields });
+      res.setHeader('Content-disposition', 'attachment; filename=payloadss.csv');
+      res.setHeader('Content-Type', 'text/csv; charset=UTF-8');
+      res.send(csv);
+    })
+  }else{
+    var query = search.length?{"$and":search}:{};
+    Payload.paginate(
+      query, {
+      sort:{"createdAt":-1},
+      page: req.query.page,
+      limit: req.query.limit
+    }, function(err, result) {
+      //console.log(result)
+      //console.log(paginate)
+        res.render('payloads', {
+          title:"Payloads",
+          search:req.query,
+          result,
+          pages: paginate.getArrayPages(req)(5, result.totalPages, req.query.page)
+        });
+    });
+  }
+  /*
     Payload.find()
       .sort("-createdAt")
       .limit(100)
@@ -25,7 +62,8 @@ router.get('/',  function(req, res) {
         console.log(err);
         res.send(err); 
       });
-  });
+  */
+});
 
 router.get('/download/:id', function(req, res) {
     const id = req.params.id;
@@ -105,22 +143,21 @@ router.get('/yara/:id', function(req, res) {
 });
 */
 
-//router.get('/:id', csrfProtection, function(req, res, next) {
 router.get('/:id', function(req, res) {
     const id = req.params.id;
     Payload.findById(id)
     .then(async (payload) => {
-      console.log(payload._id);
+      //console.log(payload._id);
       const responses = await Response.find()
         .where({"payload":payload._id})
+        .sort("-createdAt")
         .then((document)=>{
           return document;
         });
-        //console.log(responses[0]);
-        res.render('payload', {
+      if(req.query.yara)yara.yaraPayload(payload._id);
+      res.render('payload', {
           payload,
           responses,
-          //csrfToken:req.csrfToken(), 
       });
     });
   });

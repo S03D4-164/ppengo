@@ -4,87 +4,125 @@ block content
   if webpage
     .p-2
       .row.p-2.bg-light.shadow-lg
-        div.col-md-3
+        .col-4
           h2= "Page"
           if webpage.thumbnail
             a.colorbox(href=rootPath + "screenshot/" + webpage.screenshot)
               img(src="data:image/png;base64," + webpage.thumbnail)
-          h5= "id: "
-            a(href=rootPath + "page/" + webpage._id) #{webpage._id}
-          a= moment(webpage.createdAt).format('YYYY-MM-DD HH:mm:ss') + " / " +moment(webpage.createdAt).fromNow()
-        div.col-md-9
-          h3 Title: 
-            a(href=rootPath + "search/page?title=" + encodeURIComponent(webpage.title)) #{webpage.title}
-          h3 Url: 
-            a(href=rootPath + "search/page?url=" + encodeURIComponent(webpage.url)) #{webpage.url} 
-          h3 from input: 
-            a(href=rootPath + "website/" + website._id) #{webpage.input}
-            //a(href=rootPath + "search/page?input=" + encodeURIComponent(webpage.input)) 🔍
-          if website.gsb.lookup
-            h4 GSB:
-              if website.gsb.lookup.matches
-                - var matches =  website.gsb.lookup.matches
-                if matches.length
-                  each match in matches
-                    span.badge.badge-danger
-                      a= match.threatType
-          if webpage.error
-            h4= "Error: " + webpage.error
-          else
-            h4= "Error: none"
-          button.btn.btn-outline-primary(data-toggle="collapse" data-target="#option") Option ▽
+          table
+              tr
+                th= "ID"
+                td
+                  a(href=rootPath + "page/" + webpage._id) #{webpage._id}
+              tr
+                th Created
+                td= moment(webpage.createdAt).format('YYYY-MM-DD HH:mm:ss') + " / " +moment(webpage.createdAt).fromNow()
+
+              tr
+                th Input 
+                td
+                  a(href=rootPath + "website/" + website._id) #{webpage.input}
+          button.btn.btn-sm.btn-outline-primary(data-toggle="collapse" data-target="#option") Option ▽
           div#option.collapse
-            h5 Option
             if webpage.option
-              each value, key in webpage.option
-                if value
-                  .row
-                    .col-2= key
-                    .col-10= value
-      
-    .row
-      .p-2.col-12
-       .p-2.bg-light.shadow-lg
-        //h3= "finalResponse"
-          a= " - status:" + webpage.status
-        .row
-          dl.col-3
-            dt= "remoteAddress: "
-            if webpage.remoteAddress
-            - var pageAddress = webpage.remoteAddress
-              dd ip - port :
-                a(href=rootPath + "search/page?ip=" + pageAddress.ip)= pageAddress.ip
-                a=  " - " + pageAddress.port
-              if webpage.remoteAddress.geoip
-                if webpage.remoteAddress.geoip[0]
-                  dd= "geoip country: " + webpage.remoteAddress.geoip[0].country
-            dt= "reverse: "
-            each reverse in webpage.remoteAddress.reverse
-              dd= reverse
-          dl.col-3
-              dt= "bgp: "
-              each bgp in webpage.remoteAddress.bgp
-                pre=JSON.stringify(bgp, null, ' ')
-                hr
-          dl.col-3
-            if webpage.wappalyzer
-              dt= "wappalyzer: "
-              each wapp in webpage.wappalyzer
-                dd= wapp
-          dl.col-3            
-            dt securityDetails
+                table
+                  each value, key in webpage.option
+                    if value
+                      tr
+                        th= key
+                        td= value
+        .col-8
+          h4
+            table
+              tr
+                th Title
+                td
+                  if webpage.title
+                    a(href=rootPath + "page?title=" + encodeURIComponent(webpage.title))  🔍
+                    a= webpage.title
+              tr
+                th Error
+                if webpage.error            
+                  td= webpage.error
+                else
+                  td= "none"
+
+              tr
+                th Url
+                td
+                  if webpage.url
+                    a(href=rootPath + "page?url=" + encodeURIComponent(webpage.url))  🔍
+                    a= webpage.url
+              if website.gsb.lookup
+                tr
+                  th SafeBrowsing
+                  td
+                    if website.gsb.lookup.matches
+                      - var matches =  website.gsb.lookup.matches
+                      if matches.length
+                        each match in matches
+                          span.badge.badge-danger
+                            a= match.threatType
+              tr
+                  th= "Wappalyzer"
+                  td
+                    if webpage.wappalyzer
+                      a= webpage.wappalyzer
+
+              if webpage.remoteAddress
+                - var pageAddress = webpage.remoteAddress
+                tr
+                  th= "IP:Port"
+                  td
+                    a(href=rootPath + "page?ip=" + pageAddress.ip)= " 🔍"
+                    a= pageAddress.ip + ":" +  pageAddress.port
+                tr
+                  th= "GeoIP"
+                  td
+                    if webpage.remoteAddress.geoip
+                      if webpage.remoteAddress.geoip[0]
+                          a= webpage.remoteAddress.geoip[0].country
+                tr
+                  th= "Reverse"
+                  td
+                    if webpage.remoteAddress.reverse
+                      a= webpage.remoteAddress.reverse
+          .row
+            if webpage.remoteAddress.bgp
+             .col-6
+              h5 Cymru BGP
+              if webpage.remoteAddress.bgp.length  
+                each bgp in webpage.remoteAddress.bgp
+                  pre=JSON.stringify(bgp, null, ' ')
+              else
+                h6 empty
             if webpage.securityDetails
-              - var securityDetails = webpage.securityDetails
-              if securityDetails.issuer
-                dd= "issuer: " + securityDetails.issuer
-                dd= "protocol: " + securityDetails.protocol
-                dd= "subjectName: " + securityDetails.subjectName
-                - const from = securityDetails.validFrom
-                dd= "From: " + moment.unix(from).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(from).fromNow()
-                - const to = securityDetails.validTo
-                dd= "To: " + moment.unix(to).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(to).fromNow()
-            else
-                p empty
+             .col-6
+              h5 securityDetails
+              if webpage.securityDetails
+                - var securityDetails = webpage.securityDetails
+                if securityDetails.issuer
+                  table
+                    tr
+                      th= "issuer"
+                      td= securityDetails.issuer
+                    tr
+                      th= "protocol"
+                      td= securityDetails.protocol
+                    tr
+                      th= "subjectName"
+                      td= securityDetails.subjectName
+                    - const from = securityDetails.validFrom
+                    tr
+                      th= "validFrom"
+                      td= moment.unix(from).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(from).fromNow()
+                    - const to = securityDetails.validTo
+                    tr
+                      th= "validTo"
+                      td= moment.unix(to).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(to).fromNow()
+                else
+                    h6 empty
+
     ul.nav.nav-tabs
       li.nav-item
         a.nav-link.active(data-toggle="tab",href="#request-tab") Request
@@ -129,7 +167,7 @@ block content
                     td.col-1= seq
                       //= moment(request.createdAt).format('YYYY-MM-DD HH:mm:ss.SS')
                     td.col-3
-                        a(href=rootPath + "search/response?url=" + encodeURIComponent(request.url)) 🔍
+                        //a(href=rootPath + "search/response?url=" + encodeURIComponent(request.url)) 🔍
                         if request.url.length > 100
                           a #{request.url.slice(0,100)}(truncated)
                         else
@@ -161,11 +199,11 @@ block content
                           else
                             a -
                           br
-                          a= "ip: "
-                          a(href=rootPath + "search/response?ip=" + response.remoteAddress.ip) #{response.remoteAddress.ip}
+                          a= "ip:"
+                          a(href=rootPath + "response?ip=" + response.remoteAddress.ip)= response.remoteAddress.ip
                           if response.remoteAddress.geoip
                             if response.remoteAddress.geoip[0]
-                              a= " - " + response.remoteAddress.geoip[0].country
+                              a= " / " + response.remoteAddress.geoip[0].country
                         td.col-2= response.securityDetails.issuer
                         td.col-2
                           if response.yara
@@ -219,10 +257,9 @@ block content
           p No data
       div#diff-tab.tab-pane
           if diff
-            h4 Diff
-            h5 previous: 
-              a(href=rootPath + "page/" + previous._id) #{previous.id}
-            div.col-md-12
+              h5 previous: 
+                a(href=rootPath + "page/" + previous._id) #{previous.id}
+
               button.btn.btn-outline-primary(onclick="diff('side-by-side')") side-by-side
               button.btn.btn-outline-primary(onclick="diff('line-by-line')") line-by-line            
 

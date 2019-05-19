@@ -1,6 +1,7 @@
 var yara = require('yara');
 const Webpage = require('./models/webpage');
 const Response = require('./models/response');
+const Payload = require('./models/payload');
 
 async function yaraScan(source){
   return new Promise(function(resolve, reject){
@@ -50,6 +51,16 @@ async function yaraScan(source){
 }
 
 module.exports = {
+  async yaraPayload(id){
+    await Payload.findById(id)
+    .then(async (payload) => {
+      if(payload.payload){
+        payload.yara = await yaraScan(payload.payload);
+        await payload.save();
+        console.log(payload.yara)  
+      }
+    });
+  },
   async yaraPage(id){
     await Webpage.findById(id)
     .then(async (page) => {

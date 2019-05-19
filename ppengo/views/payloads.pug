@@ -1,25 +1,37 @@
 extends layout
 
 block content
+  if result
+    - var payloads = result.docs
+    include include/pagination.pug
   if payloads
       if payloads.length
-          h3= title + " - total: "+payloads.length 
           table.table.table-striped.table-bordered.table-hover.table-sm
             tr.thead-light.d-flex
-              th.col-3 createdAt
-              th.col-7 md5
-              th.col-1 VT
+              th.col-2 createdAt
+              th.col-5 md5
               th.col-1 size
+              th.col-1 VT
+              th.col-2 yara
+              th.col-1 tag
+
             each payload in payloads
                 tr.d-flex
-                  td.col-3= moment(payload.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
-                  td.col-7= payload.md5
+                  td.col-2= moment(payload.createdAt).format('YYYY-MM-DD HH:mm:ss.SSS')
+                  td.col-5= payload.md5
+                  td.col-1
+                    a(href=rootPath + "payload/" + payload._id)= payload.payload.length
                   td.col-1
                     if payload.vt
                       if payload.vt.total >= 0 && payload.vt.positives >= 0
                         a= payload.vt.positives + "/" + payload.vt.total 
+                  td.col-2
+                    if payload.yara
+                        a= payload.yara
+
                   td.col-1
-                    a(href=rootPath + "payload/" + payload._id)= payload.payload.length
+                    if payload.tag
+                      a= payload.tag
   else 
     div.alert.alert-warning
       p No data

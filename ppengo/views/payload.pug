@@ -10,7 +10,6 @@ block content
       ul.nav.nav-tabs
         li.nav-item
           a.nav-link.active(data-toggle="tab",href="#content-tab") Content
-
         li.nav-item
           a.nav-link(data-toggle="tab",href="#request-tab") Request
         li.nav-item
@@ -21,6 +20,8 @@ block content
             a.nav-link(data-toggle="tab",href="#vt-tab") VT #{pos}/#{total}
           else
             a.nav-link(data-toggle="tab",href="#vt-tab") VT
+        li.nav-item
+          a.nav-link(data-toggle="tab",href="#yara-tab") yara
 
       div.tab-content
         div#vt-tab.tab-pane
@@ -32,20 +33,23 @@ block content
           .col-12
             table.table.table-striped.table-bordered.table-hover.table-sm
               tr.thead-light.d-flex
-                th.col-5 createdAt
-                th.col-7 url
+                th.col-2 createdAt
+                th.col-10 url
               each response in responses
                 tr.d-flex.page
-                  td.col-5
-                    a= response.createdAt
-                  td.col-7
+                  td.col-2
+                    a=  moment(response.createdAt).format('YYYY-MM-DD HH:mm:ss.SSS')
+
+                  td.col-10
                     if response.url.length > 100
                       a(href=rootPath + "response/" + response._id) #{response.url.slice(0,100)}(truncated)
                     else
                       a(href=rootPath + "response/" + response._id) #{response.url}
-
         div#content-tab.tab-pane.active
             pre.prettyprint.linenums(style="white-space: pre-wrap")= payload.payload.toString() 
+
+        div#yara-tab.tab-pane
+            pre.prettyprint.linenums(style="white-space: pre-wrap")= JSON.stringify(payload.yara, null, " ")
       
         script.
             function vt(){

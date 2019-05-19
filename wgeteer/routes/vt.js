@@ -3,7 +3,7 @@ var qs = require('querystring');
 
 const Payload = require('./models/payload');
 
-const ak = '';
+const ak = process.env.VTKEY
 const vtApiEndpoint = 'https://www.virustotal.com/vtapi/v2/';
 
 async function vtFileReport(resource){
@@ -19,7 +19,7 @@ async function vtFileReport(resource){
     console.log(options);
     var res = await request(options)
     .then((body)=>{
-        //console.log(body);
+        console.log(body);
         return body;
     })
     .catch((err)=>{
@@ -37,7 +37,9 @@ module.exports = {
     async vtPayload (payloadId){
         var result = await Payload.findById(payloadId)
         .then(async (payload) => {
+            //return doc;
             var resource = payload.md5;
+            console.log(resource);
             const body = await vtFileReport(resource);
             payload.vt = body;
             await payload.save();

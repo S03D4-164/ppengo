@@ -6,8 +6,9 @@ block content
       include include/sitemodal.pug
       .row
         .col-12
-          h2= "URL: " 
-            a(href=rootPath + "search/website?rurl=" + encodeURIComponent(website.url))= website.url + " 🔍"
+          h2= "URL: "
+            a(href=rootPath + "website?rurl=" + encodeURIComponent(website.url))=  "🔍 "
+            a(href=rootPath + "website/" + website._id)= website.url
           h6= "createdAt: " + website.createdAt
           //h6= "updatedAt: " + website.updatedAt
       .row

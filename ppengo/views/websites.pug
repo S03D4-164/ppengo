@@ -3,28 +3,8 @@ extends layout
 block content
   if result
     - var websites = result.docs
-    //if paginate.hasPreviousPages || paginate.hasNextPages(result.totalPages)
     include include/pagination.pug
-    //ul.p-2.pagination
-          h3.mr-3= "Sites: " + result.totalDocs
-          li.page-item
-            if result.prevPage
-              a.page-link(href=paginate.href(true, null)) Previous
-            else
-              a.page-link Previous
-          if pages
-            each page in pages
-              if page.number === result.page
-                li.page-item.active
-                  a.page-link(href=page.url)= page.number
-              else
-                li.page-item
-                  a.page-link(href=page.url)= page.number
-          li.page-item
-            if result.nextPage
-              a.page-link(href=paginate.href()) Next
-            else
-              a.page-link Next
+
 
   if websites
       if websites.length >=0
@@ -65,7 +45,7 @@ block content
                     if webpage.last
                       if webpage.last.thumbnail
                         a.colorbox(href=rootPath + "screenshot/" +webpage.last.screenshot)
-                          img(width="100%" src="data:image/png;base64," + webpage.last.thumbnail)
+                          img(width="80%" src="data:image/png;base64," + webpage.last.thumbnail)
 
                   td.col-2
                     a= "created: " + moment(webpage.createdAt).fromNow()
@@ -78,17 +58,17 @@ block content
                     a= moment(webpage.updatedAt).format('YYYY-MM-DD HH:mm:ss')
 
                   td.col-5
-                    a= "input: "
-                    a(href=rootPath + "website/" +webpage._id) #{webpage.url}
-                    //a(href=rootPath + "search/website?url=" + encodeURIComponent(webpage.url)) 🔍
+                    a(href=rootPath + "website/" +webpage._id)= "input: "
+                    a= webpage.url
+                    //a(href=rootPath + "website?url=" + encodeURIComponent(webpage.url)) 🔍
                     if webpage.track
                       br
                       a= "counter: " + webpage.track.counter + " / period: " + webpage.track.period
 
                     if webpage.last
                       hr
-                      a= "result: "
-                      a(href=rootPath + "page/" + webpage.last._id)= webpage.last.url
+                      a(href=rootPath + "page/" + webpage.last._id)= "result: "
+                      a= webpage.last.url
                       br
                       a= "status: " + webpage.last.status
                       //if webpage.last.content
@@ -97,15 +77,15 @@ block content
                         a= " / size: -"
                       if webpage.last.remoteAddress
                         a= " / ip: " +  webpage.last.remoteAddress.ip
-                        a(href=rootPath + "search/page?ip=" + webpage.last.remoteAddress.ip) 🔍 
+                        a(href=rootPath + "page?ip=" + webpage.last.remoteAddress.ip)= "🔍 "
                         if webpage.last.remoteAddress.geoip.length
                           a= " - "
                           - var cc = webpage.last.remoteAddress.geoip[0].country
-                          a(href=rootPath + "search/page?country=" + cc)= cc
+                          a(href=rootPath + "page?country=" + cc)= cc
  
                       br
-                      a= "title: "
-                      a(href=rootPath + "search/page?title=" + webpage.last.title)=  webpage.last.title
+                      a= "title: " + webpage.last.title
+                      a(href=rootPath + "page?title=" + webpage.last.title)= " 🔍"
                       br
                       a error: #{webpage.last.error||"none"}
                       br
@@ -124,9 +104,9 @@ block content
                           br
                     each tag in webpage.tag
                       each val, key in tag
-                        a(href=rootPath + "search/website/?tagkey=" + key)= key
+                        a(href=rootPath + "website/?tagkey=" + key)= key
                         a= ":"
-                        a(href=rootPath + "search/website/?tagkey=" + key + "&tagval=" + val)= val
+                        a(href=rootPath + "website/?tagkey=" + key + "&tagval=" + val)= val
                         br
   else
     div.alert.alert-warning

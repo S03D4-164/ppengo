@@ -1,58 +1,29 @@
 
 mixin sitemodal-include(url, id, counter=0, period=0)
  #update_form.modal.col-12(role="dialog")
-  .modal-dialog.modal-dialog-centered(style="max-width:50%;")
+  .modal-dialog.modal-dialog-centered(style="max-width:600px;")
     .modal-content
       .modal-body
         form(method="post" action=rootPath + "website/" + id)
           h5 URL: #{url}
-          label.col-3(for="counter") Counter: 
-          input.col-2(type="number" name="counter", id="couter", max="72", min="0", step="1", value=counter)
-          label.col-2(for="period") Period(h): 
-          input.col-2(type="number" name="period", id="period", max="24", min="0", step="1", value=period)
+          .form-inline
+            label.mr-2(for="counter") Counter: 
+            input.mr-2.form-control(type="number" name="counter", id="couter", max="72", min="0", step="1", value=counter)
+            label.mr-2(for="period") Period(h): 
+            input.mr-2.form-control(type="number" name="period", id="period", max="24", min="0", step="1", value=period)
           br
-          .row
-            div.col-6
-              label.col-12(for="userAgent") User-Agent: 
-              select.col-12(name='userAgent' id='userAgent')
+          .form-group.row
+            .col-6
+              label(for="userAgent") User-Agent: 
+              select.form-control(name='userAgent' id='userAgent')
                 include ua.pug
-              //select.col-12(name='userAgent' id='userAgent')
-                option(value=win10Chrome, selected= true) win10-chrome
-                option(value=winFirefox) win-Firefox
-                option(value=winIE11) win-IE11
-                option(value=iphone6) iphone6
-                option(value=win10Edge) win10-edge
-
-            div.col-6
-              label.col-12(for="lang") Browser Language: 
-              select.col-12(name='lang' id='lang')
+            .col-6
+              label(for="lang") Browser Language: 
+              select.form-control(name='lang' id='lang')
                 option(value='ja', selected= true) ja
                 option(value='en') en
+                option(value='zh') zh
           br
           include form.pug
-        //div
-          label.col-2(for="referer") Referer: 
-          input.col-10(type="text" name="referer", id="referer")
-          br
-          label.col-2(for="proxy") Proxy: 
-          input.col-10(type="text" name="proxy", id="proxy", placeholder="ip:port")
-          br
-          label.col-3(for="timeout") Timeout(s): 
-          input.col-2(type="number" name="timeout", id="timeout", max="300", min="30", step="30", value="30")
-          label.col-2(for="delay") Delay(s): 
-          input.col-2(type="number" name="delay", id="delay", max="60", min="0", step="5", value="5")
-          //label.col-2(for="disableScript") Disable Script
-          //input.col-1(type="checkbox", name="disableScript", id="disableScript" value="")
-          br
-          label(for="exHeaders") Extra Headers: 
-          textarea.col-12(id="exHeaders", name="exHeaders", rows=2)
-          br
-          //label(for="postData") Post Data: 
-          //br
-          //textarea(id="postData", name="postData", rows=3, cols=50)
-          //br
-          input(type="hidden" name="_csrf", value=csrfToken)
-          br
-          input(type="submit" name="submit", value="track")
 
 +sitemodal-include(website.url, website.id, website.track.counter, website.track.period)
