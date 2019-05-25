@@ -66,14 +66,15 @@ mixin webpages-include(webpages, title, website, search)
                 .col-12
                   if webpage._id
                     h5 id: 
-                      a(href=rootPath + "page/" +webpage._id) #{webpage._id}
+                      a(target="_blank" href=rootPath + "page/" +webpage._id) #{webpage._id}
                       if webpage.requests || webpage.responses
                         a= " - req:" + webpage.requests.length + " / res:" + webpage.responses.length
               .row
                 .col-2 title
                 .col-10
                   if webpage.title
-                    a(href=rootPath + "page?title=" + encodeURIComponent(webpage.title)) 🔍 #{webpage.title}
+                    a(href=rootPath + "page?title=" + encodeURIComponent(webpage.title)) 🔍
+                    a #{webpage.title}
               .row
                 .col-2 url
                 .col-10

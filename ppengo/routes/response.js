@@ -18,7 +18,7 @@ router.get('/', function(req, res) {
   }
 
   if(typeof req.query.source !== 'undefined' && req.query.source){
-    search.push({"content": new RegExp(req.query.source)});
+    search.push({"text": new RegExp(req.query.source)});
   }
   if(typeof req.query.ip !== 'undefined' && req.query.ip){
       search.push({"remoteAddress.ip":new RegExp(req.query.ip)});
@@ -29,6 +29,10 @@ router.get('/', function(req, res) {
   if(typeof req.query.status !== 'undefined' && req.query.status){
     //search.push({"$where": `/${req.query.status}/.test(this.status)`});
     search.push({"status": req.query.status});
+  }
+
+  if(typeof req.query.payload !== 'undefined' && req.query.payload){
+    search.push({"payload": req.query.payload});
   }
 
   if(typeof req.query.csv !== 'undefined' && req.query.csv){

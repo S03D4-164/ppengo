@@ -258,12 +258,13 @@ module.exports = {
               if (hostinfo.reverse) response.remoteAddress.reverse = hostinfo.reverse;
               if (hostinfo.bgp) response.remoteAddress.bgp = hostinfo.bgp;
               if (hostinfo.geoip) response.remoteAddress.geoip = hostinfo.geoip;
+              if (hostinfo.ip) response.remoteAddress.ip = hostinfo.ip;
             }
           }
           
           await response.save(function (err){
             if(err) console.log(err);
-            else console.log("response saved: " + response.url.slice(0,100));
+            //else console.log("response saved: " + response.url.slice(0,100));
           });
           responses.push(response);
           return response;
@@ -308,7 +309,7 @@ module.exports = {
         }
         await request.save(function (err){
           if(err) console.log(err); 
-          else console.log("request saved: " + request.url.slice(0,100));
+          //else console.log("request saved: " + request.url.slice(0,100));
         });
         requests.push(request);
         return request;

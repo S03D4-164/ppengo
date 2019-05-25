@@ -4,14 +4,15 @@ block content
     h1 Payload
     if payload
       h2 id:  #{payload._id}
-      h2 md5:  #{payload.md5}
+        a(href=rootPath + "response?payload=" + payload._id) 🔍
+      h2 md5: #{payload.md5}
       h3 buffer size: #{payload.payload.length} / text size: #{payload.payload.toString().length}
       a.btn.btn-sm.btn-primary(href=rootPath + "payload/download/" + payload._id) Download
       ul.nav.nav-tabs
         li.nav-item
           a.nav-link.active(data-toggle="tab",href="#content-tab") Content
         li.nav-item
-          a.nav-link(data-toggle="tab",href="#request-tab") Request
+          a.nav-link(data-toggle="tab",href="#hex-tab") Hex
         li.nav-item
           if payload.vt
             if payload.vt.total && payload.vt.positives
@@ -29,24 +30,11 @@ block content
           button.btn.btn-sm.btn-primary(onclick="vt()") VT search
           pre#vt= JSON.stringify(payload.vt, null, " ")
 
-        div#request-tab.tab-pane
-          .col-12
-            table.table.table-striped.table-bordered.table-hover.table-sm
-              tr.thead-light.d-flex
-                th.col-2 createdAt
-                th.col-10 url
-              each response in responses
-                tr.d-flex.page
-                  td.col-2
-                    a=  moment(response.createdAt).format('YYYY-MM-DD HH:mm:ss.SSS')
-
-                  td.col-10
-                    if response.url.length > 100
-                      a(href=rootPath + "response/" + response._id) #{response.url.slice(0,100)}(truncated)
-                    else
-                      a(href=rootPath + "response/" + response._id) #{response.url}
         div#content-tab.tab-pane.active
             pre.prettyprint.linenums(style="white-space: pre-wrap")= payload.payload.toString() 
+
+        div#hex-tab.tab-pane
+            pre.prettyprint.linenums(style="white-space: pre-wrap")= hex
 
         div#yara-tab.tab-pane
             pre.prettyprint.linenums(style="white-space: pre-wrap")= JSON.stringify(payload.yara, null, " ")

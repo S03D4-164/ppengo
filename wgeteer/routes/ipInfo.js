@@ -3,7 +3,10 @@ var geoip = require('geoip-lite');
 //var redis = require('redis');
 
 const getIpinfo = async function(host){
-    if (whois.isIP(host)){
+    const ip = await whois.extractIP(host)
+        .then(info => {return info[0]})
+        .catch(err => console.log(err));
+    if (whois.isIP(ip)){
         /*
         const client = await redis.createClient();
         client.on('connect', function() {
@@ -25,28 +28,21 @@ const getIpinfo = async function(host){
         }
         */
         //const who = await whoisCache(host);
-        var hostnames = [];
-        try{
-            var reverses = await whois.reverse(host);
-            console.log(reverses);
-            hostnames = Array.from(new Set(reverses))
-        }catch(error){
-            console.log(error);
-        }
+        var reverses = await whois.reverse(ip)
+            .then(info => {return info})
+            .catch(err => console.log(err));
+        var hostnames  = Array.from(new Set(reverses))
 
-        var bgp = [];
-        try{
-            bgp = await whois.bgpInfo(host);
-        }catch(error){
-            console.log("[bgp] error: " + host);
-        }
+        var bgp = await whois.bgpInfo(ip)
+            .then(info => {return info})
+            .catch(err => console.log("[bgp] error: " + ip));
 
         var geo = {}
         try{
-            geo = await geoip.lookup(host);
+            geo = await geoip.lookup(ip);
 
         }catch(error){
-            console.log("[GeoIP] error: " + host);
+            console.log("[GeoIP] error: " + ip);
         }
 
         ipInfo = {
@@ -54,6 +50,7 @@ const getIpinfo = async function(host){
             'reverse': hostnames,
             'bgp': bgp,
             'geoip': geo,
+            'ip': ip,
         }
         /*
         //client.set(host, ipInfo, 'EX', 30000);

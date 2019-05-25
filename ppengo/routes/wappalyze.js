@@ -18,10 +18,8 @@ const wappalyze = async function (url, headers, text, cookies){
   for (let head in headers){
     header[head] = headers[head].split(';');
   }
-  let scripts;
   var data = {
-    //"scripts":[text],
-    "scripts":scripts,
+    "scripts":[text],
     "cookies":cookies,
     "headers":header,
     "js":js,

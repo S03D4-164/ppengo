@@ -8,7 +8,7 @@ $(document).ready(
                 $("pre").highlight(v);
             });
             */
-            $('a.colorbox').colorbox({'photo':true});
+            $('a.colorbox').colorbox({'photo':true, 'maxWidth':'80%'});
     }
 );
 

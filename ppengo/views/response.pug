@@ -1,17 +1,19 @@
 extends layout
 
 block content
-  if webpage
-    h3= "<< goto Page: "
-      a(href=rootPath+"page/"+webpage._id) #{webpage.input}
-    .row
-      .p-2.col-6
-       .p-2.bg-light.shadow-lg
+ if webpage
+  h3= "<< goto Page: "
+   a(href=rootPath+"page/"+webpage._id) #{webpage.input}
+  .row
+    .col-6
+     .card
+      .card-header
+        h5 Request
+      .card-body      
         if request
-          .row.col-md-12
-            h3 Request: 
-              a(href=rootPath + "search/request?url=" +  encodeURIComponent(request.url)) 🔍
-              a= request.url
+          h4
+            a(href=rootPath + "search/request?url=" +  encodeURIComponent(request.url)) 🔍
+            a= request.url
           table
                 tr
                   th= "createdAt: "
@@ -35,12 +37,15 @@ block content
                   td
                     if request.redirectChain
                       each chain in request.redirectChain
-                        a= chain
+                        a= "- " + chain
                         br
-      .p-2.col-6
-       .p-2.bg-light.shadow-lg
+    .col-6
+     .card
+      .card-header
+        h5 Response
+      .card-body      
         if response
-            h3 Response:
+            h4
               a(href=rootPath + "search/response?url=" + encodeURIComponent(response.url)) 🔍
               a= response.url
             table
@@ -112,31 +117,37 @@ block content
                             td= moment.unix(to).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(to).fromNow()
                       else
                         h6 empty
-    .row
-            .p-2.col-6
+  .row
+    .col-6
+     .card
+      .card-header
               h6 Request Headers:
+      .card-body      
                 if request
                   if request.headers
                     pre.prettyprint.linenums(style="white-space: pre-wrap")
                       each value, key in request.headers
                         | #{key}: #{value}
                         |
-            .p-2.col-6
+    .col-6
+     .card
+      .card-header
               h6 Response Headers: 
+      .card-body      
                 if response.headers
                   pre.prettyprint.linenums(style="white-space: pre-wrap")
                     each value, key in response.headers
                       | #{key}: #{value}
                       |
 
-    ul.nav.nav-tabs
+  ul.nav.nav-pills
       li.nav-item
         a.nav-link.active(data-toggle="tab",href="#content-tab") Content
       li.nav-item
         a.nav-link(data-toggle="tab",href="#diff-tab") Diff
       //li.nav-item
         a.nav-link(data-toggle="tab",href="#header-tab") Headers
-    div.tab-content
+  div.tab-content
       div#diff-tab.tab-pane
           if diff
               h5 previous: 
@@ -254,6 +265,6 @@ block content
                 })
               };
 
-  else
+ else
     div.alert.alert-warning
       p No data

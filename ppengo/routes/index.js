@@ -53,11 +53,13 @@ router.post('/', async function(req, res, next) {
     }
   }
   //console.log(ids);
+  let search;
   res.render(
     'progress', {
     title:"Progress",
     webpages, 
     ids:String(ids),
+    search
   });
 });
 
@@ -74,12 +76,14 @@ router.post('/progress', function(req, res, next) {
           completed = false;
         }
       }
+      let search;
       res.render(
         'progress', {
         webpages, 
         "title":"Progress",
         completed: completed,
-        ids
+        ids,
+        search
     });
   });
 });

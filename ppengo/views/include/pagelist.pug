@@ -33,7 +33,7 @@ mixin webpages-include(webpages, title, website, search)
               if webpage._id
                 h6 id: 
                   a(href=rootPath + "page/" +webpage._id) #{webpage._id}
-                  if webpage.status
+                  //if webpage.status
                       a= " / status: " + webpage.status
                   if webpage.requests || webpage.responses
                     a= " / req:" + webpage.requests.length + " / res:" + webpage.responses.length

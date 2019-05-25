@@ -81,7 +81,8 @@ block content
                         if webpage.last.remoteAddress.geoip.length
                           a= " - "
                           - var cc = webpage.last.remoteAddress.geoip[0].country
-                          a(href=rootPath + "page?country=" + cc)= cc
+                          a= cc
+                          a(href=rootPath + "page?country=" + cc)= "🔍"
  
                       br
                       a= "title: " + webpage.last.title
@@ -91,7 +92,8 @@ block content
                       br
                   td.col-2
                     if webpage.gsb.lookup
-                        a gsb:
+                        a gsb
+                        br
                         -var matches = webpage.gsb.lookup.matches
                         if matches
                           each match in matches
@@ -101,13 +103,17 @@ block content
                         else
                           span.badge.badge-info
                             a none
-                          br
+                    hr
+                    a tag
+                    br
                     each tag in webpage.tag
                       each val, key in tag
-                        a(href=rootPath + "website/?tagkey=" + key)= key
-                        a= ":"
-                        a(href=rootPath + "website/?tagkey=" + key + "&tagval=" + val)= val
+                        span.badge.badge-primary
+                          a.text-light(href=rootPath + "website/?tagkey=" + key)= key
+                          a.text-light= ":"
+                          a.text-light(href=rootPath + "website/?tagkey=" + key + "&tagval=" + val)= val
                         br
+
   else
     div.alert.alert-warning
       p No data

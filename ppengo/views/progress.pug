@@ -23,7 +23,8 @@ block content
                 $('#progress').replaceWith($('#progress', result));
                 if($('#completed').text()==='completed'){
                   clearInterval(interval);
-                }
+                };
+                $('a.colorbox').colorbox({'photo':true, 'maxWidth':'80%'});
             });
         };
         interval = setInterval(function () {progress()}, 2000);

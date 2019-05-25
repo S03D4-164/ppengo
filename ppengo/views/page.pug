@@ -2,38 +2,62 @@ extends layout
 
 block content
   if webpage
-    .p-2
-      .row.p-2.bg-light.shadow-lg
+    .card
+      .card-header
+        h4 Page
+
+      .card-body
+ 
+       .row
         .col-4
-          h2= "Page"
           if webpage.thumbnail
             a.colorbox(href=rootPath + "screenshot/" + webpage.screenshot)
               img(src="data:image/png;base64," + webpage.thumbnail)
-          table
-              tr
-                th= "ID"
-                td
-                  a(href=rootPath + "page/" + webpage._id) #{webpage._id}
-              tr
-                th Created
-                td= moment(webpage.createdAt).format('YYYY-MM-DD HH:mm:ss') + " / " +moment(webpage.createdAt).fromNow()
+          h5= "ID: "
+            a(href=rootPath + "page/" + webpage._id) #{webpage._id}
 
-              tr
-                th Input 
-                td
-                  a(href=rootPath + "website/" + website._id) #{webpage.input}
-          button.btn.btn-sm.btn-outline-primary(data-toggle="collapse" data-target="#option") Option ▽
-          div#option.collapse
-            if webpage.option
+          button.btn.btn-block.btn-sm.btn-light(data-toggle="collapse" data-target="#option") Option
+          #option.collapse
                 table
                   each value, key in webpage.option
                     if value
                       tr
                         th= key
                         td= value
+
+
         .col-8
+
           h4
             table
+              tr
+                  th Created
+                  td= moment(webpage.createdAt).format('YYYY-MM-DD HH:mm:ss') + " / " +moment(webpage.createdAt).fromNow()
+
+
+              tr
+                th Input 
+                td
+                  a(href=rootPath + "website/" + website._id) #{webpage.input}
+
+
+              if website.gsb.lookup
+                tr
+                  th SafeBrowsing
+                  td
+                    if website.gsb.lookup.matches
+                      - var matches =  website.gsb.lookup.matches
+                      if matches.length
+                        each match in matches
+                          span.badge.badge-danger
+                            a= match.threatType
+              tr
+                th Url
+                td
+                  if webpage.url
+                    a(href=rootPath + "page?url=" + encodeURIComponent(webpage.url))  🔍
+                    a= webpage.url
+
               tr
                 th Title
                 td
@@ -46,31 +70,11 @@ block content
                   td= webpage.error
                 else
                   td= "none"
-
-              tr
-                th Url
-                td
-                  if webpage.url
-                    a(href=rootPath + "page?url=" + encodeURIComponent(webpage.url))  🔍
-                    a= webpage.url
-              if website.gsb.lookup
-                tr
-                  th SafeBrowsing
-                  td
-                    if website.gsb.lookup.matches
-                      - var matches =  website.gsb.lookup.matches
-                      if matches.length
-                        each match in matches
-                          span.badge.badge-danger
-                            a= match.threatType
-              tr
-                  th= "Wappalyzer"
-                  td
-                    if webpage.wappalyzer
-                      a= webpage.wappalyzer
-
-              if webpage.remoteAddress
-                - var pageAddress = webpage.remoteAddress
+      .row
+        .col-4
+          if webpage.remoteAddress
+            - var pageAddress = webpage.remoteAddress
+            table
                 tr
                   th= "IP:Port"
                   td
@@ -86,20 +90,29 @@ block content
                   th= "Reverse"
                   td
                     if webpage.remoteAddress.reverse
-                      a= webpage.remoteAddress.reverse
-          .row
-            if webpage.remoteAddress.bgp
-             .col-6
-              h5 Cymru BGP
-              if webpage.remoteAddress.bgp.length  
-                each bgp in webpage.remoteAddress.bgp
-                  pre=JSON.stringify(bgp, null, ' ')
-              else
-                h6 empty
-            if webpage.securityDetails
-             .col-6
-              h5 securityDetails
-              if webpage.securityDetails
+                      each reverse in webpage.remoteAddress.reverse
+                        a= reverse
+                        br        
+                if webpage.wappalyzer
+                  th= "Wappalyzer"
+                  td
+                    each wapp in  webpage.wappalyzer
+                        a= wapp
+                        br
+        .col-4
+          h6 Cymru BGP
+
+          if webpage.remoteAddress.bgp
+                if webpage.remoteAddress.bgp.length  
+                  each bgp in webpage.remoteAddress.bgp
+                    pre=JSON.stringify(bgp, null, ' ')
+                else
+                  a empty
+        .col-4
+          h6 securityDetails
+
+          if webpage.securityDetails
+               if webpage.securityDetails
                 - var securityDetails = webpage.securityDetails
                 if securityDetails.issuer
                   table
@@ -123,7 +136,7 @@ block content
                 else
                     h6 empty
 
-    ul.nav.nav-tabs
+    ul.nav.nav-pills
       li.nav-item
         a.nav-link.active(data-toggle="tab",href="#request-tab") Request
       li.nav-item
@@ -135,7 +148,7 @@ block content
       div#request-tab.tab-pane.active
           if requests
             if requests.length 
-              h3= "Requests: "+ requests.length + " / Responses: " + responses.length
+              h4= "Requests: "+ requests.length + " / Responses: " + responses.length
               
               form.form-inline(method="get" action=rootPath + "page/" + webpage._id)
                 input.form-control.mr-2.btn.btn-sm.btn-danger(type="submit" value="search")
@@ -176,7 +189,7 @@ block content
                       if request.response
                         a(href=rootPath + "response/" + request.response._id) #{request.method}
                       else
-                        a = request.method
+                        a= request.method
                       if request.resourceType
                         a= " / " + request.resourceType
                       if request.redirectChain
