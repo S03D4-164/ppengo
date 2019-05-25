@@ -3,12 +3,13 @@ extends layout
 block content
     h1 Payload
     if payload
-      h2 id:  #{payload._id}
+      h2
         a(href=rootPath + "response?payload=" + payload._id) 🔍
-      h2 md5: #{payload.md5}
-      h3 buffer size: #{payload.payload.length} / text size: #{payload.payload.toString().length}
-      a.btn.btn-sm.btn-primary(href=rootPath + "payload/download/" + payload._id) Download
-      ul.nav.nav-tabs
+        a id:  #{payload._id} / md5: #{payload.md5}
+      h3
+        a.btn.btn-danger(href=rootPath + "payload/download/" + payload._id) Download
+        a  buffer size: #{payload.payload.length} / text size: #{payload.payload.toString().length}
+      ul.nav.nav-pills
         li.nav-item
           a.nav-link.active(data-toggle="tab",href="#content-tab") Content
         li.nav-item

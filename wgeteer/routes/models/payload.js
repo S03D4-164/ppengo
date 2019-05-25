@@ -9,6 +9,9 @@ const payloadSchema = new mongoose.Schema({
         type: String,
         unique: true,
     },
+    fileType: {
+        type: String,
+    },
     vt: {
         type: Object,
     },

@@ -2,20 +2,26 @@ extends layout
 
 block content
  if webpage
-  h3= "<< goto Page: "
-   a(href=rootPath+"page/"+webpage._id) #{webpage.input}
+  h2 Request / Response
+    a= " from "
+    a(href=rootPath+"page/"+webpage._id) #{webpage.input}
+  h3
+    a(href=rootPath + "response?url=" + encodeURIComponent(response.url)) 🔍
+    a= response.url
   .row
     .col-6
      .card
       .card-header
         h5 Request
+          a= " / " + moment(request.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+
       .card-body      
-        if request
-          h4
-            a(href=rootPath + "search/request?url=" +  encodeURIComponent(request.url)) 🔍
+         if request
+          //h4
+            //a(href=rootPath + "response?url=" +  encodeURIComponent(request.url)) 🔍
             a= request.url
           table
-                tr
+                //tr
                   th= "createdAt: "
                   td= moment(request.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
 
@@ -43,13 +49,15 @@ block content
      .card
       .card-header
         h5 Response
+          a= " /  " + moment(response.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+
       .card-body      
         if response
-            h4
-              a(href=rootPath + "search/response?url=" + encodeURIComponent(response.url)) 🔍
+            //h4
+              a(href=rootPath + "response?url=" + encodeURIComponent(response.url)) 🔍
               a= response.url
             table
-              tr            
+              //tr            
                 th= "createdAt"
                 td= moment(response.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
               tr
@@ -58,16 +66,13 @@ block content
               if response.remoteAddress
                 - var remoteAddress = response.remoteAddress
                 tr
-                  th= "IP:Port"
+                  th= "IP / Port / GeoIP"
                   td
                     a(href=rootPath + "response?ip=" + remoteAddress.ip)= " 🔍"
-                    a= remoteAddress.ip + ":" +  remoteAddress.port
-                tr
-                  th= "GeoIP"
-                  td
+                    a= remoteAddress.ip + " / " +  remoteAddress.port
                     if remoteAddress.geoip
                       if remoteAddress.geoip[0]
-                          a= remoteAddress.geoip[0].country
+                          a= " / " + remoteAddress.geoip[0].country
                 tr
                   th= "Reverse"
                   td
@@ -79,21 +84,20 @@ block content
                     if response.wappalyzer
                       a= response.wappalyzer
             .row
-              .col-5
-                //button.mr-2.btn.btn-outline-primary(data-toggle="collapse" data-target="#cymruBgp") Cymru BGP ▽
-                //div#cymruBgp.collapse
-                h6 Cymru BGP
+              .col-6
+                button.mr-2.btn.btn-sm.btn-block.btn-outline-primary(data-toggle="collapse" data-target="#cymruBgp") Cymru BGP ▽
+                div#cymruBgp.collapse.show
+                  //h6 Cymru BGP
                   if remoteAddress.bgp
                     if remoteAddress.bgp.length  
                       each bgp in remoteAddress.bgp
                         pre=JSON.stringify(bgp, null, ' ')
                     else
                       h6 empty
-
-              .col-7
-                //button.mr-2.btn.btn-outline-primary(data-toggle="collapse" data-target="#securityDetails") securityDetails ▽
-                //div#securityDetails.collapse
-                h6 securityDetails
+              .col-6
+                button.mr-2.btn.btn-sm.btn-block.btn-outline-primary(data-toggle="collapse" data-target="#securityDetails") securityDetails ▽
+                div#securityDetails.collapse.show
+                    //h6 securityDetails
                     if response.securityDetails
                       - var securityDetails = response.securityDetails
                       if securityDetails.issuer
@@ -110,11 +114,17 @@ block content
                           - const from = securityDetails.validFrom
                           tr
                             th= "validFrom"
-                            td= moment.unix(from).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(from).fromNow()
+                            td
+                              a= moment.unix(from).format('YYYY-MM-DDTHH:mm:ss')
+                              br
+                              a= "(" + moment.unix(from).fromNow() + ")"
                           - const to = securityDetails.validTo
                           tr
                             th= "validTo"
-                            td= moment.unix(to).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(to).fromNow()
+                            td
+                              a= moment.unix(to).format('YYYY-MM-DDTHH:mm:ss')
+                              br
+                              a= "(" + moment.unix(to).fromNow() + ")"
                       else
                         h6 empty
   .row
@@ -140,7 +150,7 @@ block content
                       | #{key}: #{value}
                       |
 
-  ul.nav.nav-pills
+  ul.nav.nav-tabs
       li.nav-item
         a.nav-link.active(data-toggle="tab",href="#content-tab") Content
       li.nav-item
@@ -156,6 +166,8 @@ block content
               button.btn.btn-outline-primary(onclick="diff('line-by-line')") line-by-line            
               #diff
                 pre.prettyprint.linenums(style="white-space: pre-wrap") #{diff}
+          else
+            h5 No data
       div#content-tab.tab-pane.active
         .row
           div.col-md-11
@@ -264,7 +276,6 @@ block content
                   }
                 })
               };
-
  else
     div.alert.alert-warning
       p No data

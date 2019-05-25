@@ -5,16 +5,18 @@ block content
     .card
       .card-header
         h4 Page
-
-      .card-body
- 
+          a= " from "
+          a(href=rootPath + "website/" + website._id) #{webpage.input}
+      .card-body 
        .row
-        .col-4
+        .col-3
           if webpage.thumbnail
             a.colorbox(href=rootPath + "screenshot/" + webpage.screenshot)
-              img(src="data:image/png;base64," + webpage.thumbnail)
+              img(width="100%" src="data:image/png;base64," + webpage.thumbnail)
           h5= "ID: "
             a(href=rootPath + "page/" + webpage._id) #{webpage._id}
+          h6= "Created: "
+            a= moment(webpage.createdAt).format('YYYY-MM-DD HH:mm:ss') + " / " +moment(webpage.createdAt).fromNow()
 
           button.btn.btn-block.btn-sm.btn-light(data-toggle="collapse" data-target="#option") Option
           #option.collapse
@@ -24,23 +26,11 @@ block content
                       tr
                         th= key
                         td= value
-
-
-        .col-8
+        .col-9
 
           h4
             table
-              tr
-                  th Created
-                  td= moment(webpage.createdAt).format('YYYY-MM-DD HH:mm:ss') + " / " +moment(webpage.createdAt).fromNow()
-
-
-              tr
-                th Input 
-                td
-                  a(href=rootPath + "website/" + website._id) #{webpage.input}
-
-
+        
               if website.gsb.lookup
                 tr
                   th SafeBrowsing
@@ -70,22 +60,16 @@ block content
                   td= webpage.error
                 else
                   td= "none"
-      .row
-        .col-4
-          if webpage.remoteAddress
-            - var pageAddress = webpage.remoteAddress
-            table
+              if webpage.remoteAddress
+                - var pageAddress = webpage.remoteAddress
                 tr
-                  th= "IP:Port"
+                  th= "IP/Port/GeoIP"
                   td
                     a(href=rootPath + "page?ip=" + pageAddress.ip)= " 🔍"
-                    a= pageAddress.ip + ":" +  pageAddress.port
-                tr
-                  th= "GeoIP"
-                  td
+                    a= pageAddress.ip + " / " +  pageAddress.port
                     if webpage.remoteAddress.geoip
                       if webpage.remoteAddress.geoip[0]
-                          a= webpage.remoteAddress.geoip[0].country
+                          a= " / " + webpage.remoteAddress.geoip[0].country
                 tr
                   th= "Reverse"
                   td
@@ -93,12 +77,13 @@ block content
                       each reverse in webpage.remoteAddress.reverse
                         a= reverse
                         br        
-                if webpage.wappalyzer
-                  th= "Wappalyzer"
-                  td
-                    each wapp in  webpage.wappalyzer
-                        a= wapp
-                        br
+       .row
+        .col-4
+          h6= "Wappalyzer"
+          if webpage.wappalyzer
+            each wapp in  webpage.wappalyzer
+              a= wapp
+              br
         .col-4
           h6 Cymru BGP
 
@@ -163,9 +148,8 @@ block content
               table.table.table-bordered.table-sm
                 tr.thead-light.d-flex
                   //th.col-2 createdAt
-                  th.col-1 seq
-                  th.col-3 url
                   th.col-2 request
+                  th.col-4 url
                   th.col-2 response
                   th.col-2 securityDetails
                   th.col-2 yara
@@ -177,17 +161,10 @@ block content
                       "table-warning":request.failure,
                       })
                     - seq += 1
-                    td.col-1= seq
-                      //= moment(request.createdAt).format('YYYY-MM-DD HH:mm:ss.SS')
-                    td.col-3
-                        //a(href=rootPath + "search/response?url=" + encodeURIComponent(request.url)) 🔍
-                        if request.url.length > 100
-                          a #{request.url.slice(0,100)}(truncated)
-                        else
-                          a #{request.url}
                     td.col-2
+                      a= seq + " / "
                       if request.response
-                        a(href=rootPath + "response/" + request.response._id) #{request.method}
+                        a #{request.method}
                       else
                         a= request.method
                       if request.resourceType
@@ -197,6 +174,12 @@ block content
                       if request.failure
                         br
                         a= request.failure.errorText
+                    td.col-4
+                        a(href=rootPath + "response?url=" + encodeURIComponent(request.url)) 🔍
+                        if request.url.length > 100
+                          a #{request.url.slice(0,100)}(truncated)
+                        else
+                          a #{request.url}
                     each response in responses
                       if request.response && response._id
                        if request.response.toString()==response._id.toString()

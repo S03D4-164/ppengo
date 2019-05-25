@@ -7,8 +7,8 @@ const Screenshot = require('./models/screenshot');
 const Payload = require('./models/payload');
 
 const imageThumbnail = require('image-thumbnail');
-
 const crypto = require("crypto");
+const fileType = require('file-type');
 
 const ipInfo = require('./ipInfo')
 //const wapptr = require('./wapptr')
@@ -198,9 +198,13 @@ module.exports = {
         if (responseBuffer){
           if(responseBuffer.length > 0){
             var md5Hash = crypto.createHash('md5').update(responseBuffer).digest('hex');
+            var ftype = fileType(responseBuffer);
             const payload = await Payload.findOneAndUpdate(
               {"md5": md5Hash},
-              {"payload": responseBuffer},
+              {
+                "payload": responseBuffer,
+                "fileType":ftype,
+              },
               {"new":true,"upsert":true},
             );
             payloadId = payload._id;
