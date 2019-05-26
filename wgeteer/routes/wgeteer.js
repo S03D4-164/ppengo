@@ -199,6 +199,8 @@ module.exports = {
           if(responseBuffer.length > 0){
             var md5Hash = crypto.createHash('md5').update(responseBuffer).digest('hex');
             var ftype = fileType(responseBuffer);
+            console.log("[Response] fileType", ftype)
+            ftype = ftype?ftype.mime:undefined;
             const payload = await Payload.findOneAndUpdate(
               {"md5": md5Hash},
               {
@@ -252,11 +254,12 @@ module.exports = {
             var hostinfo;
             if (host in ipCache){
               hostinfo = ipCache[host]
-              console.log("[ipInfo] cache exists.");
-            }else{
+              console.log("[ipInfo] cache exists.", host);
+            }
+            if(!hostinfo){
               hostinfo = await ipInfo(host);
               ipCache[host] = hostinfo;
-              //console.log(hostinfo);
+              console.log("[ipInfo] cached", host);
             }
             if(hostinfo){
               if (hostinfo.reverse) response.remoteAddress.reverse = hostinfo.reverse;

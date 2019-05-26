@@ -42,6 +42,10 @@ router.get('/', function(req, res) {
     //search.push({"$where": `/${req.query.status}/.test(this.status)`});
     search.push({"status": req.query.status});
   }
+  let verbose;
+  if(typeof req.query.verbose !== 'undefined' && req.query.verbose){
+    verbose = true;
+  }
 
   if(typeof req.query.csv !== 'undefined' && req.query.csv){
     var find = Webpage.find();
@@ -61,12 +65,11 @@ router.get('/', function(req, res) {
       page: req.query.page,
       limit: req.query.limit
     }, function(err, result) {
-      //console.log(result)
-      //console.log(paginate)
         res.render('pages', {
           title:"Pages",
           search:req.query,
           result,
+          verbose,
           pages: paginate.getArrayPages(req)(5, result.totalPages, req.query.page)
         });
     });

@@ -1,4 +1,7 @@
 extends layout
 
 block content
-  include include/table.pug
+  if verbose
+    include include/table.pug
+  else
+    include include/pagelist.pug

@@ -6,10 +6,10 @@ div
                 label.col-2(for="proxy") Proxy: 
                 input.col-9.form-control(type="text" name="proxy", id="proxy", placeholder="ip:port")
             .form-inline
-                label.mr-2(for="timeout") Timeout(s): 
-                input.mr-2.form-control(type="number" name="timeout", id="timeout", max="300", min="30", step="30", value="30")
-                label.mr-2(for="delay") Delay(s): 
-                input.mr-2.form-control(type="number" name="delay", id="delay", max="60", min="0", step="5", value="5")
+                label.col-2.mr-2(for="timeout") Timeout(s): 
+                input.col-2.mr-2.form-control(type="number" name="timeout", id="timeout", max="300", min="30", step="30", value="30")
+                label.col-2.mr-2(for="delay") Delay(s): 
+                input.col-2.mr-2.form-control(type="number" name="delay", id="delay", max="60", min="0", step="5", value="5")
                 .form-check-inline
                     label.form-check-label(for="disableScript") disable script:
                     input.form-check-input(type="checkbox", name="disableScript", id="disableScript" value="")

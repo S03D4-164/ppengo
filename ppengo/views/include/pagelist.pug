@@ -1,15 +1,19 @@
 mixin webpages-include(webpages, title, website, search)
+  if result
+    - var webpages = result.docs
+    include pagination.pug
   if webpages
     if webpages.length >= 0
-
-      form.form-inline(method="get" action=rootPath + "website/" + website._id)
-        input.form-control.mr-2.btn.btn-sm.btn-danger(type="submit" value="search")
-        label.mr-2(for="rurl") url:  
-        input.form-control.mr-2(type="text" name="rurl", id="rurl" placeholder='regex value' value=search?search.rurl:"")
-        label.mr-2(for="status") status:  
-        input.form-control.mr-2(type="text" name="status", id="status" placeholder='' value=search?search.status:"")
-        label.mr-2(for="source") source:  
-        input.form-control.mr-2(type="text" name="source", id="source" placeholder='' value=search?search.source:"")
+      - var actionPath = website?"website/"+website._id:"page/"
+      //form.form-inline(method="get" action=rootPath + "website/" + website._id)
+      form.form-inline(method="get" action=rootPath + actionPath)
+          input.form-control.mr-2.btn.btn-sm.btn-danger(type="submit" value="search")
+          label.mr-2(for="rurl") url:  
+          input.form-control.mr-2(type="text" name="rurl", id="rurl" placeholder='regex value' value=search?search.rurl:"")
+          label.mr-2(for="status") status:  
+          input.form-control.mr-2(type="text" name="status", id="status" placeholder='' value=search?search.status:"")
+          label.mr-2(for="source") source:  
+          input.form-control.mr-2(type="text" name="source", id="source" placeholder='' value=search?search.source:"")
       if search
         h4= "Search: " + JSON.stringify(search) + " - Total: " + webpages.length
 
@@ -62,7 +66,7 @@ mixin webpages-include(webpages, title, website, search)
               if webpage.remoteAddress.geoip
                 if webpage.remoteAddress.geoip[0]
                   - var cc = webpage.remoteAddress.geoip[0].country
-                  a= " / " + cc
+                  a= " - " + cc
                   a(href=rootPath + "page?country=" + cc)= " 🔍" 
 
             td.col-1

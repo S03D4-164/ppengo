@@ -15,8 +15,7 @@ block content
               img(width="100%" src="data:image/png;base64," + webpage.thumbnail)
           h5= "ID: "
             a(href=rootPath + "page/" + webpage._id) #{webpage._id}
-          h6= "Created: "
-            a= moment(webpage.createdAt).format('YYYY-MM-DD HH:mm:ss') + " / " +moment(webpage.createdAt).fromNow()
+          a= moment(webpage.createdAt).format('YYYY-MM-DD HH:mm:ss') + " / " +moment(webpage.createdAt).fromNow()
 
           button.btn.btn-block.btn-sm.btn-light(data-toggle="collapse" data-target="#option") Option
           #option.collapse
@@ -159,18 +158,19 @@ block content
                       "table-info":request.isNavigationRequest===true,
                       "table-danger":request.url===webpage.url,
                       "table-warning":request.failure,
-                      })
+                    })
                     - seq += 1
                     td.col-2
-                      a= seq + " / "
+                      a.btn.btn-sm.btn-primary(href=rootPath + "request/" + request._id)= seq
                       if request.response
-                        a #{request.method}
+                        a   #{request.method}
                       else
                         a= request.method
                       if request.resourceType
                         a= " / " + request.resourceType
                       if request.redirectChain
-                        a= " / chain:" +request.redirectChain.length
+                        br
+                        a= "chain:" +request.redirectChain.length
                       if request.failure
                         br
                         a= request.failure.errorText
@@ -183,7 +183,11 @@ block content
                     each response in responses
                       if request.response && response._id
                        if request.response.toString()==response._id.toString()
-                        td.col-2
+                        td.col-2(class={
+                          "table-default":response.status>=200&&response.status<300,
+                          "table-secondary":response.status>=400,
+                          "table-warning":response.status>=300&&response.status<400,
+                        })
                           a= "status: "
                           if response.status
                             a(href=rootPath + "response/" + response._id) #{response.status}
@@ -199,7 +203,7 @@ block content
                           a(href=rootPath + "response?ip=" + response.remoteAddress.ip)= response.remoteAddress.ip
                           if response.remoteAddress.geoip
                             if response.remoteAddress.geoip[0]
-                              a= " / " + response.remoteAddress.geoip[0].country
+                              a= " - " + response.remoteAddress.geoip[0].country
                         td.col-2= response.securityDetails.issuer
                         td.col-2
                           if response.yara

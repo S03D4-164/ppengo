@@ -48,7 +48,7 @@ block content
               if remoteAddress.geoip
                 if remoteAddress.geoip[0]
                   -var country=remoteAddress.geoip[0].country
-                  a= " / "
+                  a= " - "
                   a(href=rootPath + "response?country=" + country)= country
             td.col-2
               a(href=rootPath + "response?issuer=" +response.securityDetails.issuer) 🔍

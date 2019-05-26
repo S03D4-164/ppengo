@@ -6,8 +6,9 @@ block content
     a= " from "
     a(href=rootPath+"page/"+webpage._id) #{webpage.input}
   h3
-    a(href=rootPath + "response?url=" + encodeURIComponent(response.url)) 🔍
-    a= response.url
+    - var url = response?response.url:request.url
+    a(href=rootPath + "response?url=" + encodeURIComponent(url)) 🔍
+    a= url
   .row
     .col-6
      .card
@@ -49,7 +50,8 @@ block content
      .card
       .card-header
         h5 Response
-          a= " /  " + moment(response.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+          if response
+            a= " /  " + moment(response.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
 
       .card-body      
         if response
@@ -143,7 +145,8 @@ block content
      .card
       .card-header
               h6 Response Headers: 
-      .card-body      
+      .card-body
+              if response 
                 if response.headers
                   pre.prettyprint.linenums(style="white-space: pre-wrap")
                     each value, key in response.headers
@@ -171,6 +174,7 @@ block content
       div#content-tab.tab-pane.active
         .row
           div.col-md-11
+           if response
             h5
               if response.text
                 a=  "text size: " + response.text.length

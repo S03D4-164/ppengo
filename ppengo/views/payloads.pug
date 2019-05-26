@@ -9,7 +9,8 @@ block content
           table.table.table-striped.table-bordered.table-hover.table-sm
             tr.thead-light.d-flex
               th.col-2 createdAt
-              th.col-5 md5
+              th.col-4 md5
+              th.col-1 fileType
               th.col-1 size
               th.col-1 VT
               th.col-2 yara
@@ -18,7 +19,8 @@ block content
             each payload in payloads
                 tr.d-flex
                   td.col-2= moment(payload.createdAt).format('YYYY-MM-DD HH:mm:ss.SSS')
-                  td.col-5= payload.md5
+                  td.col-4= payload.md5
+                  td.col-1= payload.fileType
                   td.col-1
                     a(href=rootPath + "payload/" + payload._id)= payload.payload.length
                   td.col-1

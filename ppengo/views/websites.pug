@@ -5,7 +5,6 @@ block content
     - var websites = result.docs
     include include/pagination.pug
 
-
   if websites
       if websites.length >=0
           form.form-inline(method="get" action=rootPath+"website")
@@ -92,7 +91,7 @@ block content
                       br
                   td.col-2
                     if webpage.gsb.lookup
-                        a gsb
+                        a gsb:
                         br
                         -var matches = webpage.gsb.lookup.matches
                         if matches
@@ -104,7 +103,7 @@ block content
                           span.badge.badge-info
                             a none
                     hr
-                    a tag
+                    a tag:
                     br
                     each tag in webpage.tag
                       each val, key in tag
