@@ -1,8 +1,6 @@
 mixin webpages-include(webpages, title, website, search)
   if result
     - var webpages = result.docs
-    include pagination.pug
-
   if webpages
     if webpages.length >= 0
       if website
@@ -12,6 +10,16 @@ mixin webpages-include(webpages, title, website, search)
       if ids || completed
         h4= "Progress - Total: " + webpages.length
       else
+        .row
+          .col-4
+              include pagination.pug
+          .col-4.p-2
+            h3
+              = "List: " 
+              .btn-group
+                a.btn.btn-secondary(href=rootPath + "page") simple
+                a.btn.btn-primary(href=rootPath + "page?verbose=on") verbose
+
         form.form-inline(method="get" action=actionPath)
           .form-group.mr-5
             input.form-control.mr-2.btn.btn-sm.btn-danger(type="submit" value="search")
@@ -42,7 +50,8 @@ mixin webpages-include(webpages, title, website, search)
           th.col-3 capture
         each webpage in webpages
           tr.d-flex.page(value=webpage._id, class={
-                      "table-secondary":webpage.status>=400||(webpage.error&&!webpage.status),
+                      "table-secondary":webpage.status>=400,
+                      "table-warning":webpage.error&&!webpage.status,
                       })
             td.col-5
               .row

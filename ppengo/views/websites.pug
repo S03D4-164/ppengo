@@ -38,7 +38,8 @@ block content
                   - var error = webpage.last.error || null
                 tr.d-flex.page(value=webpage._id, class={
                   "table-info":webpage.track.counter,
-                  "table-secondary":status>=400||error,
+                  "table-secondary":status>=400,
+                  "table-warning":error,
                   })
                   td.col-3
                     if webpage.last

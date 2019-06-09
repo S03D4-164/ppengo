@@ -2,6 +2,8 @@ var express = require('express');
 var router = express.Router();
 
 var yara = require('yara');
+const Response = require('../models/response');
+const Webpage = require('../models/webpage');
 
 router.get('/', function(req, res) {
   res.json({
@@ -9,6 +11,26 @@ router.get('/', function(req, res) {
     'description':'post json contains source with header "Content-Type: application/json". eg:{"source":"xxx"}'
     });
 })
+
+function yaraMatched(result, buffer){
+  var matchedArray = [];
+  if ("rules" in result){
+    for(let rule of result["rules"]){
+      //console.log(rule)
+      if("matches" in rule){
+        for(let match of rule["matches"]){
+          var matched = buffer
+          .slice(match["offset"],match["offset"] + match["length"])
+          .toString();
+          if(!matchedArray.includes(matched)){
+            matchedArray.push(matched);
+          }
+        }
+      }
+    }
+  }
+  return matchedArray;
+}
 
 router.post('/', function(req, res) {
   var result = {};
@@ -21,6 +43,7 @@ router.post('/', function(req, res) {
       {filename: "/home/node/config/rules/index.yar"},
     ]
   }
+
   yara.initialize(function(error) {
   if (error) {
     console.error(error)
@@ -42,7 +65,9 @@ router.post('/', function(req, res) {
               if (result.rules.length) {
                 console.log("matched: %s", JSON.stringify(result))
               }
-              return res.json(result);
+              var matched = yaraMatched(result, reqbuf.buffer)
+              return res.json(matched);
+              //return res.json(result);
             }
           });
         }

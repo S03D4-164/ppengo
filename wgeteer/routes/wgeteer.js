@@ -373,12 +373,13 @@ module.exports = {
           waitUntil: 'networkidle2',
         });
         await page.waitFor(delay);      
+    /*
       }catch(err){
         console.log(err);
     }
 
     try{
-
+    */
       const pageTitle = await page.title()
       webpage.title = pageTitle;
 

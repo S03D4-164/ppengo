@@ -40,8 +40,9 @@ queue.on('job enqueue', function(id, type){
         //console.log(data);
         var webpage = data["webpage"];
         if(webpage){
-          yara.yaraPage(webpage._id);
-          wappalyze.analyze(webpage._id);
+          //yara.yaraPage(webpage._id);
+          //wappalyze.analyze(webpage._id);
+          queAnalyze(webpage._id);
         }
         var previous = data["previous"];
         if (previous && webpage){
@@ -64,7 +65,6 @@ queue.on('job enqueue', function(id, type){
     }
   }
 )
-
 
 queue.on('already scheduled', function (job) {
   console.log('job already scheduled ' + job.id);
@@ -128,6 +128,25 @@ const crawlWeb = async (job, done) => {
   done();
 }
 
+async function queAnalyze(id){
+  console.log("queAnalyze", id);
+  const analyzeJob = await queue.create('analyzePage', {
+    pageId: id,
+  }).ttl(60*1000);
+  await analyzeJob.save(function(err){
+    if( err ) console.log(err);
+  });
+}
+
+queue.process('analyzePage', 1, async (job, done) => {
+  //job.progress(1, 3, "analyzePage process queued");
+  await analyzePage(job, done);  
+});
+const analyzePage = async (job, done) => {
+  await wappalyze.analyze(job.data.pageId);
+  await yara.yaraPage(job.data.pageId);
+  done();
+};
 
 module.exports = {
   start(){

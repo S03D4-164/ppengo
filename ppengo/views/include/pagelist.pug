@@ -1,12 +1,22 @@
 mixin webpages-include(webpages, title, website, search)
-  if result
-    - var webpages = result.docs
-    include pagination.pug
+  .row
+    .col-4
+      if result
+        - var webpages = result.docs
+        include pagination.pug
+    .col-4.p-2
+      h3
+        = "List: " 
+        .btn-group
+          a.btn.btn-primary(href=rootPath + "page") simple
+          a.btn.btn-secondary(href=rootPath + "page?verbose=on") verbose
+
   if webpages
     if webpages.length >= 0
       - var actionPath = website?"website/"+website._id:"page/"
       //form.form-inline(method="get" action=rootPath + "website/" + website._id)
       form.form-inline(method="get" action=rootPath + actionPath)
+        .form-group.mr-5
           input.form-control.mr-2.btn.btn-sm.btn-danger(type="submit" value="search")
           label.mr-2(for="rurl") url:  
           input.form-control.mr-2(type="text" name="rurl", id="rurl" placeholder='regex value' value=search?search.rurl:"")
@@ -14,6 +24,9 @@ mixin webpages-include(webpages, title, website, search)
           input.form-control.mr-2(type="text" name="status", id="status" placeholder='' value=search?search.status:"")
           label.mr-2(for="source") source:  
           input.form-control.mr-2(type="text" name="source", id="source" placeholder='' value=search?search.source:"")
+        .checkbox-inline
+            label.form-check-label export CSV
+              input.form-check-input(type="checkbox" name="csv" id="csv")
       if search
         h4= "Search: " + JSON.stringify(search) + " - Total: " + webpages.length
 

@@ -132,17 +132,11 @@ router.get('/:id', async function(req, res, next) {
     .then((document)=>{return document});
     responses = find;
   } 
-  /*
-  var responses = await Response.find({"webpage":id})
-    .sort("createdAt").then((document) => {
-      return document;
-  });
-  */
+  
   var website = await Website.findOne({"url":webpage.input})
   .then((document) => {
     return document;
   });
-  console.log(webpage.yara)  
   res.render('page', { 
         webpage,
         requests,
@@ -150,7 +144,7 @@ router.get('/:id', async function(req, res, next) {
         website,
         previous:previous,
         diff,
-        search:req.query
+        search:req.query,
   });
 });
 

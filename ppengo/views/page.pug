@@ -78,24 +78,28 @@ block content
                         br        
        .row
         .col-4
-          h6= "Wappalyzer"
-          if webpage.wappalyzer
-            each wapp in  webpage.wappalyzer
-              a= wapp
-              br
+          //h6= "Wappalyzer"
+          button.btn.btn-block.btn-sm.btn-primary(data-toggle="collapse" data-target="#wappalyzer") Wappalyzer
+          #wappalyzer.collapse.show
+            if webpage.wappalyzer
+              each wapp in  webpage.wappalyzer
+                a= " - " + wapp
+                br
         .col-4
-          h6 Cymru BGP
-
-          if webpage.remoteAddress.bgp
+          //h6 Cymru BGP
+          button.btn.btn-block.btn-sm.btn-primary(data-toggle="collapse" data-target="#bgp") BGP
+          #bgp.collapse.show
+            if webpage.remoteAddress.bgp
                 if webpage.remoteAddress.bgp.length  
                   each bgp in webpage.remoteAddress.bgp
                     pre=JSON.stringify(bgp, null, ' ')
                 else
                   a empty
         .col-4
-          h6 securityDetails
-
-          if webpage.securityDetails
+          //h6 securityDetails
+          button.btn.btn-block.btn-sm.btn-primary(data-toggle="collapse" data-target="#securityDetails") securityDetails
+          #securityDetails.collapse.show
+            if webpage.securityDetails
                if webpage.securityDetails
                 - var securityDetails = webpage.securityDetails
                 if securityDetails.issuer
@@ -228,6 +232,7 @@ block content
                     span.badge.badge-warning
                       a= rule.id
             div#yara.collapse
+              pre#yaramatched
               if webpage.yara
                 pre#yarascan= JSON.stringify(webpage.yara, null, " ")
               else
@@ -311,18 +316,8 @@ block content
                   dataType: "json",            
                   success: function(result) { 
                     console.log(result)
-                    $('pre#yarascan').text(JSON.stringify(result, null, " "));
-                    if ("rules" in result){
-                      for(let rule of result["rules"]){
-                        console.log(rule)
-                        if("matches" in rule){
-                          for(let match of rule["matches"]){
-                            highlight = content.substr(match["offset"], match["length"])
-                            $("pre#content").highlight(highlight);
-                          }
-                        }
-                      }
-                    }
+                    $('pre#yaramatched').text(JSON.stringify(result, null, " "));
+                    $("pre#content").highlight(result);
                   },
                 error: function(err) {
                     $('pre#yarascan').text(err);

@@ -5,6 +5,7 @@ services:
     environment:
       - NODE_ENV=development
       - VTKEY
+      - GSBKEY
     tty: true
     container_name: wgeteer
     volumes:
