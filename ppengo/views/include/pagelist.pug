@@ -1,5 +1,9 @@
-mixin webpages-include(webpages, title, website, search)
-  .row
+mixin webpages-include(webpages, title, website, search, result)
+  if result
+    - var webpages = result.docs
+    include pagination.pug
+
+  //.row
     .col-4
       if result
         - var webpages = result.docs
@@ -90,4 +94,4 @@ mixin webpages-include(webpages, title, website, search)
     div.alert.alert-warning
       p No data
 
-+webpages-include(webpages, title, website, search)
++webpages-include(webpages, title, website, search, result)

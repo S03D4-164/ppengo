@@ -5,6 +5,9 @@ const responseSchema = new mongoose.Schema({
     url: {
       type: String,
     },
+    urlHash: {
+      type: String,
+    },
     status: {
       type: Number,
     },
@@ -52,7 +55,7 @@ const responseSchema = new mongoose.Schema({
 });
 
 responseSchema.index({createdAt:-1});
-responseSchema.index({url:1});
+responseSchema.index({urlHash:1});
 responseSchema.index({payload:1});
 responseSchema.index({text:'text'});
 responseSchema.index({webpage:1});

@@ -4,6 +4,7 @@ var paginate = require('express-paginate');
 
 const Website = require('./models/website');
 const Webpage = require('./models/webpage');
+const Tag = require('./models/tag');
 
 const json2csv = require('json2csv');
 
@@ -79,6 +80,18 @@ router.get('/', function(req, res) {
   }
 });
 
+async function paginatedPage(query, req){
+  const webpages = await Webpage.paginate(
+    query, {
+    sort:{"createdAt":-1},
+    page: req.query.page,
+    limit: req.query.limit
+  }, function(err, result) {
+    if(result)return result;
+    else console.log(error);
+  })
+  return webpages;
+}
 
 router.get('/:id', async function(req, res, next) {
     const id = req.params.id;
@@ -87,7 +100,8 @@ router.get('/:id', async function(req, res, next) {
     const website = await Website.findById(id)
       .then((document)=>{return document})
       .catch((err)=>{return err});
-
+    const tag = await Tag.find();
+    console.log(tag);
     var search = [];
     if(typeof req.query.rurl !== 'undefined' && req.query.rurl){
       search.push({"url":new RegExp(RegExp.escape(req.query.rurl))});
@@ -98,17 +112,31 @@ router.get('/:id', async function(req, res, next) {
     if(typeof req.query.status !== 'undefined' && req.query.status){
       search.push({"$where": `/${req.query.status}/.test(this.status)`});
     }
-    var webpages;
+    var result, pages;
     if(search.length){
+      query = {
+        "input":website.url,
+        "$and":search,
+      };
+      result = await paginatedPage(query, req);
+      /*
       const findPage = await Webpage.find().where({"input":website.url}).and(search).sort("-createdAt")
       .then((document)=>{return document});
       webpages = findPage
+      */
     } else{
+      query = {
+        "input":website.url,
+      };
+      result = await paginatedPage(query, req);
+      /*
       const findPage = await Webpage.find().where({"input":website.url}).sort("-createdAt")
       .then((document)=>{return document});
       webpages = findPage
+      */
     } 
- 
+    if(result) pages =  paginate.getArrayPages(req)(5, result.totalPages, req.query.page)
+
     if(typeof req.query.rmtag !== 'undefined' && req.query.rmtag !== null){
       var key = req.query.rmtag.split(":")[0];
       var value = req.query.rmtag.split(":").slice(1).join(":");
@@ -126,10 +154,13 @@ router.get('/:id', async function(req, res, next) {
     }
     res.render('website', {
       website,
-      webpages,
+      webpages: result,
       title: "Results",
       search: req.query,
       verbose,
+      tag,
+      result,
+      pages,
     });
 });
 
@@ -139,10 +170,27 @@ router.post('/:id', async function(req, res, next) {
     .then((document) => {return document;});
     //console.log(website);
     console.log(req.body);
-    
-    if (req.body['type'] && req.body['tag']){
-      var tag = {};
-      tag[req.body['type']] = req.body['tag'];
+
+    var tag = {};
+    if (req.body['tag']){
+      var founddTag = await Tag.findById(req.body['tag']);
+      tag[founddTag.key] = founddTag.value;
+    }
+    else if (req.body['tagkey'] && req.body['tagval']){
+      var foundTag = await Tag.find({
+        "key":req.body['tagkey'],
+        "value":req.body['tagval']
+      });
+      if(foundTag.length===0){
+        tag[req.body['tagkey']] = req.body['tagval'];
+        const newTag = new Tag({
+          "key":req.body['tagkey'],
+          "value":req.body['tagval'],
+        });
+        await newTag.save();
+      }
+    }
+    if(tag){
       var registeredTag = JSON.stringify(website.tag);
       if (!registeredTag.includes(JSON.stringify(tag))){
         console.log(tag);
@@ -168,13 +216,24 @@ router.post('/:id', async function(req, res, next) {
     }
 
     await website.save();
-
+    /*
     const webpages = await Webpage.find()
       .where({"input":website.url}).sort("-createdAt")
       .then((document)=>{return document});
+    */
+    var result = await paginatedPage({"input":website.url}, req);
+    var pages =  paginate.getArrayPages(req)(5, result.totalPages, req.query.page)
+
+    tag = await Tag.find();
+
     res.render('website', {
-          website, webpages,
+          website,
+          webpages:result,
+          result,
+          pages,
           title: "Results",
+          tag,
+          search:"",
     });
 });
 

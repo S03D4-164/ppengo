@@ -29,7 +29,9 @@ block content
 
           h4
             table
-        
+              tr.col-12
+                th.col-2
+                td.col-10
               if website.gsb.lookup
                 tr
                   th SafeBrowsing
@@ -179,7 +181,7 @@ block content
                         br
                         a= request.failure.errorText
                     td.col-4
-                        a(href=rootPath + "response?url=" + encodeURIComponent(request.url)) 🔍
+                        a(href=rootPath + "response?url=" + encodeURIComponent(request.url))= "🔍 "
                         if request.url.length > 100
                           a #{request.url.slice(0,100)}(truncated)
                         else

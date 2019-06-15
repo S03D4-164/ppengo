@@ -62,6 +62,9 @@ block content
               //tr            
                 th= "createdAt"
                 td= moment(response.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+              //tr
+                th= "urlHash"
+                td= response.urlHash
               tr
                 th= "status"
                 td= response.status + " " + response.statusText
@@ -262,18 +265,7 @@ block content
                   dataType: "json",            
                   success: function(result) { 
                     console.log(result)
-                    $('pre#yarascan').text(JSON.stringify(result, null, " "));
-                    if ("rules" in result){
-                      for(let rule of result["rules"]){
-                        console.log(rule)
-                        if("matches" in rule){
-                          for(let match of rule["matches"]){
-                            highlight = content.substr(match["offset"], match["length"])
-                            $("pre#content").highlight(highlight);
-                          }
-                        }
-                      }
-                    }
+                    $("pre#content").highlight(result);
                   },
                 error: function(err) {
                     $('pre#yara').text(err);

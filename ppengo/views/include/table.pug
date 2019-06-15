@@ -10,7 +10,8 @@ mixin webpages-include(webpages, title, website, search)
       if ids || completed
         h4= "Progress - Total: " + webpages.length
       else
-        .row
+        include pagination.pug
+        //.row
           .col-4
               include pagination.pug
           .col-4.p-2

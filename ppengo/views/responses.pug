@@ -9,13 +9,18 @@ block content
         input.form-control.mr-2.btn.btn-sm.btn-danger(type="submit" value="search")
         label.mr-2(for="rurl") url:  
         input.form-control.mr-2(type="text" name="rurl", id="rurl" placeholder='regex value' value=search?search.rurl:"")
-        label.mr-2(for="status") status:  
-        input.form-control.mr-2(type="text" name="status", id="status" placeholder='' value=search?search.status:"")
+        //label.mr-2(for="status") status:  
+        //input.form-control.mr-2(type="text" name="status", id="status" placeholder='' value=search?search.status:"")
         label.mr-2(for="source") source:  
-        input.form-control.mr-5(type="text" name="source", id="source" placeholder='' value=search?search.source:"")
+        input.form-control.mr-2(type="text" name="source", id="source" placeholder='' value=search?search.source:"")
+        label.mr-2(for="start") start:  
+        input.form-control.mr-2(type="text" name="start", id="start" placeholder='yyyymmdd' value=search?search.start:"")
+        label.mr-2(for="end") end:  
+        input.form-control.mr-5(type="text" name="end", id="end" placeholder='yyyymmdd' value=search?search.end:"")
         .checkbox-inline
           label.form-check-label export CSV
             input.form-check-input(type="checkbox" name="csv" id="csv")
+
 
     if search
           h4= "Search: " + JSON.stringify(search) + " - Total: " + responses.length

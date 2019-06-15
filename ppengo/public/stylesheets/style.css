@@ -12,7 +12,7 @@ table {
 }
 
 td {
-  word-wrap:break-word;
+  word-break:break-all;
 }
 
 img{

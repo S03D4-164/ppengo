@@ -5,6 +5,7 @@ const Response = require('./models/response');
 
 var paginate = require('express-paginate');
 const json2csv = require('json2csv');
+const moment = require('moment');
 
 var Diff = require('diff');
 
@@ -34,6 +35,18 @@ router.get('/', function(req, res) {
   if(typeof req.query.payload !== 'undefined' && req.query.payload){
     search.push({"payload": req.query.payload});
   }
+
+  if(typeof req.query.start !== 'undefined' && req.query.start){
+    var start = moment(req.query.start).toDate();
+    if(start.toString()!="Invalid Date")search.push({"createdAt": {"$gte": start}});
+  }
+
+  if(typeof req.query.end !== 'undefined' && req.query.end){
+    var end = moment(req.query.end).add('days', 1).toDate();
+    if(end.toString()!="Invalid Date")search.push({"createdAt": {"$lte": end}});
+  }
+
+  console.log(search);
 
   if(typeof req.query.csv !== 'undefined' && req.query.csv){
     var find = Response.find();

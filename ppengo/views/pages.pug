@@ -1,6 +1,9 @@
 extends layout
 
 block content
+  .btn-group.p-2
+    a.btn.btn-primary(href=rootPath + "page") simple
+    a.btn.btn-secondary(href=rootPath + "page?verbose=on") verbose
   if verbose
     include include/table.pug
   else

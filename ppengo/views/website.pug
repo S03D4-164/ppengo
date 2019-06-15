@@ -22,9 +22,17 @@ block content
                 a= " "
 
           form.form-inline(method="post" action=rootPath + "website/" + website._id)
-              input.form-control.btn.btn-danger(type="submit" name="submit", value="add tag")
-              input.form-control(type="text" name="type" id="type" placeholder="key")
-              input.form-control(type="text" name="tag" id="tag" placeholder="value")
+              input.mr-1.form-control.btn.btn-danger(type="submit" name="submit", value="add tag")
+              select.form-control(name='tag' id='tag')
+                option(value="" selected)= "-"
+                each t in tag
+                  option(value=t._id)= t.key + ":" +t.value
+              h6
+                a.btn register:
+                input.form-control(type="text" name="tagkey" id="tagkey" placeholder="key")
+                input.form-control(type="text" name="tagval" id="tagval" placeholder="value")
+
+
               input(type="hidden" name="_csrf", value=csrfToken)
         .col-6
           button.mr-2.btn.btn-outline-primary(data-toggle="collapse" data-target="#sitetrack") track ▽

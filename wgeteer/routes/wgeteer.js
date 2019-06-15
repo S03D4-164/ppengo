@@ -235,9 +235,14 @@ module.exports = {
         }
 
         try{
+          var url = interceptedResponse.url();
+          var urlHash = crypto.createHash('md5').update(url).digest('hex');
+          console.log("urlHash", urlHash);
           const response = new Response({
             webpage: webpage._id,
-            url:interceptedResponse.url(),
+            //url:interceptedResponse.url(),
+            url: url,
+            urlHash: urlHash,
             status:interceptedResponse.status(),
             statusText: interceptedResponse.statusText(),
             ok: interceptedResponse.ok(),

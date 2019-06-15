@@ -1,5 +1,5 @@
 mixin pagination-include(title, result, pages)
-    ul.p-2.pagination
+    ul.p-2.pagination(style="margin-bottom:0;")
           h3.mr-3= title + ": " + result.totalDocs
           li.page-item
             if result.prevPage
