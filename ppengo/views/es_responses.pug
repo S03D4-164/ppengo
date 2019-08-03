@@ -3,16 +3,17 @@ extends layout
 block content
   if result
     - var responses = result.docs
-    include include/pagination.pug
+    //include include/pagination.pug
   if responses
+    h2= "query : " + query + " => " + responses.length + " / " + total  + " hits"
     form.form-inline(method="get" action=rootPath + "response")
         input.form-control.mr-2.btn.btn-sm.btn-danger(type="submit" value="search")
         label.mr-2(for="rurl") url:  
         input.form-control.mr-2(type="text" name="rurl", id="rurl" placeholder='regex value' value=search?search.rurl:"")
         //label.mr-2(for="status") status:  
         //input.form-control.mr-2(type="text" name="status", id="status" placeholder='' value=search?search.status:"")
-        //label.mr-2(for="source") source:  
-        //input.form-control.mr-2(type="text" name="source", id="source" placeholder='' value=search?search.source:"")
+        label.mr-2(for="source") source:  
+        input.form-control.mr-2(type="text" name="source", id="source" placeholder='' value=search?search.source:"")
         label.mr-2(for="start") start:  
         input.form-control.mr-2(type="text" name="start", id="start" placeholder='yyyymmdd' value=search?search.start:"")
         label.mr-2(for="end") end:  
@@ -28,36 +29,19 @@ block content
       table.table.table-bordered.table-sm
         tr.thead-light.d-flex
           th.col-2 createdAt
-          th.col-5 url
-          th.col-5 response
+          th.col-4 url
+          th.col-6 text
         each response in responses
           tr.d-flex 
             td.col-2= moment(response.createdAt).format('YYYY-MM-DD HH:mm:ss.SSS')
-            td.col-5
+            td.col-4
               a(href=rootPath + "response?url=" + encodeURIComponent(response.url))= "🔍 "
-              if response.url.length > 100
-                a(href=rootPath + "response/" +response._id)= response.url.slice(0,100) + "(truncated)"
-              else
-                a(href=rootPath + "response/" +response._id)= response.url
-            td.col-5
-              a= "Status: " + response.status
-              - var remoteAddress = response.remoteAddress
-              a= " / IP: " 
-              a(href=rootPath + "response?ip=" +remoteAddress.ip)= remoteAddress.ip
-              if remoteAddress.geoip
-                if remoteAddress.geoip[0]
-                  -var country=remoteAddress.geoip[0].country
-                  a= " / Country: "
-                  a(href=rootPath + "response?country=" + country)= country
-              br
-              if response.wappalyzer
-                a= "Wappalyzer: "
-                  each wapp in response.wappalyzer
-                    a(href=rootPath + "response?wappalyzer=" + wapp)= wapp + " "
-                br
-              if response.securityDetails
-                a= "Issuer: "
-                a(href=rootPath + "response?issuer=" +response.securityDetails.issuer)= response.securityDetails.issuer
+              a(href=rootPath + "response/" +response._id) #{response.url}
+            td.col-6
+              - var matched = response.text.toLowerCase().indexOf(query.toLowerCase());
+              - var start = matched<=100?0:matched-100
+              a= matched + " / " + response.text.length
+              pre= response.text.slice(matched ,matched+100)
   else
     div.alert.alert-warning
       p No data

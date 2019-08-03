@@ -1,0 +1,31 @@
+mixin api-include(website)
+    .col-6
+          button.mr-2.btn.btn-outline-primary(data-toggle="collapse" data-target="#gsb") Google Safe Browsing ▽
+          if website.gsb.lookup
+            if website.gsb.lookup.matches
+              - var matches =  website.gsb.lookup.matches
+              if matches.length
+                each match in matches
+                  span.badge.badge-danger
+                    a= match.threatType
+          div#gsb.collapse
+            //a.btn.btn-sm.btn-primary(href=rootPath + "api/gsblookup/" + website._id) Lookup
+            button.btn.btn-sm.btn-primary(onclick="lookup()") Lookup
+
+            pre#gsblookup= JSON.stringify(website.gsb.lookup, null, " ")
+          script.
+              function lookup(){
+                var apiPath = #{rootPath};
+                $.ajax({
+                  type: "post",
+                  url: apiPath + "api/gsblookup",
+                  data:JSON.stringify({"id":"#{website._id}"}),
+                  contentType: 'application/json',
+                  dataType: "json",            
+                  success: function(result) { 
+                    $('pre#gsblookup').text(JSON.stringify(result, null, " "));
+                  },
+                })
+              };
+
++api-include(website)

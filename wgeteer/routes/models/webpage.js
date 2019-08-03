@@ -34,7 +34,7 @@ const webpageSchema = new mongoose.Schema({
     type: Number,
   },
   remoteAddress: {
-    ip: {type: String},
+    ip: {type: String, index: true},
     port: {type: Number},
     reverse: {type: [String]},
     bgp: {type: [Object]},

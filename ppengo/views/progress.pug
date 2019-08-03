@@ -31,9 +31,11 @@ block content
         
     #progress
       if completed===true
-        button.btn.btn-success
-          span#completed completed
+        .p-2
+          button.btn.btn-success
+            span#completed completed
       else
-        button.btn.btn-danger Loading..
-          span#completed.spinner-border.spinner-border-sm
+        .p-2
+          button.btn.btn-danger Loading..
+            span#completed.spinner-border.spinner-border-sm
       include include/table.pug

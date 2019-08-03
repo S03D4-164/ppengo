@@ -69,8 +69,8 @@ services:
     ports:
       - 9200:9200
     volumes:
-      - ./share/elasticsearch/data:/usr/share/elasticsearch/data
-      - ./share/elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+      - ../share/elasticsearch/data:/usr/share/elasticsearch/data
+      - ../share/elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
   kibana:
     image: docker.elastic.co/kibana/kibana-oss:6.3.2
     links:

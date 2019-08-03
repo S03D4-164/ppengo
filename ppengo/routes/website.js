@@ -100,8 +100,7 @@ router.get('/:id', async function(req, res, next) {
     const website = await Website.findById(id)
       .then((document)=>{return document})
       .catch((err)=>{return err});
-    const tag = await Tag.find();
-    console.log(tag);
+    const tag = await Tag.find().sort({key:1, value:1});
     var search = [];
     if(typeof req.query.rurl !== 'undefined' && req.query.rurl){
       search.push({"url":new RegExp(RegExp.escape(req.query.rurl))});
@@ -169,7 +168,7 @@ router.post('/:id', async function(req, res, next) {
     var website = await Website.findById(id)
     .then((document) => {return document;});
     //console.log(website);
-    console.log(req.body);
+    //console.log(req.body);
 
     var tag = {};
     if (req.body['tag']){
@@ -224,7 +223,7 @@ router.post('/:id', async function(req, res, next) {
     var result = await paginatedPage({"input":website.url}, req);
     var pages =  paginate.getArrayPages(req)(5, result.totalPages, req.query.page)
 
-    tag = await Tag.find();
+    tag = await Tag.find().sort({key:1, value:1});
 
     res.render('website', {
           website,

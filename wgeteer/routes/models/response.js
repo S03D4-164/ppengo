@@ -23,7 +23,7 @@ const responseSchema = new mongoose.Schema({
       es_indexed:true,
     },
     remoteAddress: {
-      ip: {type: String},
+      ip: {type: String, index: true},
       port: {type: Number},
       reverse: {type: [String]},
       bgp: {type: [Object]},

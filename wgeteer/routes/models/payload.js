@@ -17,7 +17,8 @@ const payloadSchema = new mongoose.Schema({
     },
     createdAt: {
         type: Date,
-        default: Date.now
+        default: Date.now,
+        index: true,
     },
     tag: {
         type: [Object]

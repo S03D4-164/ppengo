@@ -35,6 +35,7 @@ span.flag-icon {
         border-radius: 0 !important;
 }
 
+/*
 input{
   width:100%;
 }
@@ -42,6 +43,7 @@ input{
 h1, h2, h3, h4, h5, h6 {
   word-break: break-all;
 }
+*/
 
 pre {
   white-space: pre-wrap;
