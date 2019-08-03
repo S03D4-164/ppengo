@@ -15,7 +15,7 @@ services:
       - mongodata:/data/db
     container_name: mongodb
     command: --wiredTigerCacheSizeGB 2
-    mem_limit: 2g
+    mem_limit: 3g
     
   redis:
     image: redis:alpine
@@ -42,9 +42,11 @@ services:
     links:
       - mongodb
       - redis
+      - elasticsearch
     depends_on:
       - mongodb
       - redis
+      - elasticsearch
     volumes:
       - ./ppengo/public:/home/node/public
       - ./ppengo/routes:/home/node/routes
@@ -60,4 +62,18 @@ services:
         max-size: "10m"
         max-file: "10"
     restart: always
-    mem_limit: 2g    
+    mem_limit: 3g
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.3.2
+    ports:
+      - 9200:9200
+    volumes:
+      - ./share/elasticsearch/data:/usr/share/elasticsearch/data
+      - ./share/elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+  kibana:
+    image: docker.elastic.co/kibana/kibana-oss:6.3.2
+    links:
+      - elasticsearch:elasticsearch
+    ports:
+      - 5601:5601

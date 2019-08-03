@@ -14,9 +14,13 @@ services:
     working_dir: /home/node/app
     #command: /bin/sh
     command: dumb-init -- node --optimize_for_size --gc_interval=100 --max-old-space-size=2048 scheduler
-    mem_limit: 2g
+    mem_limit: 3g
     restart: always
-
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "10"
   gosb:
     build: "gosb"
     tty: true

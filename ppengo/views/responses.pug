@@ -56,8 +56,9 @@ block content
                   a= " - "
                   a(href=rootPath + "response?country=" + country)= country
             td.col-2
-              a(href=rootPath + "response?issuer=" +response.securityDetails.issuer) 🔍
-              a #{response.securityDetails.issuer}
+              if response.securityDetails
+                a(href=rootPath + "response?issuer=" +response.securityDetails.issuer) 🔍
+                a #{response.securityDetails.issuer}
   else
     div.alert.alert-warning
       p No data

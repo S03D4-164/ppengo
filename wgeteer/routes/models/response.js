@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const mongoosePaginate = require('mongoose-paginate-v2');
+const mongoosastic = require('mongoosastic')
 
 const responseSchema = new mongoose.Schema({
     url: {
@@ -19,6 +20,7 @@ const responseSchema = new mongoose.Schema({
     },
     text: {
       type: String,
+      es_indexed:true,
     },
     remoteAddress: {
       ip: {type: String},
@@ -61,5 +63,26 @@ responseSchema.index({text:'text'});
 responseSchema.index({webpage:1});
 
 responseSchema.plugin(mongoosePaginate);
+responseSchema.plugin(mongoosastic,{
+  hosts: ['elasticsearch:9200'],
+  //hydrate:true,
+  //hydrateOptions: {lean: true},
+  //hydrateWithESResults: {source: false},
+})
+
+
+var Response = mongoose.model('Response', responseSchema)
+  , stream = Response.synchronize()
+  , count = 0;
+
+stream.on('data', function(err, doc){
+  count++;
+});
+stream.on('close', function(){
+  console.log('indexed ' + count + ' documents!');
+});
+stream.on('error', function(err){
+  console.log(err);
+});
 
 module.exports = mongoose.model('Response', responseSchema);

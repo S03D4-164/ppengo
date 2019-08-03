@@ -30,6 +30,7 @@
     "kue-ui-express": "^1.1.1",
     "moment": "^2.24.0",
     "mongo-express": "^0.52.2",
+    "mongoosastic": "^4.5.0",
     "mongoose": "^5.5.4",
     "mongoose-paginate-v2": "^1.2.1",
     "morgan": "~1.9.0",

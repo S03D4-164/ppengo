@@ -9,6 +9,40 @@ const moment = require('moment');
 
 var Diff = require('diff');
 
+router.get('/es', function(req, res) {
+  var query = req.query.query;
+  var from = req.query.from?req.query.from:0;
+  var size = req.query.size?req.query.size:10;
+  var query = {
+    query_string: {
+      query: req.query.query
+    }
+  };
+  var hidrate = {
+      hydrate: true,
+      hydrateOptions: {lean: true},
+      hydrateWithESResults: {source: true},
+  };
+  var rawQuery = {
+    from: from,
+    size: size,
+    query: query,
+  };
+  //Response.search(
+  Response.esSearch(
+    rawQuery,hidrate,
+    function(err, results) {
+      //console.log(JSON.stringify(results,null," "))
+      var result = {"docs":results.hits.hits};
+      res.render('es_responses', {
+        result,
+        "query": req.query.query,
+        "total": results.hits.total,
+      });
+    }
+  )
+});
+
 router.get('/', function(req, res) {
   search = [];
   if(typeof req.query.url !== 'undefined' && req.query.url){
