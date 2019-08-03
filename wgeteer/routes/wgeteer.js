@@ -68,16 +68,21 @@ module.exports = {
       }
       const myBrowser = localChromiums[0];
       const {executablePath} = await browserFetcher.revisionInfo(myBrowser);
-
-      const browser = await puppeteer.launch({
+      var browser;
+      try{
+        browser = await puppeteer.launch({
           executablePath:executablePath,
           headless: true,
           ignoreHTTPSErrors: true,
-          //userDataDir: 'data',
           defaultViewport: {width: 1280, height: 720,},
           dumpio:true,
           args: chromiumArgs,
-      });
+        });
+      }catch(error){
+        console.log(error);
+        webpage.error = error.message;
+        return webpage;
+      }
       const browserVersion = await browser.version();
       console.log(browserVersion);
       browser.on('disconnected', () => console.log('[Browser] disconnected.'));
@@ -110,12 +115,18 @@ module.exports = {
         async ({requestId, request}) => {
           console.log("[requestWillBeSent]", requestId, request);
       });
-      */
 
       client.on('Network.dataReceived',
       async ({requestId, dataLength}) => {
         console.log("[dataReceived]", requestId, dataLength);
       });
+
+      client.on('Network.responseReceived',
+      async ({requestId, response}) => {
+        console.log("[responseReceived]", requestId);
+      });
+
+      */
 
       client.on('Network.loadingFinished',
       async ({requestId, encodedDataLength}) => {
@@ -123,13 +134,6 @@ module.exports = {
         if(response.body) console.log("[loadingFinished]", requestId, encodedDataLength, response.body.length, response.base64Encoded);
         else console.log("[loadingFinished] no body", requestId, encodedDataLength, response.body, response.base64Encoded);
       });
-
-      /*
-      client.on('Network.responseReceived',
-        async ({requestId, response}) => {
-          console.log("[responseReceived]", requestId);
-        });
-        */
 
       client.on('Network.requestIntercepted',
         async ({ interceptionId, request, isDownload, responseStatusCode, responseHeaders,requestId}) => {
@@ -168,14 +172,14 @@ module.exports = {
       page.on('load', () => console.log('[Page] loaded'));
       page.on('domcontentloaded', () => console.log('[Page] DOM content loaded'));
       page.on('closed', () => console.log('[Page] closed'));
-  
+      /*
       page.on('workercreated', wrkr => console.log('[Worker] created: ', wrkr));
       page.on('workerdestroyed', wrkr => console.log('[Worker] destroyed: ', wrkr));
   
       page.on('frameattached', frm => console.log('[Frame] attached: ', frm));
       page.on('framedetached', frm => console.log('[Frame] detached: ', frm));
       page.on('framenavigateed', frm => console.log('[Frame] navigated: ', frm));
-
+      */
       var ipCache = {};
       var responses = [];
       async function saveResponse(interceptedResponse, request){
@@ -240,7 +244,6 @@ module.exports = {
           console.log("urlHash", urlHash);
           const response = new Response({
             webpage: webpage._id,
-            //url:interceptedResponse.url(),
             url: url,
             urlHash: urlHash,
             status:interceptedResponse.status(),
@@ -254,26 +257,6 @@ module.exports = {
             request: request._id,
           });
 
-          if (response.remoteAddress){
-            const host = response.remoteAddress.ip;
-            var hostinfo;
-            if (host in ipCache){
-              hostinfo = ipCache[host]
-              console.log("[ipInfo] cache exists.", host);
-            }
-            if(!hostinfo){
-              hostinfo = await ipInfo(host);
-              ipCache[host] = hostinfo;
-              console.log("[ipInfo] cached", host);
-            }
-            if(hostinfo){
-              if (hostinfo.reverse) response.remoteAddress.reverse = hostinfo.reverse;
-              if (hostinfo.bgp) response.remoteAddress.bgp = hostinfo.bgp;
-              if (hostinfo.geoip) response.remoteAddress.geoip = hostinfo.geoip;
-              if (hostinfo.ip) response.remoteAddress.ip = hostinfo.ip;
-            }
-          }
-          
           await response.save(function (err){
             if(err) console.log(err);
             //else console.log("response saved: " + response.url.slice(0,100));
@@ -383,7 +366,7 @@ module.exports = {
         webpage.error = err.message;
         await page._client.send("Page.StopLoading");
     }
-
+    var finalResponse;
     try{
       const pageTitle = await page.title()
       webpage.title = pageTitle;
@@ -419,7 +402,6 @@ module.exports = {
       webpage.screenshot = ss._id;
 
       webpage.url = page.url();
-      var finalResponse;
       if(webpage.url){
         for(let num in responses){
           if (responses[num].url){
@@ -429,7 +411,7 @@ module.exports = {
           }
         }
       }
-
+    
       /*
       try{
         const cookies = await page.cookies();
@@ -459,14 +441,27 @@ module.exports = {
           }
         }
     }finally{
-      webpage.requests = requests;
-      webpage.responses = responses;
+
       if(finalResponse){
         webpage.status = finalResponse.status;
         webpage.headers = finalResponse.headers;
         webpage.remoteAddress = finalResponse.remoteAddress;
         webpage.securityDetails = finalResponse.securityDetails;
+        if (finalResponse.remoteAddress){
+            const host = finalResponse.remoteAddress.ip;
+            const hostinfo = await ipInfo(host);
+            if(hostinfo){
+              console.log(hostinfo);
+              if (hostinfo.reverse) finalResponse.remoteAddress.reverse = hostinfo.reverse;
+              if (hostinfo.bgp) finalResponse.remoteAddress.bgp = hostinfo.bgp;
+              if (hostinfo.geoip) finalResponse.remoteAddress.geoip = hostinfo.geoip;
+              if (hostinfo.ip) finalResponse.remoteAddress.ip = hostinfo.ip;
+            }
+        }
       };
+
+      webpage.requests = requests;
+      webpage.responses = responses;
 
       await webpage.save(function (err, success){
           if(err) console.log(err)

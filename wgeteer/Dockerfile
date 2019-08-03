@@ -9,6 +9,6 @@ RUN apt-get update \
     && chown -R node.node /home/node \
     && su node -c yarn install \
     && rm -rf /var/lib/apt/lists/* /src/*.deb \
-    && dpkg -P --force-all chromium g++ gcc git cpp
+    && dpkg -P --force-all chromium g++ gcc git
 
 USER node
