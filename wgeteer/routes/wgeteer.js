@@ -131,8 +131,11 @@ module.exports = {
       client.on('Network.loadingFinished',
       async ({requestId, encodedDataLength}) => {
         const response = await client.send('Network.getResponseBody', { requestId });
-        if(response.body) console.log("[loadingFinished]", requestId, encodedDataLength, response.body.length, response.base64Encoded);
-        else console.log("[loadingFinished] no body", requestId, encodedDataLength, response.body, response.base64Encoded);
+        if(response.body) {
+          console.log("[loadingFinished]", requestId, encodedDataLength, response.body.length, response.base64Encoded);
+        } else {
+          console.log("[loadingFinished] no body", requestId, encodedDataLength, response.body, response.base64Encoded);
+        }
       });
 
       client.on('Network.requestIntercepted',
@@ -194,6 +197,8 @@ module.exports = {
                 break;
               }
             }
+            //if(responseBuffer)console.log("[Response] cache exists")
+            //else console.log("[Response] no cache")
             responseBuffer = await interceptedResponse.buffer();
         }catch(err){
           console.log("[Response] failed on save buffer");
@@ -241,7 +246,6 @@ module.exports = {
         try{
           var url = interceptedResponse.url();
           var urlHash = crypto.createHash('md5').update(url).digest('hex');
-          console.log("urlHash", urlHash);
           const response = new Response({
             webpage: webpage._id,
             url: url,
@@ -277,7 +281,7 @@ module.exports = {
           const chain = interceptedRequest.redirectChain();
           if(chain){
             for(let seq in chain){
-              console.log("[Chain]", interceptedRequest.url(),  chain[seq].url());
+              //console.log("[Chain]", interceptedRequest.url(),  chain[seq].url());
               redirectChain.push(chain[seq].url());
             }  
           }
@@ -447,15 +451,15 @@ module.exports = {
         webpage.headers = finalResponse.headers;
         webpage.remoteAddress = finalResponse.remoteAddress;
         webpage.securityDetails = finalResponse.securityDetails;
-        if (finalResponse.remoteAddress){
-            const host = finalResponse.remoteAddress.ip;
-            const hostinfo = await ipInfo(host);
+        if (webpage.remoteAddress){
+            const host = webpage.remoteAddress.ip;
+            const hostinfo = await ipInfo.getHostInfo(host);
             if(hostinfo){
               console.log(hostinfo);
-              if (hostinfo.reverse) finalResponse.remoteAddress.reverse = hostinfo.reverse;
-              if (hostinfo.bgp) finalResponse.remoteAddress.bgp = hostinfo.bgp;
-              if (hostinfo.geoip) finalResponse.remoteAddress.geoip = hostinfo.geoip;
-              if (hostinfo.ip) finalResponse.remoteAddress.ip = hostinfo.ip;
+              if (hostinfo.reverse) webpage.remoteAddress.reverse = hostinfo.reverse;
+              if (hostinfo.bgp) webpage.remoteAddress.bgp = hostinfo.bgp;
+              if (hostinfo.geoip) webpage.remoteAddress.geoip = hostinfo.geoip;
+              if (hostinfo.ip) webpage.remoteAddress.ip = hostinfo.ip;
             }
         }
       };
@@ -468,6 +472,9 @@ module.exports = {
           else console.log("webpage saved: " + webpage.input);
       });
       await browser.close();
+
+      ipInfo.setResponseIp(responses);
+
       return webpage;
     }
   },

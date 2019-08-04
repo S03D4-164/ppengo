@@ -15,13 +15,14 @@ services:
       - mongodata:/data/db
     container_name: mongodb
     command: --wiredTigerCacheSizeGB 2
-    mem_limit: 3g
+    mem_limit: 2g
     
   redis:
     image: redis:alpine
     container_name: cache
     ports:
       - 127.0.0.1:6379:6379
+    mem_limit: 1g
 
   ppengo:
     build: "ppengo"
@@ -35,7 +36,7 @@ services:
       - ME_CONFIG_MONGODB_URL=mongodb://mongodb/wgeteer
       - ME_CONFIG_BASICAUTH_USERNAME=admin
       - ME_CONFIG_BASICAUTH_PASSWORD=password
-      - NODE_OPTIONS=--max-old-space-size=1024
+      - NODE_OPTIONS="--optimize_for_size --gc_interval=100 --max-old-space-size=1024"
     tty: true
     ports:
       - "127.0.0.1:3000:3000"
@@ -62,7 +63,7 @@ services:
         max-size: "10m"
         max-file: "10"
     restart: always
-    mem_limit: 2g
+    mem_limit: 1g
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:6.3.2
@@ -71,9 +72,13 @@ services:
     volumes:
       - ../share/elasticsearch/data:/usr/share/elasticsearch/data
       - ../share/elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
-  kibana:
-    image: docker.elastic.co/kibana/kibana-oss:6.3.2
-    links:
-      - elasticsearch:elasticsearch
-    ports:
-      - 5601:5601
+    mem_limit: 4g
+    environment:
+      - JVM_OPTS=-Xmx4g -Xms4g -XX:MaxPermSize=4096m
+    container_name: elasticsearch
+  #kibana:
+  #  image: docker.elastic.co/kibana/kibana-oss:6.3.2
+  #  links:
+  #    - elasticsearch:elasticsearch
+  #  ports:
+  #    - 5601:5601

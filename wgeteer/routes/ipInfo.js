@@ -63,4 +63,40 @@ const getIpinfo = async function(host){
     return;
 }
 
-module.exports = getIpinfo;
+module.exports = {
+    async getHostInfo (host){
+        const hostinfo = await getIpinfo(host); 
+        return hostinfo;
+    },
+    async setResponseIp (responses){
+        var ips = {};
+        for (let seq in responses){
+            var response = responses[seq];
+            if (response.remoteAddress.ip){
+                var ip = response.remoteAddress.ip;
+                if(ip in ips){
+                    ips[ip].push(response);
+                }else{
+                    ips[ip] = [response];
+                }
+            }
+        }
+        for (let ip in ips){
+            //console.log(ip);
+            const hostinfo = await getIpinfo(ip); 
+            if(hostinfo){
+                console.log(hostinfo);
+                var responseArray = ips[ip];
+                for (let num in responseArray){
+                    var res = responseArray[num];
+                    if (hostinfo.reverse) res.remoteAddress.reverse = hostinfo.reverse;
+                    if (hostinfo.bgp) res.remoteAddress.bgp = hostinfo.bgp;
+                    if (hostinfo.geoip) res.remoteAddress.geoip = hostinfo.geoip;
+                    if (hostinfo.ip) res.remoteAddress.ip = hostinfo.ip;
+                    res.save();
+                }
+            }  
+        }
+        return;
+    },
+}

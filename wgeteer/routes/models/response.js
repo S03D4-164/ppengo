@@ -23,7 +23,7 @@ const responseSchema = new mongoose.Schema({
       es_indexed:true,
     },
     remoteAddress: {
-      ip: {type: String, index: true},
+      ip: {type: String},
       port: {type: Number},
       reverse: {type: [String]},
       bgp: {type: [Object]},
@@ -61,10 +61,14 @@ responseSchema.index({urlHash:1});
 responseSchema.index({payload:1});
 responseSchema.index({text:'text'});
 responseSchema.index({webpage:1});
+responseSchema.index({"remoteAddress.ip":1});
 
 responseSchema.plugin(mongoosePaginate);
 responseSchema.plugin(mongoosastic,{
-  hosts: ['elasticsearch:9200'],
+  hosts: [
+    'elasticsearch:9200',
+    '127.0.0.1:9200',
+  ],
   //hydrate:true,
   //hydrateOptions: {lean: true},
   //hydrateWithESResults: {source: false},
