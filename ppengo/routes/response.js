@@ -10,34 +10,42 @@ const moment = require('moment');
 var Diff = require('diff');
 
 router.get('/es', function(req, res) {
-  var query = req.query.query;
-  var from = req.query.from?req.query.from:0;
-  var size = req.query.size?req.query.size:10;
-  var query = {
-    query_string: {
-      query: req.query.query
-    }
-  };
-  var hidrate = {
-      hydrate: true,
-      hydrateOptions: {lean: true},
-      hydrateWithESResults: {source: true},
-  };
+  var size = req.query.size?Number(req.query.size):10;
+  var page = req.query.page?Number(req.query.page):1;
+  var from = (page-1)*size;
+  //var from = req.query.from?Number(req.query.from):0;
   var rawQuery = {
-    from: from,
-    size: size,
-    query: query,
+    "from" : from, "size" : size,
+    "query": {
+        "query_string" : {
+            "query" : req.query.query,
+            "fields":["text"]
+        }
+    },
+    "sort":{"createdAt": {"order": "desc"}},
   };
-  //Response.search(
-  Response.esSearch(
-    rawQuery,hidrate,
+  console.log(rawQuery);
+  var hidrate = {
+    hydrate: true,
+    hydrateOptions: {lean: true},
+    hydrateWithESResults: {source: true},
+  };
+  Response.esSearch(rawQuery,
+    hidrate,
     function(err, results) {
-      //console.log(JSON.stringify(results,null," "))
-      var result = {"docs":results.hits.hits};
+      //console.log(JSON.stringify(results,null," "));
+      var result, total;
+      if(results){
+        result = results.hits?{"docs":results.hits.hits}:{"docs":[]};
+        total = results.hits?results.hits.total:0;
+      }
       res.render('es_responses', {
         result,
         "query": req.query.query,
-        "total": results.hits.total,
+        "total": total,
+        from,
+        size,
+        //pagenum,
       });
     }
   )

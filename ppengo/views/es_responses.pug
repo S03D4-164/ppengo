@@ -1,29 +1,28 @@
 extends layout
 
 block content
+  h2.p-2 Responses - ElasticSearch
   if result
     - var responses = result.docs
     //include include/pagination.pug
+  form.form-inline(method="get" action=rootPath + "response/es")
+      input.form-control.mr-2.btn.btn-sm.btn-danger(type="submit" value="search")
+      label.mr-2(for="source") query:  
+      input.form-control.mr-2(type="text" name="query", id="query" value=query?query:"")
+      label(for="size") size:
+      select.form-control(name='size' id='size')
+          option(value=10, selected= true) 10
+          option(value=50) 50 
+          option(value=100) 100
+      //label(for="size") page:
+      //select.form-control(name='page' id='page')
+          option(value=1, selected= true) 1
+
+  br
   if responses
-    h2= "query : " + query + " => " + responses.length + " / " + total  + " hits"
-    form.form-inline(method="get" action=rootPath + "response")
-        input.form-control.mr-2.btn.btn-sm.btn-danger(type="submit" value="search")
-        label.mr-2(for="rurl") url:  
-        input.form-control.mr-2(type="text" name="rurl", id="rurl" placeholder='regex value' value=search?search.rurl:"")
-        //label.mr-2(for="status") status:  
-        //input.form-control.mr-2(type="text" name="status", id="status" placeholder='' value=search?search.status:"")
-        label.mr-2(for="source") source:  
-        input.form-control.mr-2(type="text" name="source", id="source" placeholder='' value=search?search.source:"")
-        label.mr-2(for="start") start:  
-        input.form-control.mr-2(type="text" name="start", id="start" placeholder='yyyymmdd' value=search?search.start:"")
-        label.mr-2(for="end") end:  
-        input.form-control.mr-5(type="text" name="end", id="end" placeholder='yyyymmdd' value=search?search.end:"")
-        .checkbox-inline
-          label.form-check-label export CSV
-            input.form-check-input(type="checkbox" name="csv" id="csv")
+    h2= "query : " + query + " => " + total  + " hits"
 
-
-    if search
+    //if search
           h4= "Search: " + JSON.stringify(search) + " - Total: " + responses.length
     if responses.length >= 0 
       table.table.table-bordered.table-sm
@@ -41,7 +40,7 @@ block content
               - var matched = response.text.toLowerCase().indexOf(query.toLowerCase());
               - var start = matched<=100?0:matched-100
               a= matched + " / " + response.text.length
-              pre= response.text.slice(matched ,matched+100)
+              pre= response.text.slice(start ,matched+100)
   else
     div.alert.alert-warning
       p No data

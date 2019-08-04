@@ -5,6 +5,7 @@ const mongoosastic = require('mongoosastic')
 const responseSchema = new mongoose.Schema({
     url: {
       type: String,
+      es_indexed:true,
     },
     urlHash: {
       type: String,
@@ -42,7 +43,8 @@ const responseSchema = new mongoose.Schema({
     },
     createdAt: {
       type: Date,
-      default: Date.now
+      default: Date.now,
+      es_indexed:true,
     },
     wappalyzer: {
       type: [String]

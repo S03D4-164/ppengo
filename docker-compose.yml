@@ -76,9 +76,9 @@ services:
     environment:
       - JVM_OPTS=-Xmx4g -Xms4g -XX:MaxPermSize=4096m
     container_name: elasticsearch
-  #kibana:
-  #  image: docker.elastic.co/kibana/kibana-oss:6.3.2
-  #  links:
-  #    - elasticsearch:elasticsearch
-  #  ports:
-  #    - 5601:5601
+  kibana:
+    image: docker.elastic.co/kibana/kibana-oss:6.3.2
+    links:
+      - elasticsearch:elasticsearch
+    ports:
+      - 5601:5601
