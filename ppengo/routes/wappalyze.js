@@ -51,8 +51,12 @@ module.exports = {
             cookies,
         );
         if (wapps) {
-          webpage.wappalyzer = wapps;
-          webpage.save();
+          //webpage.wappalyzer = wapps;
+          //webpage.save();
+          await Webpage.findOneAndUpdate(
+            {_id: webpage._id},
+            {wappalyzer: wapps}
+          );
         }  
       }catch(err){
         console.log(err);
@@ -75,6 +79,11 @@ module.exports = {
                 if (wapps) {
                   response.wappalyzer = wapps;
                   response.save();
+                  await Response.findOneAndUpdate(
+                    {_id: response._id},
+                    {wappalyzer: wapps}
+                  );
+        
                 }
               }catch(err){
                 console.log(err);

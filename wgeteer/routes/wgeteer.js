@@ -368,7 +368,7 @@ module.exports = {
       }catch(err){
         console.log(err);
         webpage.error = err.message;
-        await page._client.send("Page.StopLoading");
+        await page._client.send("Page.stopLoading");
     }
     var finalResponse;
     try{

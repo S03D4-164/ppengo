@@ -31,3 +31,4 @@ services:
       - 127.0.0.1:3001:3001
     working_dir: /app
     command: ./bin/sbserver -db "/tmp/gosb/gsbv4.db" -srvaddr "0.0.0.0:3001" -apikey ${GSBKEY}
+    mem_limit: 1g
