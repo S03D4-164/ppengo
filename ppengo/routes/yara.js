@@ -5,49 +5,43 @@ const Payload = require('./models/payload');
 
 async function yaraScan(source){
   return new Promise(function(resolve, reject){
-    var buf = {buffer: Buffer.from(source)};
-    //console.log(buf);
-    var options = {
-      rules: [
-        {filename: "/home/node/config/rules/index.yar"},
-      ]
-    }
     yara.initialize(function(error) {
-    if (error) {
-      console.error(error)
-    } else {
-      var scanner = yara.createScanner()
-      scanner.configure(options, function(error, warnings) {
-        if (error) {
-          console.error(error)
-        } else {
-          if (warnings.length) {
-            console.error("Compile warnings: " + JSON.stringify(warnings))
-          } else {
-            try{
-              scanner.scan(buf, function(error, result) {
-                if (error) {
-                  console.error("scan failed: %s", error.message)
-                } else {
-                  console.log(result);
-                  if (result.rules.length) {
-                    console.log("matched: %s", JSON.stringify(result))
-                  }
-                  resolve(result);
-                }
-              });
-            }catch(err){
-              console.log(err);
-            }
-          }
+      if (error) { console.error(error.message) 
+      } else {
+        var scanner = yara.createScanner();
+        var options = {
+          rules: [
+            {filename: "/home/node/config/rules/index.yar"},
+          ]
         }
-      });
-     }
+        scanner.configure(options, function(error, warnings) {
+          if (error) { 
+            console.error(error);
+          } else {
+            if (warnings.length) { console.log("Compile warnings: " + JSON.stringify(warnings)) }
+            //else {
+            try{
+                var buf = {"buffer": Buffer.from(source, "utf-8")};
+                scanner.scan(buf, function(error, result) {
+                  if (error) {
+                    console.error("scan failed: %s", error.message);
+                   } else {
+                    if (result.rules.length) console.log("matched: %s", JSON.stringify(result));
+                    buf.buffer = null;
+                    buf = null;
+                    options = null;
+                    resolve(result);
+                  }
+                });
+            }catch(err){
+              console.error(err);
+            }
+            //}
+          }
+        });
+      }
     })
-
-
-    }
-  )
+  })
 }
 
 module.exports = {
@@ -64,10 +58,15 @@ module.exports = {
   async yaraPage(id){
     await Webpage.findById(id)
     .then(async (page) => {
+      //console.log(page._id, page.content.length)
       if(page.content){
-        page.yara = await yaraScan(page.content);
-        await page.save();
-        console.log(page.yara)  
+        var yara = await yaraScan(page.content);
+        console.log("yara", yara)  
+        await Webpage.findOneAndUpdate(
+          {_id: page._id},
+          {yara: yara}
+        );
+        yara = null;
       }
     });
     await Response.find({"webpage":id})
@@ -76,11 +75,16 @@ module.exports = {
         for(let res of responses){
             if(res.text){
               console.log("url",res.url)
-              res.yara = await yaraScan(res.text);
-              await res.save();
-              console.log("yara",res.yara)
+              var yara = await yaraScan(res.text);
+              console.log("yara",yara)
+              await Response.findOneAndUpdate(
+                {_id: res._id},
+                {yara: yara}
+              );
+              yara = null;
             }
         }
     });
+    return;
   }
 }

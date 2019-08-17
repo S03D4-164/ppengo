@@ -40,6 +40,7 @@ services:
     tty: true
     ports:
       - "127.0.0.1:3000:3000"
+      - "127.0.0.1:9222:9222"
     links:
       - mongodb
       - redis
@@ -55,8 +56,8 @@ services:
       - ./ppengo/views:/home/node/views
       - ./ppengo/bin:/home/node/bin
       - ./ppengo/config:/home/node/config
-    command: npm start
-    #command: /bin/sh
+    #command: npm start
+    command: npm run start:debug
     logging:
       driver: "json-file"
       options:
@@ -76,7 +77,6 @@ services:
     environment:
       - JVM_OPTS=-Xmx2g -Xms2g -XX:MaxPermSize=2048m
       - ES_HEAP_SIZE=2g
-        #- MAX_LOCKED_MEMORY=unlimited
     container_name: elasticsearch
   kibana:
     image: docker.elastic.co/kibana/kibana:7.3.0

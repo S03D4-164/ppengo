@@ -83,6 +83,7 @@ var Response = mongoose.model('Response', responseSchema)
 
 stream.on('data', function(err, doc){
   count++;
+  console.log('indexeing ' + count + ' documents...');
 });
 stream.on('close', function(){
   console.log('indexed ' + count + ' documents!');

@@ -7,26 +7,24 @@ const Website = require('./models/website');
 const wgeteer = require('./wgeteer');
 
 const scheduler = require('./scheduler');
-
-var queue = scheduler.start();
+scheduler.start();
 
 router.post('/', async function(req, res, next) {
 
   console.log(req.body);
   const input = req.body['url'];
-  const urls = input.split('\r\n');
 
   var ids = [];
   var webpages = [];
  
-  for (var inputUrl of urls){
+  for (let inputUrl of input.split('\r\n')){
     if(inputUrl){
       var lang = req.body['lang'];
       if (typeof lang === 'string') lang = [lang];
       var userAgent = req.body['userAgent'];
       if (typeof userAgent === 'string') userAgent = [userAgent];
-      for (var lkey in lang){
-        for (var ukey in userAgent){
+      for (let lkey in lang){
+        for (let ukey in userAgent){
           var option = {
             timeout:30,
             delay:5,
@@ -40,26 +38,26 @@ router.post('/', async function(req, res, next) {
           if (req.body['exHeaders']) option['exHeaders'] = req.body['exHeaders'];
           if ("disableScript" in req.body) option["disableScript"] = true;
 
-          var track = ("track" in req.body)?req.body['track']:0;
-      
+          var track = ("track" in req.body)?req.body['track']:0;      
           console.log(option, track);
           const webpage = await wgeteer.registerUrl(inputUrl, option, track);
           //console.log(webpage);
           ids.push(webpage._id.toString());
-          webpages.push(webpage);  
-          const job = await wgeteer.wgetJob(webpage);
+          webpages.push(webpage);
+          //await wgeteer.wgetJob(webpage);
+          await wgeteer.wgetJob(webpage._id);
+          //const job = await wgeteer.wgetJob(webpage);
         }      
       }
     }
   }
   //console.log(ids);
-  let search;
   res.render(
     'progress', {
     title:"Progress",
     webpages, 
     ids:String(ids),
-    search
+    search:null,
   });
 });
 
@@ -90,7 +88,13 @@ router.post('/progress', function(req, res, next) {
 
 router.get('/delete/website/:id', async function(req, res) {
   const id = req.params.id;
-  await Website.findByIdAndDelete(id)
+  await Website.findByIdAndDelete(id);
+  res.redirect(req.baseUrl);
+});
+
+router.get('/delete/webpage/:id', async function(req, res) {
+  const id = req.params.id;
+  await Webpage.findByIdAndDelete(id);
   res.redirect(req.baseUrl);
 });
 

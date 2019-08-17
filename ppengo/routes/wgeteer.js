@@ -22,10 +22,9 @@ async function gsbJob(id){
 
 module.exports = {
 
-  async wgetJob(webpage){
+  async wgetJob(pageId){
     const job = await queue.create('wgeteer', {
-        pageId: webpage._id,
-        options:webpage.option,
+        pageId: pageId,
     }).ttl(10*60*1000);
     await job.save(function(err){
     if( err ) console.log( job.id, err);
@@ -42,7 +41,6 @@ module.exports = {
     });
     await webpage.save(function (err, success){
       if(err) console.log(err);
-      //else console.log(webpage);
     });
 
     const website = await Website.findOneAndUpdate(
@@ -54,13 +52,11 @@ module.exports = {
     );
 
     if (!website.gsb.lookup) await gsbJob(website._id);
-    else console.log("gsb checked");
+    //else console.log("gsb checked");
 
     if (track > 0){
-      counter = 24;
-      period = 1;
-      website.track.counter = counter;
-      website.track.period = period;
+      website.track.counter = 24;
+      website.track.period = 1;
       website.track.option = option;
       if (track = 2){
         await website.save(function (err, success){
@@ -68,7 +64,6 @@ module.exports = {
           else console.log(website);
         });
       } else if (track = 1){
-
         if (!website.track.counter){
           await website.save(function (err, success){
             if(err) console.log(err);
@@ -77,7 +72,6 @@ module.exports = {
         } 
       }
     }
-
     return webpage;
   },
 }

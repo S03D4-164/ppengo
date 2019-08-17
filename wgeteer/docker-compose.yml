@@ -6,14 +6,14 @@ services:
       - NODE_ENV=development
       - VTKEY
       - GSBKEY
+      - PPENGO
     tty: true
     container_name: wgeteer
     volumes:
       - ./routes:/home/node/app
     network_mode: "host"
     working_dir: /home/node/app
-    #command: /bin/sh
-    command: dumb-init -- node --optimize_for_size --gc_interval=100 --max-old-space-size=1024 scheduler
+    command: dumb-init -- node --inspect --optimize_for_size --gc_interval=100 --max-old-space-size=1024 scheduler
     mem_limit: 2g
     restart: always
     logging:
