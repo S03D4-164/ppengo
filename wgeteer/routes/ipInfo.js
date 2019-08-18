@@ -1,6 +1,7 @@
 const whois = require('node-xwhois');
 var geoip = require('geoip-lite');
 //var redis = require('redis');
+const Response = require('./models/response');
 
 const getIpinfo = async function(host){
     const ip = await whois.extractIP(host)
@@ -28,12 +29,12 @@ const getIpinfo = async function(host){
         }
         */
         //const who = await whoisCache(host);
-        var reverses = await whois.reverse(ip)
+        const reverses = await whois.reverse(ip)
             .then(info => {return info})
             .catch(err => console.log(err));
-        var hostnames  = Array.from(new Set(reverses))
+        const hostnames  = Array.from(new Set(reverses))
 
-        var bgp = await whois.bgpInfo(ip)
+        const bgp = await whois.bgpInfo(ip)
             .then(info => {return info})
             .catch(err => console.log("[bgp] error: " + ip));
 
@@ -51,7 +52,8 @@ const getIpinfo = async function(host){
             'bgp': bgp,
             'geoip': geo,
             'ip': ip,
-        }
+        };
+
         /*
         //client.set(host, ipInfo, 'EX', 30000);
         await client.set(host, who, 'EX', 30000);
@@ -71,32 +73,48 @@ module.exports = {
     async setResponseIp (responses){
         var ips = {};
         for (let seq in responses){
-            var response = responses[seq];
-            if (response.remoteAddress.ip){
-                var ip = response.remoteAddress.ip;
+            //var response = responses[seq];
+            if (responses[seq].remoteAddress.ip){
+                let ip = responses[seq].remoteAddress.ip;
                 if(ip in ips){
-                    ips[ip].push(response);
+                    ips[ip].push(responses[seq]);
                 }else{
-                    ips[ip] = [response];
+                    ips[ip] = [responses[seq]];
                 }
+                ip = null;
             }
         }
         for (let ip in ips){
-            //console.log(ip);
-            const hostinfo = await getIpinfo(ip); 
+            let hostinfo = await getIpinfo(ip); 
             if(hostinfo){
                 console.log(hostinfo);
-                var responseArray = ips[ip];
-                for (let num in responseArray){
-                    var res = responseArray[num];
-                    if (hostinfo.reverse) res.remoteAddress.reverse = hostinfo.reverse;
-                    if (hostinfo.bgp) res.remoteAddress.bgp = hostinfo.bgp;
-                    if (hostinfo.geoip) res.remoteAddress.geoip = hostinfo.geoip;
-                    if (hostinfo.ip) res.remoteAddress.ip = hostinfo.ip;
-                    res.save();
+                //var responseArray = ips[ip];
+                //for (let num in responseArray){
+                for (let num in ips[ip]){
+                    //var res = responseArray[num];
+                    var res = ips[ip][num];
+                    var remoteAddress = {};
+                    if (hostinfo.reverse) remoteAddress.reverse = hostinfo.reverse;
+                    if (hostinfo.bgp) remoteAddress.bgp = hostinfo.bgp;
+                    if (hostinfo.geoip) remoteAddress.geoip = hostinfo.geoip;
+                    if (hostinfo.ip) remoteAddress.ip = hostinfo.ip;
+                    else remoteAddress.ip = ip;
+
+                    //res.save();
+                    //res = null;
+                    await Response.findOneAndUpdate(
+                        {"_id": res._id},
+                        {
+                          "remoteAddress": remoteAddress  
+                        },
+                    );
+                    res = null;
+                    remoteAddress = null;
                 }
-            }  
+            } 
+            hostinfo = null;
         }
+        ips = null;
         return;
     },
 }
