@@ -1,16 +1,60 @@
 const puppeteer = require('puppeteer');
+const imageThumbnail = require('image-thumbnail');
+const crypto = require("crypto");
+const fileType = require('file-type');
 
+const ipInfo = require('./ipInfo')
+const logger = require('./logger')
+
+const mongoose = require('mongoose');
+/*
+mongoose.connection.on('connecting', ()=>{console.log("[mongoose] connecting.")});
+mongoose.connection.on('connected', ()=>{console.log("[mongoose] connected.")});
+mongoose.connection.on('disconnecting', ()=>{console.log("[mongoose] disconnecting.")});
+mongoose.connection.on('disconnected', ()=>{console.log("[mongoose] disconnected.")});
+mongoose.connection.on('reconnected', ()=>{console.log("[mongoose] reconnected.")});
+mongoose.connection.on('reconnectFailed', ()=>{console.log("[mongoose] reconnect failed.")});
+mongoose.connection.on('error', (err)=>{console.log("[mongoose] error", err)});
+*/
+
+var db = mongoose.createConnection('mongodb://127.0.0.1:27017/wgeteer', {
+  useNewUrlParser: true,
+  useCreateIndex: true,
+  autoReconnect:true,
+  reconnectInterval: 5000,
+  reconnectTries: 60,
+  useFindAndModify: false,
+});
+//.then(() =>  console.log('[mongoose] connect completed'))
+//.catch((err) => console.error('[mongoose] connect error', err));
 const Webpage = require('./models/webpage');
 const Request = require('./models/request');
 const Response = require('./models/response');
 const Screenshot = require('./models/screenshot');
 const Payload = require('./models/payload');
 
-const imageThumbnail = require('image-thumbnail');
-const crypto = require("crypto");
-const fileType = require('file-type');
-
-const ipInfo = require('./ipInfo')
+async function closeDB(){
+  mongoose.connections.forEach(connection => {
+    const modelNames = Object.keys(connection.models)
+  
+    modelNames.forEach(modelName => {
+      delete connection.models[modelName]
+      logger.debug("deleted model " + modelName);
+    })
+  
+    const collectionNames = Object.keys(connection.collections)
+    collectionNames.forEach(collectionName => {
+      delete connection.collections[collectionName]
+      logger.debug("deleted collection " + collectionName);
+    })
+  })
+  
+  const modelSchemaNames = Object.keys(mongoose.modelSchemas)
+  modelSchemaNames.forEach(modelSchemaName => {
+    delete mongoose.modelSchemas[modelSchemaName]
+    logger.debug("deleted schema " + modelSchemaName);
+  })
+}
 
 async function pptrEventSet(client, browser, page){
 
@@ -153,7 +197,9 @@ async function saveResponse(interceptedResponse, request, pageId){
       //else console.log("[Response] no cache")
       responseBuffer = await interceptedResponse.buffer();
   }catch(err){
-    console.log("[Response] failed on save buffer");
+    //console.log("[Response] failed on save buffer");
+    logger.debug("[Response] failed on save buffer");
+
   }
 
   if (responseBuffer) payloadId = await savePayload(responseBuffer);
@@ -161,7 +207,8 @@ async function saveResponse(interceptedResponse, request, pageId){
   try{
     text = await interceptedResponse.text();
   }catch(error){
-    console.log("[Response] failed on save text");
+    //console.log("[Response] failed on save text");
+    logger.debug("[Response] failed on save text");
   }    
     
   let securityDetails = {};
@@ -269,11 +316,11 @@ async function saveRequest(interceptedRequest, pageId){
 module.exports = {
 
   async wget (pageId){
-
       let webpage = await Webpage.findById(pageId)
-      .then(doc => { return doc; })
+      .then(doc => { 
+        return doc;
+      })
       .catch(err =>{ console.log(err);});
-      console.log(webpage);
 
       //var timeout = option['timeout'];
       //timeout = (timeout >= 30 && timeout <= 300) ? timeout * 1000 : 30000; 
@@ -306,7 +353,7 @@ module.exports = {
           chromiumArgs.push(`--proxy-server=${webpage.option.proxy}`);
         }
       }
-      console.log(chromiumArgs);
+      logger.debug(chromiumArgs);
 
       let browserFetcher = puppeteer.createBrowserFetcher();
       const localChromiums = await puppeteer.createBrowserFetcher().localRevisions();
@@ -355,7 +402,7 @@ module.exports = {
 
       client.on('Network.requestIntercepted',
         async ({ interceptionId, request, isDownload, responseStatusCode, responseHeaders, requestId}) => {
-        console.log(`[Intercepted] ${requestId} ${request.url} ${responseStatusCode} ${isDownload}`);
+        //console.log(`[Intercepted] ${requestId} ${request.url} ${responseStatusCode} ${isDownload}`);
         try{  
           let response = await client.send('Network.getResponseBodyForInterception', {interceptionId});
           //console.log("[Intercepted]", requestId, response.body.length, response.base64Encoded);    
@@ -368,7 +415,7 @@ module.exports = {
           response = null;
         }catch(err){
           if (err.message) console.log("[Intercepted] error", err.message);
-          else console.log("[Intercepted] error", err);
+          //else console.log("[Intercepted] error", err);
         }
         //console.log(`Continuing interception ${interceptionId}`)
         client.send('Network.continueInterceptedRequest', {
@@ -501,7 +548,7 @@ module.exports = {
           if (webpage.remoteAddress.ip){
             let hostinfo = await ipInfo.getHostInfo(webpage.remoteAddress.ip);
             if(hostinfo){
-              console.log(hostinfo);
+              //console.log(hostinfo);
               if (hostinfo.reverse) webpage.remoteAddress.reverse = hostinfo.reverse;
               if (hostinfo.bgp) webpage.remoteAddress.bgp = hostinfo.bgp;
               if (hostinfo.geoip) webpage.remoteAddress.geoip = hostinfo.geoip;
@@ -516,7 +563,7 @@ module.exports = {
         else console.log("webpage saved");
         //else console.log("webpage saved: " + webpage.input);
       });
-
+      ss = null;
       ipInfo.setResponseIp(responses);
 
       client.removeAllListeners();
@@ -525,12 +572,13 @@ module.exports = {
       page.removeAllListeners();
       page = null;
 
-      responses = null;
+      //responses = null;
       finalResponse = null;
       responseCache = null;
       webpage = null;
 
       await browser.close();
+      await closeDB();
 
       return;
     }

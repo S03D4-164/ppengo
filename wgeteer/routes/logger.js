@@ -3,7 +3,7 @@ const { combine, timestamp, label, prettyPrint } = format;
 
 module.exports = createLogger({
   format: combine(
-    label({ label: 'ppengo' }),
+    label({ label: 'wgeteer' }),
     timestamp(),
     prettyPrint()
   ),
