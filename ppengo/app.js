@@ -8,7 +8,7 @@ var bodyParser = require('body-parser');
 var session = require('express-session');
 
 var kue = require('kue-scheduler');
-var kueUiExpress = require('kue-ui-express');
+//var kueUiExpress = require('kue-ui-express');
 kue.createQueue({
   prefix: 'q',
   redis: {
@@ -40,6 +40,7 @@ var app = express();
 
 var logger = require('morgan');
 app.use(logger('dev'));
+global.__logger = require('./routes/logger');
 
 var rootPath = "/ppengo/";
 
@@ -53,7 +54,7 @@ app.use(bodyParser.json({ limit: '32mb' }));
 app.use(paginate.middleware(100, 100));
 app.use(rootPath + "api", require('./routes/api'));
 
-kueUiExpress(app, rootPath + 'kue/', rootPath + 'kue-api/');
+//kueUiExpress(app, rootPath + 'kue/', rootPath + 'kue-api/');
 app.use(rootPath + 'kue-api/', kue.app);
 
 app.use(rootPath, express.static(path.join(__dirname, 'public')));
@@ -78,7 +79,6 @@ app.use(function (req, res, next) {
   var token = req.csrfToken();
   res.locals.csrfToken = token;
   next();
-
 });
 
 var indexRouter = require('./routes/index');

@@ -76,7 +76,7 @@ responseSchema.plugin(mongoosastic,{
   //hydrateWithESResults: {source: false},
 })
 
-
+/*
 var Response = mongoose.model('Response', responseSchema)
   , stream = Response.synchronize()
   , count = 0;
@@ -91,5 +91,6 @@ stream.on('close', function(){
 stream.on('error', function(err){
   console.log(err);
 });
+*/
 
 module.exports = mongoose.model('Response', responseSchema);

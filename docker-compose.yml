@@ -56,6 +56,7 @@ services:
       - ./ppengo/views:/home/node/views
       - ./ppengo/bin:/home/node/bin
       - ./ppengo/config:/home/node/config
+      - ./ppengo/app.js:/home/node/app.js
     #command: npm start
     command: npm run start:debug
     logging:
@@ -85,3 +86,4 @@ services:
     ports:
       - "127.0.0.1:5601:5601"
     mem_limit: 1g
+    container_name: kibana

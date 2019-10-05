@@ -87,7 +87,7 @@ module.exports = {
         for (let ip in ips){
             let hostinfo = await getIpinfo(ip); 
             if(hostinfo){
-                console.log(hostinfo);
+                //console.log(hostinfo);
                 //var responseArray = ips[ip];
                 //for (let num in responseArray){
                 for (let num in ips[ip]){
