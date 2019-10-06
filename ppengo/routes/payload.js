@@ -13,6 +13,7 @@ var paginate = require('express-paginate');
 const json2csv = require('json2csv');
 
 const hexdump = require('hexdump-nodejs')
+const logger = require('./logger')
 
 router.get('/',  function(req, res) {
   var search = []
@@ -23,7 +24,7 @@ router.get('/',  function(req, res) {
   if(typeof req.query.csv !== 'undefined' && req.query.csv){
     var find = Payload.find();
     if(search.length)find = find.and(search);
-    find.sort("-createdAt").then((payload) => {
+    find.lean().sort("-createdAt").then((payload) => {
       var fields = ['createdAt', 'md5', 'tag'];
       const csv = json2csv.parse(payload, { withBOM:true, fields });
       res.setHeader('Content-disposition', 'attachment; filename=payloadss.csv');
@@ -36,7 +37,8 @@ router.get('/',  function(req, res) {
       query, {
       sort:{"createdAt":-1},
       page: req.query.page,
-      limit: req.query.limit
+      limit: req.query.limit,
+      lean: false
     }, function(err, result) {
       //console.log(result)
       //console.log(paginate)
@@ -52,9 +54,9 @@ router.get('/',  function(req, res) {
 
 router.get('/download/:id', function(req, res) {
     const id = req.params.id;
-    Payload.findById(id)
+    Payload.findById(id).lean()
     .then(async (payload) => {
-      console.log(payload._id);
+      //console.log(payload._id);
 
       var archive = archiver.create('zip-encrypted', {
         zlib: {level: 8},
@@ -65,7 +67,7 @@ router.get('/download/:id', function(req, res) {
         res.status(500).send({error: err.message});
       });
       archive.on('end', function() {
-        console.log('Archive wrote %d bytes', archive.pointer());
+        logger.debug('Archive wrote %d bytes', archive.pointer());
       });
       
       res.attachment(payload.md5 + '.zip');
@@ -83,7 +85,7 @@ router.get('/:id', function(req, res) {
     .then(async (payload) => {
       //console.log(payload._id);
       const responses = await Response.find()
-        .where({"payload":payload._id})
+        .where({"payload":payload._id}).lean()
         .sort("-createdAt")
         .then((document)=>{
           return document;

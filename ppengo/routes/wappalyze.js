@@ -5,6 +5,8 @@ const processJs = require('wappalyzer/driver').processJs;
 const Webpage = require('./models/webpage');
 const Response = require('./models/response');
 
+const logger = require('./logger')
+
 const wappalyze = async function (url, headers, text, cookies){
   let Browser = null;
   let driver = new Driver(Browser, url, {"debug":false});
@@ -25,7 +27,7 @@ const wappalyze = async function (url, headers, text, cookies){
     "html": text?processHtml(text):null,
   };
   await wappalyzer.analyze(url, data);
-  console.log(url, driver.apps);
+  logger.debug(url, driver.apps);
   //const wappalyzed = driver.apps;
   var wapps = [];
   for (let wap in driver.apps){
@@ -43,13 +45,13 @@ const wappalyze = async function (url, headers, text, cookies){
 
 module.exports = {
   async analyze(id){
-    console.log("wappalyze", id)
+    logger.debug("wappalyze", id)
     await Webpage.findById(id)
     .then(async (webpage) => {
       try{
         //const cookies = await page.cookies();
         if(webpage.url){
-          console.log("page", webpage.url);
+          logger.debug("page", webpage.url);
           let cookies = null;
           let wapps = await wappalyze(
               webpage.url,
@@ -66,12 +68,12 @@ module.exports = {
           wapps = null;
         }
       }catch(err){
-        console.log(err);
+        logger.debug(err);
       }
     });
-    await Response.find({"webpage":id})
+    await Response.find({"webpage":id}).lean()
     .then(async (responses) => {
-        console.log(responses.length);
+        logger.debug(responses.length);
         for(let response of responses){
           try{
             if(response.url){
@@ -92,7 +94,7 @@ module.exports = {
                 wapps = null;
             }
           }catch(err){
-                console.log(err);
+                logger.debug(err);
         }
       }
         

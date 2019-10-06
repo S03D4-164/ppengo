@@ -1,4 +1,7 @@
 const mongoose = require('mongoose');
+const logger = require('./logger')
+
+/*
 mongoose.connection.on('connecting', ()=>{console.log("[mongoose] connecting.")});
 mongoose.connection.on('connected', ()=>{console.log("[mongoose] connected.")});
 mongoose.connection.on('disconnecting', ()=>{console.log("[mongoose] disconnecting.")});
@@ -6,6 +9,7 @@ mongoose.connection.on('disconnected', ()=>{console.log("[mongoose] disconnected
 mongoose.connection.on('reconnected', ()=>{console.log("[mongoose] reconnected.")});
 mongoose.connection.on('reconnectFailed', ()=>{console.log("[mongoose] reconnect failed.")});
 mongoose.connection.on('error', (err)=>{console.log("[mongoose] error", err)});
+*/
 
 mongoose.connect('mongodb://127.0.0.1:27017/wgeteer', {
   useNewUrlParser: true,
@@ -14,8 +18,8 @@ mongoose.connect('mongodb://127.0.0.1:27017/wgeteer', {
   reconnectInterval: 5000,
   reconnectTries: 60,
   useFindAndModify: false,
-}).then(() =>  console.log('[mongoose] connect completed'))
-.catch((err) => console.error('[mongoose] connect error', err));
+}).then(() =>  logger.debug('[mongoose] connect completed'))
+.catch((err) => logger.debug('[mongoose] connect error', err));
 
 const Agenda = require('agenda');
 const agenda = new Agenda();
@@ -32,7 +36,7 @@ agenda.define('wgeteer', async (job, done) => {
 });
     
 agenda.define('hello world', function(job, done) {
-    console.log(job.attrs.data.time, 'hello world!');
+    logger.debug('agenda ready');
     done();
 });
 
@@ -42,19 +46,19 @@ agenda.on('ready', function () {
 });
 
 agenda.on('start', job => {
-    console.log('Job %s starting', job.attrs.name);
+    logger.info(`Job starting ${job.attrs.name}`);
 });
 
 agenda.on('complete', job => {
-    console.log(`Job ${job.attrs.name} finished`);
+    logger.info(`Job ${job.attrs.name} finished`);
 });
 
 agenda.on('success:wgeteer', job => {
-    console.log(`Wgeteer Successfully to ${job.attrs.data.pageId}`);
+    logger.info(`Wgeteer Successfully to ${job.attrs.data.pageId}`);
 });
 
 agenda.on('fail:wgeteer', (err, job) => {
-    console.log(`Job failed with error: ${err.message}`);
+    logger.info(`Job failed with error: ${err.message}`);
 });
 
 module.exports = {

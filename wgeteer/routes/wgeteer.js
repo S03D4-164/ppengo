@@ -1,7 +1,7 @@
 const puppeteer = require('puppeteer');
 const imageThumbnail = require('image-thumbnail');
 const crypto = require("crypto");
-const fileType = require('file-type');
+//const fileType = require('file-type');
 
 const ipInfo = require('./ipInfo')
 const logger = require('./logger')
@@ -17,6 +17,12 @@ mongoose.connection.on('reconnectFailed', ()=>{console.log("[mongoose] reconnect
 mongoose.connection.on('error', (err)=>{console.log("[mongoose] error", err)});
 */
 
+require('./models/webpage');
+require('./models/request');
+require('./models/response');
+require('./models/screenshot');
+require('./models/payload');
+
 var db = mongoose.createConnection('mongodb://127.0.0.1:27017/wgeteer', {
   useNewUrlParser: true,
   useCreateIndex: true,
@@ -25,42 +31,39 @@ var db = mongoose.createConnection('mongodb://127.0.0.1:27017/wgeteer', {
   reconnectTries: 60,
   useFindAndModify: false,
 });
-//.then(() =>  console.log('[mongoose] connect completed'))
-//.catch((err) => console.error('[mongoose] connect error', err));
-const Webpage = require('./models/webpage');
-const Request = require('./models/request');
-const Response = require('./models/response');
-const Screenshot = require('./models/screenshot');
-const Payload = require('./models/payload');
+
+const Webpage = db.model('Webpage');
+const Request = db.model('Request');
+const Response = db.model('Response');
+const Screenshot = db.model('Screenshot');
+const Payload = db.model('Payload');
 
 async function closeDB(){
-  mongoose.connections.forEach(connection => {
-    const modelNames = Object.keys(connection.models)
-  
-    modelNames.forEach(modelName => {
-      delete connection.models[modelName]
-      logger.debug("deleted model " + modelName);
-    })
-  
-    const collectionNames = Object.keys(connection.collections)
-    collectionNames.forEach(collectionName => {
-      delete connection.collections[collectionName]
-      logger.debug("deleted collection " + collectionName);
-    })
+  const modelNames = Object.keys(db.models)
+  modelNames.forEach(modelName => {
+    delete db.models[modelName]
+    logger.debug("deleted model " + modelName);
   })
   
-  const modelSchemaNames = Object.keys(mongoose.modelSchemas)
+  const collectionNames = Object.keys(db.collections)
+  collectionNames.forEach(collectionName => {
+    delete db.collections[collectionName]
+    logger.debug("deleted collection " + collectionName);
+  })
+  
+  const modelSchemaNames = Object.keys(db.base.modelSchemas)
   modelSchemaNames.forEach(modelSchemaName => {
-    delete mongoose.modelSchemas[modelSchemaName]
+    delete db.base.modelSchemas[modelSchemaName]
     logger.debug("deleted schema " + modelSchemaName);
   })
+
 }
 
 async function pptrEventSet(client, browser, page){
 
       client.on('Network.requestWillBeSent',
       async ({requestId, request}) => {
-        console.log("[requestWillBeSent]", requestId);
+        logger.debug("[requestWillBeSent]", requestId);
         const req =await new Request({
           "devtoolsReqId": requestId,
           "webpage": pageId,
@@ -70,7 +73,7 @@ async function pptrEventSet(client, browser, page){
 
       client.on('Network.responseReceived',
       async ({requestId, response}) => {
-        console.log("[responseReceived]", requestId);
+        logger.debug("[responseReceived]", requestId);
         const res =await new Response({
           "devtoolsReqId": requestId,
           "webpage": pageId,
@@ -82,9 +85,9 @@ async function pptrEventSet(client, browser, page){
       async ({requestId, encodedDataLength}) => {
         const response = await client.send('Network.getResponseBody', { requestId });
         if(response.body) {
-          console.log("[loadingFinished]", requestId, encodedDataLength, response.body.length, response.base64Encoded);
+          logger.debug("[loadingFinished]", requestId, encodedDataLength, response.body.length, response.base64Encoded);
         } else {
-          console.log("[loadingFinished] no body", requestId, encodedDataLength, response.body, response.base64Encoded);
+          logger.debug("[loadingFinished] no body", requestId, encodedDataLength, response.body, response.base64Encoded);
         }
       });
 
@@ -92,45 +95,45 @@ async function pptrEventSet(client, browser, page){
       async ({requestId, encodedDataLength}) => {
         const response = await client.send('Network.getResponseBody', { requestId });
         if(response.body) {
-          console.log("[loadingFinished]", requestId, encodedDataLength, response.body.length, response.base64Encoded);
+          logger.debug("[loadingFinished]", requestId, encodedDataLength, response.body.length, response.base64Encoded);
         } else {
-          console.log("[loadingFinished] no body", requestId, encodedDataLength, response.body, response.base64Encoded);
+          logger.debug("[loadingFinished] no body", requestId, encodedDataLength, response.body, response.base64Encoded);
         }
       });
 
       client.on('Network.dataReceived',
       async ({requestId, dataLength}) => {
-        console.log("[dataReceived]", requestId, dataLength);
+        logger.debug("[dataReceived]", requestId, dataLength);
       });
 
-      browser.on('targetchanged', async tgt => console.log('[Browser] taget changed: ', tgt));
-      browser.on('targetcreated', async tgt => console.log('[Browser] taget created: ', tgt));
-      browser.on('targetdestroyed', async tgt => console.log('[Browser taget destroyed: ', tgt));
+      browser.on('targetchanged', async tgt => logger.debug('[Browser] taget changed: ', tgt));
+      browser.on('targetcreated', async tgt => logger.debug('[Browser] taget created: ', tgt));
+      browser.on('targetdestroyed', async tgt => logger.debug('[Browser taget destroyed: ', tgt));
 
       page.on('dialog', async dialog => {
-        console.log('[Page] dialog: ', dialog.type(), dialog.message());
+        logger.debug('[Page] dialog: ', dialog.type(), dialog.message());
         await dialog.dismiss();
       });
       page.on('console', async msg => {
-        console.log('[Page] console: ', msg.type(), msg.text())
+        logger.debug('[Page] console: ', msg.type(), msg.text())
       });
       page.on('error', async err => {
-        console.log('[Page] error: ', err);
+        logger.debug('[Page] error: ', err);
       });
       page.on('pageerror', async perr => {
-        console.log('[Page] page error: ', perr);
+        logger.debug('[Page] page error: ', perr);
       });
 
-      page.on('workercreated', wrkr => console.log('[Worker] created: ', wrkr));
-      page.on('workerdestroyed', wrkr => console.log('[Worker] destroyed: ', wrkr));
+      page.on('workercreated', wrkr => logger.debug('[Worker] created: ', wrkr));
+      page.on('workerdestroyed', wrkr => logger.debug('[Worker] destroyed: ', wrkr));
   
-      page.on('frameattached', frm => console.log('[Frame] attached: ', frm));
-      page.on('framedetached', frm => console.log('[Frame] detached: ', frm));
-      page.on('framenavigateed', frm => console.log('[Frame] navigated: ', frm));
+      page.on('frameattached', frm => logger.debug('[Frame] attached: ', frm));
+      page.on('framedetached', frm => logger.debug('[Frame] detached: ', frm));
+      page.on('framenavigateed', frm => logger.debug('[Frame] navigated: ', frm));
 
       page.on('request', async interceptedRequest => {
         try{
-          console.log(
+          logger.debug(
             '[Request] ', 
             interceptedRequest._requestId,
             interceptedRequest.method(),
@@ -138,20 +141,20 @@ async function pptrEventSet(client, browser, page){
             interceptedRequest.url().slice(0,100),
           );
         }catch(error){
-          console.log(error);
+          logger.debug(error);
         }
       });
     
       page.on('response', async interceptedResponse => {
       try{
-        console.log(
+        logger.debug(
           '[Response] ', 
           interceptedResponse.status(),
           interceptedResponse.remoteAddress(),
           interceptedResponse.url().slice(0,100),
         );
       }catch(error){
-        console.log(error);
+        logger.debug(error);
       }
     });
 
@@ -172,7 +175,7 @@ async function savePayload(responseBuffer){
     },
     {"new":true,"upsert":true},
   );
-  console.log("payload saved: ", payload.md5, responseBuffer.length);
+  //logger.debug("payload saved: ", payload.md5, responseBuffer.length);
   return payload._id;
 }
 
@@ -223,7 +226,7 @@ async function saveResponse(interceptedResponse, request, pageId){
       }
     }
   }catch(error){
-    console.log(error);
+    logger.debug(error);
   }
 
   try{
@@ -244,7 +247,7 @@ async function saveResponse(interceptedResponse, request, pageId){
       request: request._id,
     });
     await response.save(function (err){
-      if(err) console.log(err);
+      if(err) logger.info(err);
       //else console.log("response saved: " + response.url.slice(0,100));
     });
     url = null;
@@ -258,7 +261,7 @@ async function saveResponse(interceptedResponse, request, pageId){
     );
     return response;
   }catch(error){
-    console.log(error);
+    logger.info(error);
   }  
   return;
 } 
@@ -274,7 +277,7 @@ async function saveRequest(interceptedRequest, pageId){
       }  
     }
   }catch(error){
-    console.log(error);
+    logger.info(error);
   }
   
   const request = new Request({
@@ -297,7 +300,7 @@ async function saveRequest(interceptedRequest, pageId){
     if(res) request.response = res;
   }
   await request.save(function (err){
-    if(err) console.log(err); 
+    if(err) logger.info(err); 
     //else console.log("request saved: " + request.url.slice(0,100));
   });
 
@@ -320,7 +323,7 @@ module.exports = {
       .then(doc => { 
         return doc;
       })
-      .catch(err =>{ console.log(err);});
+      .catch(err =>{ logger.info(err);});
 
       //var timeout = option['timeout'];
       //timeout = (timeout >= 30 && timeout <= 300) ? timeout * 1000 : 30000; 
@@ -372,15 +375,15 @@ module.exports = {
           args: chromiumArgs,
         });
       }catch(error){
-        console.log(error);
+        logger.info(error);
         webpage.error = error.message;
         return webpage;
       }
 
-      browser.once('disconnected', () => console.log('[Browser] disconnected.'));
+      browser.once('disconnected', () => logger.debug('[Browser] disconnected.'));
 
       const browserVersion = await browser.version();
-      console.log(browserVersion);
+      logger.debug(browserVersion);
 
       let page = await browser.newPage();
       if (webpage.option.userAgent) await page.setUserAgent(webpage.option.userAgent);
@@ -414,7 +417,7 @@ module.exports = {
           newBody = null;
           response = null;
         }catch(err){
-          if (err.message) console.log("[Intercepted] error", err.message);
+          if (err.message) logger.debug("[Intercepted] error", err.message);
           //else console.log("[Intercepted] error", err);
         }
         //console.log(`Continuing interception ${interceptionId}`)
@@ -428,7 +431,7 @@ module.exports = {
       page.once('closed', () => console.log('[Page] closed'));
 
       page.on('requestfailed', request => {
-        console.log('[Request] failed: ',request._requestId, request.url().slice(0,100), request.failure());
+        logger.info('[Request] failed: ' + request._requestId)//, request.url().slice(0,100), request.failure());
         try{
           saveRequest(request, pageId);
         }catch(error){
@@ -437,7 +440,7 @@ module.exports = {
       });
       
       page.on('requestfinished', request => {
-        console.log('[Request] finished: ',request._requestId,  request.method(), request.url().slice(0,100));
+        logger.debug('[Request] finished: ' + request._requestId)//,  request.method(), request.url().slice(0,100));
         try{
           saveRequest(request, pageId);
         }catch(error){
@@ -457,7 +460,7 @@ module.exports = {
         });
         await page.waitFor(webpage.option.delay * 1000);
       }catch(err){
-        console.log(err);
+        logger.info(err);
         webpage.error = err.message;
         await page._client.send("Page.stopLoading");
     }
@@ -514,13 +517,13 @@ module.exports = {
       }
       */
     }catch(error){
-        console.log(error);
+        logger.info(error);
         webpage.error = error.message;
         await new Promise(done => setTimeout(done, webpage.option.delay * 1000)); 
     }finally{
       const responses = await Response.find({"webpage":pageId})
       .then((doc)=>{return doc});
-      console.log(responses.length);
+      logger.debug(responses.length);
 
       if(webpage.url){
         for(let num in responses){
@@ -559,8 +562,8 @@ module.exports = {
       }
 
       await webpage.save(function (err, success){
-        if(err) console.log(err)
-        else console.log("webpage saved");
+        if(err) logger.info(err)
+        else logger.debug("webpage saved");
         //else console.log("webpage saved: " + webpage.input);
       });
       ss = null;

@@ -15,7 +15,7 @@ router.use(cookieParser());
 //router.get('/',  csrfProtection, function(req, res, next) {
 router.get('/', function(req, res) {
   //const now = date.now();
-  Screenshot.find()
+  Screenshot.find().lean()
     .sort("-createdAt")
     .limit(100)
     .then((payloads) => {
@@ -28,7 +28,7 @@ router.get('/', function(req, res) {
         });
     })
     .catch((err) => { 
-      console.log(err);
+      //console.log(err);
       res.send(err); 
     });
 });
@@ -37,7 +37,7 @@ router.get('/', function(req, res) {
 router.get('/:id', function(req, res) {
   const id = req.params.id;
   //console.log(id);
-  Screenshot.findById(id)
+  Screenshot.findById(id).lean()
   .then((webpage) => {
       //console.log(webpage);
       var img = new Buffer(webpage.screenshot, 'base64');  

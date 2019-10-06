@@ -10,6 +10,8 @@ const Request = require('./models/request');
 const Response = require('./models/response');
 const Website = require('./models/website');
 
+const logger = require('./logger')
+
 router.get('/', function(req, res) {
   var search = []
   if(typeof req.query.input !== 'undefined' && req.query.input){
@@ -63,7 +65,8 @@ router.get('/', function(req, res) {
       query, {
       sort:{"createdAt":-1},
       page: req.query.page,
-      limit: req.query.limit
+      limit: req.query.limit,
+      lean: true,
     }, function(err, result) {
         res.render('pages', {
           title:"Pages",
@@ -89,9 +92,9 @@ router.get('/:id', async function(req, res, next) {
       "input":webpage.input,
       "createdAt":{$lt: webpage.createdAt},
       //"status":{$ge: 0}
-    }).sort("-createdAt")
+    }).sort("-createdAt").lean()
     .then((document) => {
-      console.log(document.length);
+      //console.log(document.length);
       return document;
     });
     if (previous.length){
@@ -104,7 +107,7 @@ router.get('/:id', async function(req, res, next) {
   //console.log(diff);
   
   var requests = await Request.find({"webpage":id})
-    .sort("createdAt")
+    .lean().sort("createdAt")
     .then((document) => {
       return document;
   });
@@ -121,20 +124,22 @@ router.get('/:id', async function(req, res, next) {
   if(typeof req.query.status !== 'undefined' && req.query.status){
     search.push({"$where": `/${req.query.status}/.test(this.status)`});
   }
-  console.log(req.query, search);
+  logger.debug(req.query, search);
   var responses;
   if(search.length){
-    const find = await Response.find({"webpage":id}).and(search).sort("-createdAt")
+    const find = await Response.find({"webpage":id}).and(search)
+    .sort("-createdAt")
     .then((document)=>{return document});
     responses = find;
   } else{
-    const find = await Response.find({"webpage":id}).sort("-createdAt")
+    const find = await Response.find({"webpage":id})
+    .sort("-createdAt")
     .then((document)=>{return document});
     responses = find;
   } 
   
   var website = await Website.findOne({"url":webpage.input})
-  .then((document) => {
+  .lean().then((document) => {
     return document;
   });
   res.render('page', { 
