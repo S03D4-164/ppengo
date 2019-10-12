@@ -56,7 +56,6 @@ async function closeDB(){
     delete db.base.modelSchemas[modelSchemaName]
     logger.debug("deleted schema " + modelSchemaName);
   })
-
 }
 
 async function pptrEventSet(client, browser, page){
@@ -201,8 +200,7 @@ async function saveResponse(interceptedResponse, request, pageId){
       responseBuffer = await interceptedResponse.buffer();
   }catch(err){
     //console.log("[Response] failed on save buffer");
-    logger.debug("[Response] failed on save buffer");
-
+    //logger.debug("[Response] failed on save buffer");
   }
 
   if (responseBuffer) payloadId = await savePayload(responseBuffer);
@@ -211,7 +209,7 @@ async function saveResponse(interceptedResponse, request, pageId){
     text = await interceptedResponse.text();
   }catch(error){
     //console.log("[Response] failed on save text");
-    logger.debug("[Response] failed on save text");
+    //logger.debug("[Response] failed on save text");
   }    
     
   let securityDetails = {};
@@ -316,6 +314,26 @@ async function saveRequest(interceptedRequest, pageId){
   return request;
 }
 
+
+async function saveFullscreenshot(fullscreenshot){
+  let buff = new Buffer.from(fullscreenshot, 'base64');
+  let md5Hash = crypto.createHash('md5').update(buff).digest('hex');
+  let ss = await Screenshot.findOneAndUpdate(
+      {"md5": md5Hash},
+      {"screenshot": fullscreenshot},
+      {"new":true,"upsert":true},
+  );
+  buff = null;
+  md5Hash = null; 
+  if (ss._id) {
+    let id = ss._id;
+    ss = null;
+    return id;
+  } else {
+    return;
+  }
+}
+
 module.exports = {
 
   async wget (pageId){
@@ -323,8 +341,14 @@ module.exports = {
       .then(doc => { 
         return doc;
       })
-      .catch(err =>{ logger.info(err);});
-
+      .catch(err =>{
+        logger.err(err);
+        return;
+      });
+      if (!webpage){
+        logger.error(`page ${pageId} not found`);
+        return;
+      }
       //var timeout = option['timeout'];
       //timeout = (timeout >= 30 && timeout <= 300) ? timeout * 1000 : 30000; 
       //var delay = option['delay'];
@@ -361,7 +385,7 @@ module.exports = {
       let browserFetcher = puppeteer.createBrowserFetcher();
       const localChromiums = await puppeteer.createBrowserFetcher().localRevisions();
       if(!localChromiums.length) {
-        return console.error('Can\'t find installed Chromium');
+        return logger.error('Can\'t find installed Chromium');
       }
       let {executablePath} = await browserFetcher.revisionInfo(localChromiums[0]);
       let browser;
@@ -375,15 +399,15 @@ module.exports = {
           args: chromiumArgs,
         });
       }catch(error){
-        logger.info(error);
+        logger.error(error);
         webpage.error = error.message;
         return webpage;
       }
 
-      browser.once('disconnected', () => logger.debug('[Browser] disconnected.'));
+      browser.once('disconnected', () => logger.info('[Browser] disconnected.'));
 
       const browserVersion = await browser.version();
-      logger.debug(browserVersion);
+      //logger.debug(browserVersion);
 
       let page = await browser.newPage();
       if (webpage.option.userAgent) await page.setUserAgent(webpage.option.userAgent);
@@ -417,7 +441,7 @@ module.exports = {
           newBody = null;
           response = null;
         }catch(err){
-          if (err.message) logger.debug("[Intercepted] error", err.message);
+          //if (err.message) logger.debug("[Intercepted] error", err.message);
           //else console.log("[Intercepted] error", err);
         }
         //console.log(`Continuing interception ${interceptionId}`)
@@ -426,28 +450,32 @@ module.exports = {
         })
       });
 
-      page.once('load', () => console.log('[Page] loaded'));
-      page.once('domcontentloaded', () => console.log('[Page] DOM content loaded'));
-      page.once('closed', () => console.log('[Page] closed'));
+      page.once('load', () => logger.info('[Page] loaded'));
+      page.once('domcontentloaded', () => logger.info('[Page] DOM content loaded'));
+      page.once('closed', () => logger.info('[Page] closed'));
 
       page.on('requestfailed', request => {
-        logger.info('[Request] failed: ' + request._requestId)//, request.url().slice(0,100), request.failure());
+        logger.info('[Request] failed: ', request.url().slice(0,100) + request.failure());
         try{
           saveRequest(request, pageId);
         }catch(error){
-          console.log(error);
+          logger.error(error);
         }
       });
       
       page.on('requestfinished', request => {
-        logger.debug('[Request] finished: ' + request._requestId)//,  request.method(), request.url().slice(0,100));
+        logger.debug('[Request] finished: ' + request.method() +request.url().slice(0,100));
         try{
           saveRequest(request, pageId);
         }catch(error){
-          console.log(error);
+          logger.error(error);
         }
       });
 
+      page.on('dialog', async dialog => {
+        logger.debug('[Page] dialog: ', dialog.type(), dialog.message());
+        await dialog.dismiss();
+      });
 
     let finalResponse;
     try{
@@ -479,21 +507,14 @@ module.exports = {
       );
       screenshot = null;
 
+
       let fullscreenshot = await page.screenshot({
         fullPage: true,
         encoding: 'base64',
       });
 
-      let buff = new Buffer.from(fullscreenshot, 'base64');
-      let md5Hash = crypto.createHash('md5').update(buff).digest('hex');
-      let ss = await Screenshot.findOneAndUpdate(
-          {"md5": md5Hash},
-          {"screenshot": fullscreenshot},
-          {"new":true,"upsert":true},
-      );
-      webpage.screenshot = ss._id;
-      buff = null;
-      md5Hash = null;
+      let fs  = await saveFullscreenshot(fullscreenshot);
+      if (fs) webpage.screenshot = fs;
       fullscreenshot = null;
 
       webpage.url = page.url();
@@ -523,7 +544,7 @@ module.exports = {
     }finally{
       const responses = await Response.find({"webpage":pageId})
       .then((doc)=>{return doc});
-      logger.debug(responses.length);
+      //logger.debug(responses.length);
 
       if(webpage.url){
         for(let num in responses){
@@ -563,8 +584,7 @@ module.exports = {
 
       await webpage.save(function (err, success){
         if(err) logger.info(err)
-        else logger.debug("webpage saved");
-        //else console.log("webpage saved: " + webpage.input);
+        else logger.info("webpage saved");
       });
       ss = null;
       ipInfo.setResponseIp(responses);

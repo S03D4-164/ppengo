@@ -1,11 +1,21 @@
 const { createLogger, format, transports } = require('winston');
 const { combine, timestamp, label, prettyPrint } = format;
 
+const prettyJson = format.printf(info => {
+  if (info.message.constructor === Object) {
+    info.message = JSON.stringify(info.message, null, 4)
+  }
+  return `${info.level}: ${info.message}`
+})
+
 module.exports = createLogger({
   format: combine(
     label({ label: 'wgeteer' }),
     timestamp(),
-    prettyPrint()
+    prettyPrint(),
+    format.splat(),
+    format.simple(),
+    prettyJson,
   ),
   transports: [
       new transports.File({

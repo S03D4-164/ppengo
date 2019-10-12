@@ -29,11 +29,10 @@ block content
 
           h4
             table
-              if website.gsb.lookup
-                tr
-                  th SafeBrowsing
-                  td
-                    if website.gsb.lookup.matches
+              tr
+                th SafeBrowsing
+                td
+                  if website.gsb
                       - var matches =  website.gsb.lookup.matches
                       if matches.length
                         each match in matches
