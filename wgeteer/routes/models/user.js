@@ -11,7 +11,7 @@ const UserSchema =  new mongoose.Schema({
         type:String,
     },
     active    : Boolean,
-    role  : [String],
+    group  : [String],
     admin: {
         type:Boolean,
         default:false

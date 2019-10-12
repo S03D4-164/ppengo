@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const logger = require('./logger')
 
+const mongoConnectionString = 'mongodb://127.0.0.1:27017/wgeteer';
+
 /*
 mongoose.connection.on('connecting', ()=>{console.log("[mongoose] connecting.")});
 mongoose.connection.on('connected', ()=>{console.log("[mongoose] connected.")});
@@ -11,7 +13,8 @@ mongoose.connection.on('reconnectFailed', ()=>{console.log("[mongoose] reconnect
 mongoose.connection.on('error', (err)=>{console.log("[mongoose] error", err)});
 */
 
-mongoose.connect('mongodb://127.0.0.1:27017/wgeteer', {
+//mongoose.connect('mongodb://127.0.0.1:27017/wgeteer', {
+mongoose.connect(mongoConnectionString, {
   useNewUrlParser: true,
   useCreateIndex: true,
   autoReconnect:true,
@@ -22,16 +25,25 @@ mongoose.connect('mongodb://127.0.0.1:27017/wgeteer', {
 .catch((err) => logger.debug('[mongoose] connect error', err));
 
 const Agenda = require('agenda');
-const agenda = new Agenda();
+const connectionOpts = {
+    db: {
+        address: mongoConnectionString,
+        collection: 'agendaJobs',
+        options: {
+            useNewUrlParser: true,
+        },
+    },
+    processEvery: '5 seconds'
+};
 
-agenda.processEvery('5 seconds');
-agenda.database('127.0.0.1:27017/wgeteer', 'agendaJobs');
+const agenda = new Agenda(connectionOpts);
 
 const wgeteer = require('./wgeteer')
 
 agenda.define('wgeteer', async (job, done) => {
     const {pageId, previous} = job.attrs.data;
     await wgeteer.wget(pageId);
+    agenda.now('analyzePage', {pageId: pageId});
     done();
 });
     

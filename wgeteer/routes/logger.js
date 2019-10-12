@@ -5,7 +5,7 @@ const prettyJson = format.printf(info => {
   if (info.message.constructor === Object) {
     info.message = JSON.stringify(info.message, null, 4)
   }
-  return `${info.level}: ${info.message}`
+  return `${info.timestamp} [${info.level}] ${info.message}`
 })
 
 module.exports = createLogger({

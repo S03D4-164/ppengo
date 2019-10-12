@@ -40,7 +40,7 @@ var app = express();
 
 var logger = require('morgan');
 app.use(logger('dev'));
-global.__logger = require('./routes/logger');
+//global.__logger = require('./routes/logger');
 
 var rootPath = "/ppengo/";
 

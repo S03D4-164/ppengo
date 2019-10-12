@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 
 const Request = require('./models/request');
+const logger = require('./logger')
 
 /*
 var cookieParser = require('cookie-parser');
@@ -15,7 +16,7 @@ router.use(cookieParser());
 //router.get('/',  csrfProtection, function(req, res, next) {
 router.get('/', function(req, res) {
   //const now = date.now();
-  Request.find().sort("-createdAt").limit(100)
+  Request.find().sort("-createdAt").limit(100).lean()
     .then((webpages) => {
       res.render(
         'requests', {
@@ -25,7 +26,6 @@ router.get('/', function(req, res) {
         });
     })
     .catch((err) => { 
-      console.log(err);
       res.send(err); 
     });
 });
@@ -35,7 +35,6 @@ router.get('/:id', function(req, res) {
   const id = req.params.id;
   Request.findById(id).populate('response').populate('webpage')
     .then((webpage) => {
-      //console.log(webpage);
       res.render(
         'response', { 
         title: "Request", 

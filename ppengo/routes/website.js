@@ -67,8 +67,7 @@ router.get('/', function(req, res) {
       page: req.query.page,
       limit: req.query.limit
     }, function(err, result) {
-      //console.log(result)
-      //console.log(paginate)
+
       var pages = result?paginate.getArrayPages(req)(5, result.totalPages, req.query.page):undefined;
       res.render('websites', {
         title:"Sites",
@@ -96,7 +95,7 @@ async function paginatedPage(query, req){
 router.get('/:id', async function(req, res, next) {
     const id = req.params.id;
     const verbose = req.query.verbose?true:false;
-    console.log(req.query);
+
     const website = await Website.findById(id)
       .then((document)=>{return document})
       .catch((err)=>{return err});
@@ -167,8 +166,6 @@ router.post('/:id', async function(req, res, next) {
     const id = req.params.id;
     var website = await Website.findById(id)
     .then((document) => {return document;});
-    //console.log(website);
-    //console.log(req.body);
 
     var tag = {};
     if (req.body['tag']){

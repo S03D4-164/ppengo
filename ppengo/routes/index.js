@@ -5,20 +5,25 @@ const Webpage = require('./models/webpage');
 const Website = require('./models/website');
 
 const wgeteer = require('./wgeteer');
+const agenda = require('./agenda');
 
-const scheduler = require('./scheduler');
-scheduler.start();
+//const scheduler = require('./scheduler');
+//scheduler.start();
+//const scheduler = require('./agenda');
 
 router.post('/', async function(req, res, next) {
 
-  console.log(req.body);
   const input = req.body['url'];
 
   var ids = [];
   var webpages = [];
  
   for (let inputUrl of input.split('\r\n')){
-    if(inputUrl){
+    const ex =　/(https?|ftp):\/\/.+/
+    //if(inputUrl){
+    if(ex.exec(inputUrl)){
+      inputUrl = ex.exec(inputUrl)[0];
+      console.log(inputUrl)
       var lang = req.body['lang'];
       if (typeof lang === 'string') lang = [lang];
       var userAgent = req.body['userAgent'];
@@ -39,19 +44,17 @@ router.post('/', async function(req, res, next) {
           if ("disableScript" in req.body) option["disableScript"] = true;
 
           var track = ("track" in req.body)?req.body['track']:0;      
-          console.log(option, track);
           const webpage = await wgeteer.registerUrl(inputUrl, option, track);
-          //console.log(webpage);
           ids.push(webpage._id.toString());
           webpages.push(webpage);
           //await wgeteer.wgetJob(webpage);
-          await wgeteer.wgetJob(webpage._id);
+          //await wgeteer.wgetJob(webpage._id);
+          agenda.now('wgeteer', {pageId: webpage._id});
           //const job = await wgeteer.wgetJob(webpage);
         }      
       }
     }
   }
-  //console.log(ids);
   res.render(
     'progress', {
     title:"Progress",

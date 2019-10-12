@@ -34,7 +34,7 @@ block content
                 td
                   if website.gsb
                       - var matches =  website.gsb.lookup.matches
-                      if matches.length
+                      if matches
                         each match in matches
                           span.badge.badge-danger
                             a= match.threatType

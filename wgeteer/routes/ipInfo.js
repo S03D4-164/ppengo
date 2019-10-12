@@ -2,11 +2,15 @@ const whois = require('node-xwhois');
 var geoip = require('geoip-lite');
 //var redis = require('redis');
 const Response = require('./models/response');
+const logger = require('./logger')
 
 const getIpinfo = async function(host){
     const ip = await whois.extractIP(host)
         .then(info => {return info[0]})
-        .catch(err => console.log(err));
+        .catch(err => {
+            logger.error(err);
+            return;
+        });
     if (whois.isIP(ip)){
         /*
         const client = await redis.createClient();
@@ -31,19 +35,23 @@ const getIpinfo = async function(host){
         //const who = await whoisCache(host);
         const reverses = await whois.reverse(ip)
             .then(info => {return info})
-            .catch(err => console.log(err));
+            .catch(err => {
+                logger.debug(err)
+            });
         const hostnames  = Array.from(new Set(reverses))
 
         const bgp = await whois.bgpInfo(ip)
             .then(info => {return info})
-            .catch(err => console.log("[bgp] error: " + ip));
+            .catch(err => {
+                logger.debug("[bgp] error: " + ip)
+            });
 
         var geo = {}
         try{
             geo = await geoip.lookup(ip);
 
         }catch(error){
-            console.log("[GeoIP] error: " + ip);
+            logger.error("[GeoIP] error: " + ip);
         }
 
         ipInfo = {

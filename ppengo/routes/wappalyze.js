@@ -45,13 +45,13 @@ const wappalyze = async function (url, headers, text, cookies){
 
 module.exports = {
   async analyze(id){
-    logger.debug("wappalyze", id)
+    logger.debug(`wappalyze ${id}`)
     await Webpage.findById(id)
     .then(async (webpage) => {
       try{
         //const cookies = await page.cookies();
         if(webpage.url){
-          logger.debug("page", webpage.url);
+          logger.debug(`page: ${webpage.url}`);
           let cookies = null;
           let wapps = await wappalyze(
               webpage.url,
@@ -73,7 +73,7 @@ module.exports = {
     });
     await Response.find({"webpage":id}).lean()
     .then(async (responses) => {
-        logger.debug(responses.length);
+        //logger.debug(responses.length);
         for(let response of responses){
           try{
             if(response.url){
