@@ -3,6 +3,7 @@ const logger = require('./logger')
 
 const Website = require('./models/website');
 const Webpage = require('./models/webpage');
+const Response = require('./models/response');
 
 const mail = require("./mail");
 const yara = require("./yara");
@@ -11,7 +12,6 @@ const mongoConnectionString = 'mongodb://mongodb/wgeteer';
 
 const connectionOpts = {
     db: {
-        //address: 'mongodb://mongodb/wgeteer',
         address: mongoConnectionString,
         collection: 'agendaJobs',
         options: {
@@ -21,11 +21,30 @@ const connectionOpts = {
     processEvery: '5 seconds'
 };
 const agenda = new Agenda(connectionOpts);
-/*
-const agenda = new Agenda();
-agenda.processEvery('5 seconds');
-agenda.database('mongodb/wgeteer', 'agendaJobs');
-*/
+
+agenda.define('esIndex', async (job, done) => {
+
+  Response.on('es-bulk-sent', function () {
+    console.log('buffer sent');
+  });
+  
+  /*
+  Response.on('es-bulk-data', function (doc) {
+    console.log('Adding ' + doc.title);
+  });
+  */
+ 
+  Response.on('es-bulk-error', function (err) {
+    console.error(err);
+  });
+  
+  Response
+    .esSynchronize()
+    .then(function () {
+      console.log('end.');
+    });
+
+})
 
 agenda.define('crawlWeb', async (job, done) => {
     let websites = await Website.find()
@@ -39,8 +58,8 @@ agenda.define('crawlWeb', async (job, done) => {
     if(websites){
       for(let seq in websites){
         let website = websites[seq];
-        //let interval = 60 * 60 * 1000;
-        let interval = 60 * 1000;
+        let interval = 60 * 60 * 1000;
+        //let interval = 60 * 1000;
   
         let now = Math.floor(Date.now()/(interval));
         let update = website.track.period  + Math.floor(website.last.createdAt.valueOf()/(interval));

@@ -44,7 +44,7 @@ router.post('/', async function(req, res, next) {
           if ("disableScript" in req.body) option["disableScript"] = true;
 
           var track = ("track" in req.body)?req.body['track']:0;      
-          const webpage = await wgeteer.registerUrl(inputUrl, option, track);
+          const webpage = await wgeteer.registerUrl(inputUrl, option, track, req.user);
           ids.push(webpage._id.toString());
           webpages.push(webpage);
           //await wgeteer.wgetJob(webpage);

@@ -2,12 +2,40 @@ var express = require('express');
 var router = express.Router();
 
 const Response = require('./models/response');
+const agenda = require('./agenda');
 
 var paginate = require('express-paginate');
 const json2csv = require('json2csv');
 const moment = require('moment');
 
 var Diff = require('diff');
+const logger = require('./logger')
+
+router.get('/es/index', function(req, res) {
+  //Response.esTruncate(function(err){console.log(err)});
+  Response.esCreateMapping({
+    "settings": {
+      "analysis" : {
+        "filter": {
+          "pos_filter": {type: "kuromoji_part_of_speech", stoptags: ["助詞-格助詞-一般", "助詞-終助詞"]},
+          "greek_lowercase_filter": {type: "lowercase", language: "greek"}
+        },
+        "analyzer":{
+          "kuromoji_analyzer":{
+            "type":"custom",
+            "tokenizer":"kuromoji_tokenizer",
+            filter: ["kuromoji_baseform", "pos_filter", "greek_lowercase_filter", "cjk_width"]
+          }
+        }
+      }
+    }
+  });
+  
+  agenda.now('esIndex');
+  //esIndex(Response);
+  res.redirect(req.baseUrl);
+
+});
 
 router.get('/es', function(req, res) {
   var size = req.query.size?Number(req.query.size):10;
@@ -24,7 +52,7 @@ router.get('/es', function(req, res) {
     },
     "sort":{"createdAt": {"order": "desc"}},
   };
-  console.log(rawQuery);
+  logger.debug(rawQuery);
   var hidrate = {
     hydrate: true,
     hydrateOptions: {lean: true},
@@ -33,11 +61,12 @@ router.get('/es', function(req, res) {
   Response.esSearch(rawQuery,
     hidrate,
     function(err, results) {
-      //console.log(JSON.stringify(results,null," "));
+      console.log(JSON.stringify(results,null," "));
       var result, total;
       if(results){
-        result = results.hits?{"docs":results.hits.hits}:{"docs":[]};
-        total = results.hits?results.hits.total:0;
+        //result = results.hits?{"docs":results.hits.hits}:{"docs":[]};
+        result = results.hits?results.hits.hits:[];
+        total = results.hits?results.hits.total.value:0;
       }
       res.render('es_responses', {
         result,
@@ -88,12 +117,12 @@ router.get('/', function(req, res) {
     if(end.toString()!="Invalid Date")search.push({"createdAt": {"$lte": end}});
   }
 
-  console.log(search);
+  logger.debug(search);
 
   if(typeof req.query.csv !== 'undefined' && req.query.csv){
     var find = Response.find();
     if(search.length)find = find.and(search);
-    find.sort("-createdAt").then((response) => {
+    find.lean().sort("-createdAt").then((response) => {
       var fields = ['createdAt', 'url', 'status', 'remoteAddress.ip', 'remoteAddress.reverse', 'remoteAddress.geoip', 'wappalyzer', 'securityDetails.issuer', 'securityDetails.validFrom', 'securityDetails.validTo'];
       const csv = json2csv.parse(response, { withBOM:true, fields });
       res.setHeader('Content-disposition', 'attachment; filename=responses.csv');
@@ -106,7 +135,8 @@ router.get('/', function(req, res) {
       query, {
       sort:{"createdAt":-1},
       page: req.query.page,
-      limit: req.query.limit
+      limit: req.query.limit,
+      lean: true
     }, function(err, result) {
       //console.log(result)
       //console.log(paginate)
@@ -155,9 +185,9 @@ router.get('/:id', async function(req, res) {
         "url":response.url,
         "createdAt":{$lt: response.createdAt},
         //"status":{$ge: 0}
-      }).sort("-createdAt")
+      }).lean().sort("-createdAt")
       .then((document) => {
-        console.log(document.length);
+        logger.debug(document.length);
         return document;
       });
       if (previous.length){

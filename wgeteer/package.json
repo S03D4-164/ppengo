@@ -14,6 +14,7 @@
     "kue-scheduler": "^0.8.1",
     "mongoosastic": "^4.5.0",
     "mongoose": "^5.4.10",
+    "mongoose-elasticsearch-xp": "^5.8.0",
     "mongoose-paginate-v2": "^1.2.1",
     "node-xwhois": "^2.0.9",
     "puppeteer": "^1.12.1",

@@ -23,6 +23,7 @@ const websiteSchema = new mongoose.Schema({
             type: Object,
         }
     },
+    group  : [String],
     last : { type: mongoose.Schema.Types.ObjectId, ref: 'Webpage' },
 },
 {timestamps:true},

@@ -9,7 +9,10 @@ const Tag = require('./models/tag');
 const json2csv = require('json2csv');
 
 router.get('/', function(req, res) {
-  var search = []
+  if(!req.user)res.redirect(req.baseUrl + "/auth/");
+  var search = [];
+  if(!req.user.admin)search.push({"group": {"$in":req.user.group}});
+
   if(typeof req.query.tagkey !== 'undefined' && req.query.tagkey){
     var elem = {};
     elem[req.query.tagkey] = {"$regex":"^.*$"};

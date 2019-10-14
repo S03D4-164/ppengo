@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const mongoosePaginate = require('mongoose-paginate-v2');
 const mongoosastic = require('mongoosastic')
+const mexp = require('mongoose-elasticsearch-xp').v7;
 
 const responseSchema = new mongoose.Schema({
     url: {
@@ -66,7 +67,8 @@ responseSchema.index({webpage:1});
 responseSchema.index({"remoteAddress.ip":1});
 
 responseSchema.plugin(mongoosePaginate);
-responseSchema.plugin(mongoosastic,{
+//responseSchema.plugin(mongoosastic,{
+responseSchema.plugin(mexp,{
   hosts: [
     'elasticsearch:9200',
     '127.0.0.1:9200',

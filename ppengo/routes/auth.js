@@ -73,7 +73,7 @@ router.post('/register', async function(req, res, next) {
     var username = req.body.username;
     var password = req.body.password;
 
-    User.register(new User({ username : username }), password, function(err, account) {
+    User.register(new User({ username : username, group:[username] }), password, function(err, account) {
         if (err) {
             console.log(err);
             return res.render('register', { account : account });

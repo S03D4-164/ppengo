@@ -33,7 +33,7 @@ module.exports = {
     return job;
   },
 
-  async registerUrl(inputUrl, option, track){
+  async registerUrl(inputUrl, option, track, user){
 
     const webpage = await new Webpage({
       input: inputUrl,
@@ -47,10 +47,13 @@ module.exports = {
       {"url": inputUrl},
       {
         "last": webpage._id,
+        "group": user.group
       },
       {"new":true,"upsert":true},
     );
-
+    for(let group in user.group){
+      if (!(group in website.group)) website.group.push(group);
+    }
     if (!website.gsb.lookup) await gsbJob(website._id);
     //else console.log("gsb checked");
 

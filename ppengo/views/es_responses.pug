@@ -3,7 +3,7 @@ extends layout
 block content
   h2.p-2 Responses - ElasticSearch
   if result
-    - var responses = result.docs
+    - var responses = result
     //include include/pagination.pug
   form.form-inline(method="get" action=rootPath + "response/es")
       input.form-control.mr-2.btn.btn-sm.btn-danger(type="submit" value="search")
@@ -34,13 +34,14 @@ block content
           tr.d-flex 
             td.col-2= moment(response.createdAt).format('YYYY-MM-DD HH:mm:ss.SSS')
             td.col-4
-              a(href=rootPath + "response?url=" + encodeURIComponent(response.url))= "🔍 "
-              a(href=rootPath + "response/" +response._id) #{response.url}
+              a(href=rootPath + "response?url=" + encodeURIComponent(response.doc.url))= "🔍 "
+              a(href=rootPath + "response/" +response._id) #{response.doc.url}
             td.col-6
-              - var matched = response.text.toLowerCase().indexOf(query.toLowerCase());
-              - var start = matched<=100?0:matched-100
-              a= matched + " / " + response.text.length
-              pre= response.text.slice(start ,matched+100)
+              if response.doc.text
+                - var matched = response.doc.text.toLowerCase().indexOf(query.toLowerCase());
+                - var start = matched<=100?0:matched-100
+                a= matched + " / " + response.doc.text.length
+                pre= response.doc.text.slice(start ,matched+100)
   else
     div.alert.alert-warning
       p No data

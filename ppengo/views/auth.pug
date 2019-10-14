@@ -12,6 +12,7 @@ block content
         h2  Account
         form(role='form', action=rootPath + "auth/user/" + user.username, method="post", style='max-width: 300px;')
           h3= "username: " + user.username
+          h3= "group: " + user.group
           //.form-group
             input.form-control(type='text', name="username", placeholder='Enter Username', value=user.username)
           .form-group
