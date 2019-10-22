@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const mongoosePaginate = require('mongoose-paginate-v2');
-const mongoosastic = require('mongoosastic')
+//const mongoosastic = require('mongoosastic')
 const mexp = require('mongoose-elasticsearch-xp').v7;
 
 const responseSchema = new mongoose.Schema({
@@ -77,22 +77,5 @@ responseSchema.plugin(mexp,{
   //hydrateOptions: {lean: true},
   //hydrateWithESResults: {source: false},
 })
-
-/*
-var Response = mongoose.model('Response', responseSchema)
-  , stream = Response.synchronize()
-  , count = 0;
-
-stream.on('data', function(err, doc){
-  count++;
-  console.log('indexeing ' + count + ' documents...');
-});
-stream.on('close', function(){
-  console.log('indexed ' + count + ' documents!');
-});
-stream.on('error', function(err){
-  console.log(err);
-});
-*/
 
 module.exports = mongoose.model('Response', responseSchema);

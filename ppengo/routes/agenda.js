@@ -8,6 +8,7 @@ const Response = require('./models/response');
 const mail = require("./mail");
 const yara = require("./yara");
 const wappalyze = require("./wappalyze");
+
 const mongoConnectionString = 'mongodb://mongodb/wgeteer';
 
 const connectionOpts = {
@@ -22,31 +23,37 @@ const connectionOpts = {
 };
 const agenda = new Agenda(connectionOpts);
 
-agenda.define('esIndex', async (job, done) => {
+agenda.define('esIndex', {
+  concurrency: 1,
+  lockLimit: 1,
+  priority: "low"
+}, async (job, done) => {
 
   Response.on('es-bulk-sent', function () {
-    console.log('buffer sent');
+    logger.debug('buffer sent');
   });
   
   /*
   Response.on('es-bulk-data', function (doc) {
-    console.log('Adding ' + doc.title);
+    logger.debug('Adding ' + doc.title);
   });
   */
  
   Response.on('es-bulk-error', function (err) {
-    console.error(err);
+    logger.error(err);
   });
   
   Response
     .esSynchronize()
     .then(function () {
-      console.log('end.');
+      logger.debug('sync end.');
     });
 
 })
 
-agenda.define('crawlWeb', async (job, done) => {
+agenda.define('crawlWeb', {
+  priority: "low"
+}, async (job, done) => {
     let websites = await Website.find()
     .where("track.counter").gt(0)
     .populate("last")
@@ -100,7 +107,9 @@ agenda.define('crawlWeb', async (job, done) => {
     done();
 });
 
-agenda.define('analyzePage', async (job, done) => {
+agenda.define('analyzePage', {
+  priority: "low"
+}, async (job, done) => {
     const {pageId, previous} = job.attrs.data;    
     logger.debug(`wappalyzer -> ${pageId}`);
     await wappalyze.analyze(pageId);
@@ -115,10 +124,15 @@ agenda.define('hello world', function(job, done) {
 });
 
 agenda.on('ready', function () {
-    agenda.now('hello world', {time: new Date()});
-    agenda.now('crawlWeb');
-    agenda.every('2 minutes', ['hello world', 'crawlWeb']);
-    agenda.start();
+  agenda.purge((err, numRemoved) => {
+    if(err) logger.error(err);
+    if(numRemoved) logger.debug(`${numRemoved} removed`);
+  });
+  
+  agenda.now('hello world', {time: new Date()});
+  //agenda.now('crawlWeb');
+  agenda.every('*/10 * * * *', ['crawlWeb']);
+  agenda.start();
 });
 
 agenda.on('start', job => {
@@ -128,5 +142,13 @@ agenda.on('start', job => {
 agenda.on('complete', job => {
     logger.debug(`Job ${job.attrs.name} finished`);
 });
+
+async function graceful() {
+  await agenda.stop();
+  process.exit(0);
+}
+
+process.on('SIGTERM', graceful);
+process.on('SIGINT' , graceful);
 
 module.exports = agenda;

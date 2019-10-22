@@ -13,9 +13,10 @@ services:
       - ./routes:/home/node/app
     network_mode: "host"
     working_dir: /home/node/app
-    command: dumb-init -- node --inspect --optimize_for_size --gc_interval=100 --max-old-space-size=1024 scheduler
+    #command: dumb-init -- node --inspect --optimize_for_size --gc_interval=100 --max-old-space-size=1024 scheduler
+    command: dumb-init -- node --inspect --optimize_for_size --gc_interval=100 --max-old-space-size=1024 agenda
     mem_limit: 2g
-    restart: always
+    #restart: always
     logging:
       driver: "json-file"
       options:

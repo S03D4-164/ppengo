@@ -5,17 +5,9 @@ const crypto = require("crypto");
 
 const ipInfo = require('./ipInfo')
 const logger = require('./logger')
+const prediction = require('./prediction')
 
 const mongoose = require('mongoose');
-/*
-mongoose.connection.on('connecting', ()=>{console.log("[mongoose] connecting.")});
-mongoose.connection.on('connected', ()=>{console.log("[mongoose] connected.")});
-mongoose.connection.on('disconnecting', ()=>{console.log("[mongoose] disconnecting.")});
-mongoose.connection.on('disconnected', ()=>{console.log("[mongoose] disconnected.")});
-mongoose.connection.on('reconnected', ()=>{console.log("[mongoose] reconnected.")});
-mongoose.connection.on('reconnectFailed', ()=>{console.log("[mongoose] reconnect failed.")});
-mongoose.connection.on('error', (err)=>{console.log("[mongoose] error", err)});
-*/
 
 require('./models/webpage');
 require('./models/request');
@@ -314,7 +306,6 @@ async function saveRequest(interceptedRequest, pageId){
   return request;
 }
 
-
 async function saveFullscreenshot(fullscreenshot){
   let buff = new Buffer.from(fullscreenshot, 'base64');
   let md5Hash = crypto.createHash('md5').update(buff).digest('hex');
@@ -505,6 +496,7 @@ module.exports = {
         screenshot,
         {percentage: 20, responseType: 'base64'}
       );
+      prediction.imgPrediction(webpage.thumbnail)
       screenshot = null;
 
 

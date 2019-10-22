@@ -11,6 +11,7 @@ const Response = require('./models/response');
 const Website = require('./models/website');
 
 const logger = require('./logger')
+const prediction = require('./prediction')
 
 router.get('/', function(req, res) {
   var search = []
@@ -86,6 +87,8 @@ router.get('/:id', async function(req, res, next) {
       return document;
   });
   
+  const pred = await prediction.imgPrediction(webpage.thumbnail);
+
   var previous, diff;
   if (webpage.content){
     previous = await Webpage.find({

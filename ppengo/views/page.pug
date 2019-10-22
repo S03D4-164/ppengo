@@ -12,7 +12,7 @@ block content
         .col-3
           if webpage.thumbnail
             a.colorbox(href=rootPath + "screenshot/" + webpage.screenshot)
-              img(width="100%" src="data:image/png;base64," + webpage.thumbnail)
+              img(width="100%" id="thumbnail" src="data:image/png;base64," + webpage.thumbnail)
           h5= "ID: "
             a(href=rootPath + "page/" + webpage._id) #{webpage._id}
           a= moment(webpage.createdAt).format('YYYY-MM-DD HH:mm:ss') + " / " +moment(webpage.createdAt).fromNow()
