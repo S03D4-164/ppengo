@@ -18,13 +18,6 @@ services:
     mem_limit: 3g
     #restart: always
 
-  redis:
-    image: redis:alpine
-    container_name: cache
-    ports:
-      - 127.0.0.1:6379:6379
-    mem_limit: 1g
-
   ppengo:
     build: "ppengo"
     container_name: ppengo
@@ -44,11 +37,9 @@ services:
       - "127.0.0.1:9222:9222"
     links:
       - mongodb
-      - redis
       - elasticsearch
     depends_on:
       - mongodb
-      - redis
       - elasticsearch
     volumes:
       - ./ppengo/public:/home/node/public
@@ -81,6 +72,7 @@ services:
       - JVM_OPTS=-Xmx2g -Xms2g -XX:MaxPermSize=2048m
       - ES_HEAP_SIZE=2g
     container_name: elasticsearch
+    
   kibana:
     image: docker.elastic.co/kibana/kibana:7.3.0
     links:

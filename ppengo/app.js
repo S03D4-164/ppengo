@@ -2,6 +2,7 @@ var createError = require('http-errors');
 var express = require('express');
 var paginate = require('express-paginate');
 var path = require('path');
+
 var cookieParser = require('cookie-parser');
 var csrf = require('csurf');
 var bodyParser = require('body-parser');
@@ -52,7 +53,9 @@ app.use(rootPath + 'js', express.static(__dirname + '/node_modules/jquery/dist')
 app.use(rootPath + 'css', express.static(__dirname + '/node_modules/bootstrap/dist/css')); // redirect CSS bootstrap
 
 app.use(cookieParser());
-app.use(csrf({ cookie: true }));
+//app.use(csrf({ cookie: true }));
+var csrfFuc = csrf({ cookie: true });
+
 app.use(session({
   secret: 'keyboard cat',
   resave: false,
@@ -61,6 +64,19 @@ app.use(session({
 }));
 app.use(passport.initialize());
 app.use(passport.session());
+
+app.use(function(req,res,next){
+  var ignoreUris = ['^\/ppengo/api\/.*$']
+  for (var i=0,len=ignoreUris.length; i<len; i++) {
+      if(req.url.match(ignoreUris[i])){
+          next();
+          return;
+      }
+  }
+  csrfFuc(req,res,next);
+
+})
+
 
 app.use(function (req, res, next) {
   res.locals.login = req.isAuthenticated();

@@ -3,17 +3,6 @@ const logger = require('./logger')
 
 const mongoConnectionString = 'mongodb://127.0.0.1:27017/wgeteer';
 
-/*
-mongoose.connection.on('connecting', ()=>{console.log("[mongoose] connecting.")});
-mongoose.connection.on('connected', ()=>{console.log("[mongoose] connected.")});
-mongoose.connection.on('disconnecting', ()=>{console.log("[mongoose] disconnecting.")});
-mongoose.connection.on('disconnected', ()=>{console.log("[mongoose] disconnected.")});
-mongoose.connection.on('reconnected', ()=>{console.log("[mongoose] reconnected.")});
-mongoose.connection.on('reconnectFailed', ()=>{console.log("[mongoose] reconnect failed.")});
-mongoose.connection.on('error', (err)=>{console.log("[mongoose] error", err)});
-*/
-
-//mongoose.connect('mongodb://127.0.0.1:27017/wgeteer', {
 mongoose.connect(mongoConnectionString, {
   useNewUrlParser: true,
   useCreateIndex: true,
@@ -39,6 +28,8 @@ const connectionOpts = {
 const agenda = new Agenda(connectionOpts);
 
 const wgeteer = require('./wgeteer')
+const gsblookup = require('./gsblookup')
+const vt = require('./vt')
 
 agenda.define('wgeteer', async (job, done) => {
     const {pageId, previous} = job.attrs.data;
@@ -46,9 +37,17 @@ agenda.define('wgeteer', async (job, done) => {
     agenda.now('analyzePage', {pageId: pageId});
     done();
 });
-    
+
 agenda.define('hello world', function(job, done) {
     logger.debug('agenda ready');
+    done();
+});
+
+agenda.define('gsblookupUrl', async (job, done) => {
+    logger.debug(job.attrs)
+    const result = await gsblookup.lookupUrl(job.attrs.data.url);
+    logger.debug(result);
+    await agenda.now('gsbUrlResult', {result: result});
     done();
 });
 
@@ -65,13 +64,6 @@ agenda.on('complete', job => {
     logger.info(`Job ${job.attrs.name} finished`);
 });
 
-agenda.on('success:wgeteer', job => {
-    logger.info(`Wgeteer Successfully to ${job.attrs.data.pageId}`);
-});
-
-agenda.on('fail:wgeteer', (err, job) => {
-    logger.info(`Job failed with error: ${err.message}`);
-});
 
 module.exports = {
     agenda,

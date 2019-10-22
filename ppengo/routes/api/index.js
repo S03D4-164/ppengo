@@ -2,7 +2,9 @@ var express = require('express');
 var router = express.Router();
 
 const wgeteer = require('../wgeteer');
+const agenda = require('../agenda')
 
+/*
 const kue = require('kue-scheduler')
 let queue = kue.createQueue({
   prefix: 'q',
@@ -11,6 +13,7 @@ let queue = kue.createQueue({
     port: 6379
   }
 });
+*/
 
 router.get('/', function(req, res) {
   res.json();
@@ -65,55 +68,26 @@ router.post('/vt/', async function(req, res) {
 
 });
 
-router.post('/gsblookupurl/', async function(req, res) {
-  async function queJob(url){
-    const job = await queue.create('gsblookupUrl', {
-      url:url,
-    }).ttl(60*1000).attempts(3).backoff( true );
-    await job.save(function(err){
-      if( err ) console.log( job.id, err);
-    });    
-    return job;
-  }
-  const url = req.body.url;
-  const job = await queJob(url);
 
-  job.on('complete', function(result){
-    console.log('Job completed with data ', result);
-  }).on('failed', function(errorMessage){
-    console.log('Job failed');  
-  }).on('progress', function(progress, data){
-    console.log('\r  job #' + job.id + ' ' + progress + '% complete with data ', data );
-    return res.json(data);
+router.post('/gsblookupurl/', function(req, res) {
+  const url = req.body.url;
+  agenda.now('gsblookupUrl', {
+    url:url,
+  })
+
+  agenda.define('gsbUrlResult', (job) => {
+    return res.json(job);
   });
+
 });
 
 router.post('/gsblookup/', async function(req, res) {
-  async function queJob(id){
-    const job = await queue.create('gsblookup', {
-      websiteId:id,
-    }).ttl(60*1000).attempts(3).backoff( true );
-    await job.save(function(err){
-      if( err ) console.log( job.id, err);
-    });
-    return job;
-  }
   const id = req.body.id;
-  const job = await queJob(id);
+  const job = await agenda.now('gsblookup', {
+    websiteId:id,
+  })
   
-  job.on('complete', function(result){
-    console.log('Job completed with data ', result);
-  }).on('failed', function(errorMessage){
-    console.log('Job failed');
-  }).on('progress', function(progress, data){
-    console.log('\r  job #' + job.id + ' ' + progress + '% complete with data ', data );
-    try{
-      return res.json(data);
-    }catch(err){
-      console.log(err);
-    }
-  });
-  return;
+  return res.json(job);
 });
 
 router.post('/register', async function(req, res) {
