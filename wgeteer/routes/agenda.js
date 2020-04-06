@@ -5,6 +5,7 @@ const mongoConnectionString = 'mongodb://127.0.0.1:27017/wgeteer';
 
 mongoose.connect(mongoConnectionString, {
   useNewUrlParser: true,
+  useUnifiedTopology: true,
   useCreateIndex: true,
   autoReconnect:true,
   reconnectInterval: 5000,

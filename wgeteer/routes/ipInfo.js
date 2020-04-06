@@ -1,5 +1,7 @@
 const whois = require('node-xwhois');
-var geoip = require('geoip-lite');
+const geoip = require('geoip-lite');
+const ip2loc = require("ip2location-nodejs");
+
 //var redis = require('redis');
 const Response = require('./models/response');
 const logger = require('./logger')
@@ -48,10 +50,17 @@ const getIpinfo = async function(host){
 
         var geo = {}
         try{
-            geo = await geoip.lookup(ip);
-
+            //geo = await geoip.lookup(ip);
+            ip2loc.IP2Location_init("./IP2LOCATION-LITE-DB1.IPV6.BIN");
+            const country = ip2loc.IP2Location_get_country_short(ip);
+            const country_long = ip2loc.IP2Location_get_country_long(ip);
+            geo = {
+              country: country,
+              country_long: country_long,
+            }
+            //console.log(geo);
         }catch(error){
-            logger.error("[GeoIP] error: " + ip);
+            logger.error("[GeoIP] error: " + error.message);
         }
 
         ipInfo = {

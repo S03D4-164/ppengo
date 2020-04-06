@@ -30,7 +30,7 @@ services:
       - ME_CONFIG_MONGODB_URL=mongodb://mongodb/wgeteer
       - ME_CONFIG_BASICAUTH_USERNAME=admin
       - ME_CONFIG_BASICAUTH_PASSWORD=password
-      - NODE_OPTIONS="--optimize_for_size --gc_interval=100 --max-old-space-size=1024"
+#      - NODE_OPTIONS="--optimize_for_size --gc_interval=100 --max-old-space-size=1024"
     tty: true
     ports:
       - "127.0.0.1:3000:3000"
