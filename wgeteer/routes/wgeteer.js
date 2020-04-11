@@ -15,12 +15,15 @@ require('./models/response');
 require('./models/screenshot');
 require('./models/payload');
 
-var db = mongoose.createConnection('mongodb://127.0.0.1:27017/wgeteer', {
+const mongoConnectionString = 'mongodb://127.0.0.1:27017/wgeteer';
+
+var db = mongoose.createConnection(mongoConnectionString, {
   useNewUrlParser: true,
+  useUnifiedTopology: true,
   useCreateIndex: true,
-  autoReconnect:true,
-  reconnectInterval: 5000,
-  reconnectTries: 60,
+  //autoReconnect:true,
+  //reconnectInterval: 5000,
+  //reconnectTries: 60,
   useFindAndModify: false,
 });
 
@@ -151,7 +154,6 @@ async function pptrEventSet(client, browser, page){
 
 }
 
-var responseCache = [];
 
 async function savePayload(responseBuffer){
   let md5Hash = crypto.createHash('md5').update(responseBuffer).digest('hex');
@@ -166,11 +168,10 @@ async function savePayload(responseBuffer){
     },
     {"new":true,"upsert":true},
   );
-  //logger.debug("payload saved: ", payload.md5, responseBuffer.length);
   return payload._id;
 }
 
-async function saveResponse(interceptedResponse, request, pageId){
+async function saveResponse(interceptedResponse, pageId, responseCache){
 
   let responseBuffer;
   let text;
@@ -222,7 +223,8 @@ async function saveResponse(interceptedResponse, request, pageId){
   try{
     let url = interceptedResponse.url();
     let urlHash = crypto.createHash('md5').update(url).digest('hex');
-    const response = new Response({
+
+    const response = {
       webpage: pageId,
       url: url,
       urlHash: urlHash,
@@ -234,22 +236,9 @@ async function saveResponse(interceptedResponse, request, pageId){
       securityDetails: securityDetails,
       payload: payloadId,
       text: text,
-      request: request._id,
-    });
-    await response.save(function (err){
-      if(err) logger.info(err);
-      //else console.log("response saved: " + response.url.slice(0,100));
-    });
-    url = null;
-    urlHash = null;
-    securityDetails = null;
-    payloadId = null;
-    text = null;
-    await Webpage.findOneAndUpdate(
-      {"_id": pageId},
-      {$push: {"responses": response._id}},
-    );
-    return response;
+    };
+
+    return response
   }catch(error){
     logger.info(error);
   }  
@@ -270,7 +259,7 @@ async function saveRequest(interceptedRequest, pageId){
     logger.info(error);
   }
   
-  const request = new Request({
+  const request = {
     webpage: pageId,
     url:interceptedRequest.url(),
     method:interceptedRequest.method(),
@@ -280,28 +269,7 @@ async function saveRequest(interceptedRequest, pageId){
     headers: interceptedRequest.headers(),
     failure: interceptedRequest.failure(),
     redirectChain:redirectChain,
-  });
-
-  let response = interceptedRequest.response();
-  let res = null;
-  if (response) {
-    //const res = await saveResponse(response, request);
-    res = await saveResponse(response, request, pageId);
-    if(res) request.response = res;
-  }
-  await request.save(function (err){
-    if(err) logger.info(err); 
-    //else console.log("request saved: " + request.url.slice(0,100));
-  });
-
-  await Webpage.findOneAndUpdate(
-    {"_id": pageId},
-    {$push: {"requests": request._id}},
-  );
-
-  response = null;
-  res = null;
-  redirectChain = null;
+  };
 
   return request;
 }
@@ -418,6 +386,10 @@ module.exports = {
         }))
       });
 
+      var responseCache = [];
+      var requestArray = [];
+      var responseArray = [];
+
       client.on('Network.requestIntercepted',
         async ({ interceptionId, request, isDownload, responseStatusCode, responseHeaders, requestId}) => {
         //console.log(`[Intercepted] ${requestId} ${request.url} ${responseStatusCode} ${isDownload}`);
@@ -445,19 +417,29 @@ module.exports = {
       page.once('domcontentloaded', () => logger.info('[Page] DOM content loaded'));
       page.once('closed', () => logger.info('[Page] closed'));
 
-      page.on('requestfailed', request => {
+      page.on('requestfailed', async function (request) {
         logger.info('[Request] failed: ', request.url().slice(0,100) + request.failure());
         try{
-          saveRequest(request, pageId);
+          const req = await saveRequest(request, pageId);
+          const response = request.response();
+          const res = await saveResponse(response, pageId, responseCache);
+          requestArray.push(req)
+          responseArray.push(res)
+      console.log(requestArray.length, responseArray.length)
         }catch(error){
           logger.error(error);
         }
       });
       
-      page.on('requestfinished', request => {
+      page.on('requestfinished', async function (request) {
         logger.debug('[Request] finished: ' + request.method() +request.url().slice(0,100));
         try{
-          saveRequest(request, pageId);
+          const req = await saveRequest(request, pageId);
+          const response = request.response();
+          const res = await saveResponse(response, pageId, responseCache);
+          requestArray.push(req)
+          responseArray.push(res)
+      console.log(requestArray.length, responseArray.length)
         }catch(error){
           logger.error(error);
         }
@@ -484,6 +466,8 @@ module.exports = {
         await page._client.send("Page.stopLoading");
     }
 
+    console.log(requestArray.length, responseArray.length)
+
     try{
       webpage.title = await page.title()
       webpage.content = await page.content();
@@ -496,7 +480,7 @@ module.exports = {
         screenshot,
         {percentage: 20, responseType: 'base64'}
       );
-      prediction.imgPrediction(webpage.thumbnail)
+      //prediction.imgPrediction(webpage.thumbnail)
       screenshot = null;
 
 
@@ -534,9 +518,27 @@ module.exports = {
         webpage.error = error.message;
         await new Promise(done => setTimeout(done, webpage.option.delay * 1000)); 
     }finally{
-      const responses = await Response.find({"webpage":pageId})
-      .then((doc)=>{return doc});
-      //logger.debug(responses.length);
+
+    console.log(requestArray.length, responseArray.length)
+    
+    const req = await Request.insertMany(requestArray, {ordered:false});
+    webpage.requests = req
+
+    const responses = await Response.insertMany(responseArray, {ordered:false})
+    .then((doc)=>{return doc});
+    for (let resIndex in responses){
+      for (let reqIndex in req){
+        if (responses[resIndex].url === req[reqIndex].url){
+          responses[resIndex].request = req[reqIndex]
+          responses[resIndex].save()
+          req[reqIndex].response = responses[resIndex]
+          req[reqIndex].save()
+          delete req[reqIndex]
+          break 
+        }
+      }
+    }
+    webpage.responses = responses
 
       if(webpage.url){
         for(let num in responses){
@@ -591,6 +593,10 @@ module.exports = {
       finalResponse = null;
       responseCache = null;
       webpage = null;
+
+      console.log(requestArray.length, responseArray.length)
+      requestArray = null;
+      responseArray = null;
 
       await browser.close();
       await closeDB();

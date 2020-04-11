@@ -20,7 +20,7 @@ const wappalyze = async function (url, headers, text, cookies){
   }
   wappalyzer.parseJsPatterns();
   var data = {
-    "scripts":text?[text]:null,
+    //"scripts":text?[text]:null,
     "cookies":cookies,
     "headers":header,
     "js": text?processJs(text, wappalyzer.jsPatterns):null,
@@ -59,7 +59,7 @@ module.exports = {
               webpage.content,
               cookies,
           );
-          if (wapps) {
+          if (wapps.length > 0) {
             await Webpage.findOneAndUpdate(
               {_id: webpage._id},
               {wappalyzer: wapps}
@@ -85,7 +85,7 @@ module.exports = {
                   cookies,
                 );
                 //console.log(wapps);
-                if (wapps) {
+                if (wapps.length > 0) {
                   await Response.findOneAndUpdate(
                     {_id: response._id},
                     {wappalyzer: wapps}

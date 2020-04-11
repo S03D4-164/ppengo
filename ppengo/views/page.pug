@@ -132,9 +132,10 @@ block content
 
     div.tab-content
       div#request-tab.tab-pane.active
-          if requests
-            if requests.length 
-              h4= "Requests: "+ requests.length + " / Responses: " + responses.length
+            if result
+              - var requests = result.docs
+              include include/pagination.pug
+              h4= "Requests: " + requests.length
               
               form.form-inline(method="get" action=rootPath + "page/" + webpage._id)
                 input.form-control.mr-2.btn.btn-sm.btn-danger(type="submit" value="search")
@@ -182,9 +183,8 @@ block content
                           a #{request.url.slice(0,100)}(truncated)
                         else
                           a #{request.url}
-                    each response in responses
-                      if request.response && response._id
-                       if request.response.toString()==response._id.toString()
+                    if request.response
+                        - var response = request.response
                         td.col-2(class={
                           "table-default":response.status>=200&&response.status<300,
                           "table-secondary":response.status>=400,
@@ -206,7 +206,10 @@ block content
                           if response.remoteAddress.geoip
                             if response.remoteAddress.geoip[0]
                               a= " - " + response.remoteAddress.geoip[0].country
-                        td.col-2= response.securityDetails.issuer
+                        td.col-2
+                          if response.securityDetails
+                            if response.securityDetails.issuer
+                              a= response.securityDetails.issuer
                         td.col-2
                           if response.yara
                             if response.yara.rules
@@ -214,9 +217,8 @@ block content
                                 if rule.id
                                   span.badge.badge-warning
                                     a= rule.id
-                      else
+                    else
                         td.col-6 no response
-                        - break
       div#content-tab.tab-pane
        .row
         if webpage.content

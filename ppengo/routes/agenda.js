@@ -19,7 +19,9 @@ const connectionOpts = {
             useNewUrlParser: true,
         },
     },
-    processEvery: '5 seconds'
+    processEvery: '3 seconds',
+    maxConcurrency: 4,
+    defaultConcurrency: 1,
 };
 const agenda = new Agenda(connectionOpts);
 

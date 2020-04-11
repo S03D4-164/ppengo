@@ -63,10 +63,12 @@ module.exports = {
       if(page.content){
         var yara = await yaraScan(page.content);
         logger.debug(`yara ${yara}`)  
-        await Webpage.findOneAndUpdate(
-          {_id: page._id},
-          {yara: yara}
-        );
+        if(yara.rules.length > 0){
+          await Webpage.findOneAndUpdate(
+            {_id: page._id},
+            {yara: yara}
+          );
+        }
         yara = null;
       }
     });
@@ -78,10 +80,12 @@ module.exports = {
               logger.debug(`url ${res.url}`);
               var yara = await yaraScan(res.text);
               logger.debug(`yara ${yara}`);
-              await Response.findOneAndUpdate(
-                {_id: res._id},
-                {yara: yara}
-              );
+              if(yara.rules.length > 0){
+                await Response.findOneAndUpdate(
+                  {_id: res._id},
+                  {yara: yara}
+                );
+              }
               yara = null;
             }
         }

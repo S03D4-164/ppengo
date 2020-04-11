@@ -62,6 +62,7 @@ router.get('/', function(req, res) {
     })
   }else{
     var query = search.length?{"$and":search}:{};
+
     Webpage.paginate(
       query, {
       sort:{"createdAt":-1},
@@ -77,6 +78,7 @@ router.get('/', function(req, res) {
           pages: paginate.getArrayPages(req)(5, result.totalPages, req.query.page)
         });
     });
+
   }
 });
 
@@ -87,7 +89,7 @@ router.get('/:id', async function(req, res, next) {
       return document;
   });
   
-  const pred = await prediction.imgPrediction(webpage.thumbnail);
+  //const pred = await prediction.imgPrediction(webpage.thumbnail);
 
   var previous, diff;
   if (webpage.content){
@@ -108,12 +110,7 @@ router.get('/:id', async function(req, res, next) {
     }
   }
   //console.log(diff);
-  
-  var requests = await Request.find({"webpage":id})
-    .lean().sort("createdAt")
-    .then((document) => {
-      return document;
-  });
+
   var search = [];
   if(typeof req.query.rurl !== 'undefined' && req.query.rurl){
     //search.push({"url":new RegExp(RegExp.escape(req.query.rurl))});
@@ -127,7 +124,29 @@ router.get('/:id', async function(req, res, next) {
   if(typeof req.query.status !== 'undefined' && req.query.status){
     search.push({"$where": `/${req.query.status}/.test(this.status)`});
   }
+
+  const result = await Request.paginate(
+      {"webpage": id}, {
+      sort:{"createdAt":1},
+      page: req.query.page,
+      limit: req.query.limit,
+      lean: true,
+      populate:{
+        path: "response",
+        select: "_id remoteAddress status securityDetails payload"
+      },
+    }, function(err, result) {
+      return result
+      //return paginate.getArrayPages(req)(5, result.totalPages, req.query.page)
+    });
+    console.log(result.docs)
+
+    var pages =  paginate.getArrayPages(req)(5, result.totalPages, req.query.page)
+
   logger.debug(req.query, search);
+
+
+/*
   var responses;
   if(search.length){
     const find = await Response.find({"webpage":id}).and(search)
@@ -140,19 +159,23 @@ router.get('/:id', async function(req, res, next) {
     .then((document)=>{return document});
     responses = find;
   } 
-  
+*/
+
   var website = await Website.findOne({"url":webpage.input})
   .lean().then((document) => {
     return document;
   });
+
   res.render('page', { 
         webpage,
-        requests,
-        responses,
+        result,
+        pages,
+        //responses,
         website,
         previous:previous,
         diff,
         search:req.query,
+        title: "Request",
   });
 });
 
