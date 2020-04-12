@@ -8,7 +8,6 @@ var csrf = require('csurf');
 var bodyParser = require('body-parser');
 var session = require('express-session');
 
-
 const logger = require("./routes/logger")
 const mongoose = require('mongoose');
 const mongoStore = require('connect-mongo')(session);
@@ -40,6 +39,25 @@ var rootPath = "/ppengo/";
 var mongo_express = require('mongo-express/lib/middleware')
 var mongo_express_config = require('./config/mongo_express_config.js')
 app.use(rootPath + 'mongo_express/', mongo_express(mongo_express_config))
+
+var Agenda = require('agenda');
+var Agendash = require('agendash');
+var agenda = new Agenda({
+  db: {
+    address: 'mongodb://mongodb/wgeteer',
+    collection: 'agendaJobs',
+    options: {
+        useNewUrlParser: true,
+    },
+  }
+});
+app.use(rootPath + 'dash/',
+  function (req, res, next) {
+    if (!req.user) res.send(401);
+    else next();
+  },
+  Agendash(agenda)
+);
 
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json({ limit: '32mb' }));

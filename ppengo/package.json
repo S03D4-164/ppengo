@@ -10,6 +10,7 @@
     "@tensorflow-models/mobilenet": "^2.0.4",
     "@tensorflow/tfjs": "1.2.11",
     "agenda": "^2.0.2",
+    "agendash": "^1.0.0",
     "archiver-zip-encrypted": "^1.0.3",
     "base64-to-uint8array": "^1.0.0",
     "bootstrap": "^4.3.1",
