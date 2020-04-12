@@ -51,13 +51,6 @@ var agenda = new Agenda({
     },
   }
 });
-app.use(rootPath + 'dash/',
-  function (req, res, next) {
-    if (!req.user) res.send(401);
-    else next();
-  },
-  Agendash(agenda)
-);
 
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json({ limit: '32mb' }));
@@ -103,6 +96,14 @@ app.use(function (req, res, next) {
   res.locals.csrfToken = token;
   next();
 });
+
+app.use(rootPath + 'dash/',
+  function (req, res, next) {
+    if (!req.user) res.send(401);
+    else next();
+  },
+  Agendash(agenda)
+);
 
 var indexRouter = require('./routes/index');
 app.use(rootPath, indexRouter);
