@@ -5,7 +5,7 @@ const crypto = require("crypto");
 
 const ipInfo = require('./ipInfo')
 const logger = require('./logger')
-const prediction = require('./prediction')
+//const prediction = require('./prediction')
 
 const mongoose = require('mongoose');
 

@@ -1,5 +1,6 @@
 extends layout
 
+
 block content
   if webpage
     .card
@@ -17,14 +18,6 @@ block content
             a(href=rootPath + "page/" + webpage._id) #{webpage._id}
           a= moment(webpage.createdAt).format('YYYY-MM-DD HH:mm:ss') + " / " +moment(webpage.createdAt).fromNow()
 
-          button.btn.btn-block.btn-sm.btn-light(data-toggle="collapse" data-target="#option") Option
-          #option.collapse
-                table
-                  each value, key in webpage.option
-                    if value
-                      tr
-                        th= key
-                        td= value
         .col-9
 
           h4
@@ -74,6 +67,23 @@ block content
                       each reverse in webpage.remoteAddress.reverse
                         a= reverse
                         br        
+       .row
+        .col-6
+          button.btn.btn-block.btn-sm.btn-light(data-toggle="collapse" data-target="#option") Option
+          #option.collapse.show
+                table
+                  each value, key in webpage.option
+                    if value
+                      tr
+                        th= key
+                        td= value
+        .col-6
+          button.btn.btn-block.btn-sm.btn-light(data-toggle="collapse" data-target="#pred") Predictions 
+          #pred.collapse.show
+            button.btn.btn-sm.btn-primary(onclick="mnPredictions()") mobilenet
+            button.btn.btn-sm.btn-primary(onclick="predictions()") retrained
+            pre#predictions
+       
        .row
         .col-4
           //h6= "Wappalyzer"
@@ -273,6 +283,9 @@ block content
           else
             div.alert
               p No data
+
+    script(src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.0.1")
+    script(src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@1.0.0")
     script.
               var apiPath = #{rootPath};
               function reset(){
@@ -333,6 +346,38 @@ block content
                   outputFormat: output
                 });
                 document.getElementById("diff").innerHTML = diffHtml;
+              };
+              async function predictions(){
+                const mobilenet = await tf.loadLayersModel(
+                  "https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_1.0_224/model.json"
+                );
+                const layer = mobilenet.getLayer("conv_pw_13_relu");
+                const decapitatedMobilenet = tf.model({
+                  inputs: mobilenet.inputs,
+                  outputs: layer.output
+                });
+                const model = await tf.loadLayersModel(apiPath + "my-model/model.json")
+                const img = document.getElementById('thumbnail');
+                let offset = tf.scalar(127.5);
+                const tensor = tf.browser.fromPixels(img, 3)
+                               .resizeNearestNeighbor([224, 224])
+                               .toFloat()
+                               .sub(offset)
+                               .div(offset)
+                               .expandDims();
+                embeddings = decapitatedMobilenet.predict(tensor);
+                var prediction = model.predict(embeddings);
+                console.log(prediction.dataSync())
+              }
+              function mnPredictions(){
+                const img = document.getElementById('thumbnail');
+                mobilenet.load().then(model => {
+                  model.classify(img).then(predictions => {
+                    console.log('Predictions: ', predictions)
+                    const pred = JSON.stringify(predictions, null, 2)
+                    $('pre#predictions').text(pred);
+                  })
+                })
               }
 
   else
