@@ -5,7 +5,7 @@ volumes:
 
 services:
   mongodb:
-    image: mongo
+    image: mongo:4.4.29
     environment:
       - MONGO_DATA_DIR=/data/db
       - MONGO_LOG_DIR=/dev/null

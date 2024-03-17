@@ -1,6 +1,6 @@
 FROM golang:alpine AS build
 RUN apk update && apk upgrade && apk add --no-cache git
-RUN go get github.com/google/safebrowsing/cmd/sbserver
+RUN go install github.com/google/safebrowsing/cmd/sbserver@latest
 
 FROM alpine
 RUN apk update && apk upgrade && apk add --no-cache ca-certificates
