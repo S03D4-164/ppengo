@@ -5,7 +5,8 @@ const Response = require('./models/response');
 const agenda = require('./agenda');
 
 var paginate = require('express-paginate');
-const json2csv = require('json2csv');
+const { Parser } = require('@json2csv/plainjs');
+
 const moment = require('moment');
 
 var Diff = require('diff');
@@ -124,7 +125,10 @@ router.get('/', function(req, res) {
     if(search.length)find = find.and(search);
     find.lean().sort("-createdAt").then((response) => {
       var fields = ['createdAt', 'url', 'status', 'remoteAddress.ip', 'remoteAddress.reverse', 'remoteAddress.geoip', 'wappalyzer', 'securityDetails.issuer', 'securityDetails.validFrom', 'securityDetails.validTo'];
-      const csv = json2csv.parse(response, { withBOM:true, fields });
+      const opts ={ withBOM:true, fields:fields };
+      const parser = new Parser(opts);
+      const csv = parser.parse(websites);
+
       res.setHeader('Content-disposition', 'attachment; filename=responses.csv');
       res.setHeader('Content-Type', 'text/csv; charset=UTF-8');
       res.send(csv);

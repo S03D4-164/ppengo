@@ -10,7 +10,7 @@ archiver.registerFormat('zip-encrypted', require("archiver-zip-encrypted"));
 const yara = require('./yara');
 
 var paginate = require('express-paginate');
-const json2csv = require('json2csv');
+const { Parser } = require('@json2csv/plainjs');
 
 const hexdump = require('hexdump-nodejs')
 const logger = require('./logger')
@@ -26,7 +26,10 @@ router.get('/',  function(req, res) {
     if(search.length)find = find.and(search);
     find.lean().sort("-createdAt").then((payload) => {
       var fields = ['createdAt', 'md5', 'tag'];
-      const csv = json2csv.parse(payload, { withBOM:true, fields });
+      const opts ={ withBOM:true, fields:fields };
+      const parser = new Parser(opts);
+      const csv = parser.parse(websites);
+
       res.setHeader('Content-disposition', 'attachment; filename=payloadss.csv');
       res.setHeader('Content-Type', 'text/csv; charset=UTF-8');
       res.send(csv);

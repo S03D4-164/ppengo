@@ -10,8 +10,8 @@ var session = require('express-session');
 
 const logger = require("./routes/logger")
 const mongoose = require('mongoose');
-const mongoStore = require('connect-mongo')(session);
-mongoose.connect('mongodb://mongodb/wgeteer', {
+const mongoStore = require('connect-mongo');
+mongoose.connect(process.env.ME_CONFIG_MONGODB_URL, {
   useNewUrlParser: true,
   useCreateIndex: true,
   useFindAndModify: false,
@@ -44,7 +44,7 @@ var Agenda = require('agenda');
 var Agendash = require('agendash');
 var agenda = new Agenda({
   db: {
-    address: 'mongodb://mongodb/wgeteer',
+    address: process.env.ME_CONFIG_MONGODB_URL,
     collection: 'agendaJobs',
     options: {
         useNewUrlParser: true,
@@ -71,7 +71,9 @@ app.use(session({
   secret: 'keyboard cat',
   resave: false,
   saveUninitialized: true,
-  store: new mongoStore({ mongooseConnection: mongoose.connection })
+  store: mongoStore.create({
+    mongoUrl:process.env.ME_CONFIG_MONGODB_URL
+  })
 }));
 app.use(passport.initialize());
 app.use(passport.session());

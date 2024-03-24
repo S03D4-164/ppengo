@@ -9,7 +9,7 @@ const mail = require("./mail");
 const yara = require("./yara");
 const wappalyze = require("./wappalyze");
 
-const mongoConnectionString = 'mongodb://mongodb/wgeteer';
+const mongoConnectionString = process.env.ME_CONFIG_MONGODB_URL;
 
 const connectionOpts = {
     db: {

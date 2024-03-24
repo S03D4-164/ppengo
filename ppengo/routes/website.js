@@ -6,7 +6,7 @@ const Website = require('./models/website');
 const Webpage = require('./models/webpage');
 const Tag = require('./models/tag');
 
-const json2csv = require('json2csv');
+const { Parser } = require('@json2csv/plainjs');
 
 router.get('/', function(req, res) {
   if(!req.user)res.redirect(req.baseUrl + "/auth/");
@@ -56,7 +56,10 @@ router.get('/', function(req, res) {
     find.sort("-createdAt").populate("last")
     .then((websites) => {
         var fields = ['createdAt', 'updatedAt', 'url', 'tag', 'gsb.lookup'];
-        const csv = json2csv.parse(websites, { withBOM:true, fields });
+        const opts ={ withBOM:true, fields:fields };
+        const parser = new Parser(opts);
+        const csv = parser.parse(websites);
+
         res.setHeader('Content-disposition', 'attachment; filename=websites.csv');
         res.setHeader('Content-Type', 'text/csv; charset=UTF-8');
         res.send(csv);

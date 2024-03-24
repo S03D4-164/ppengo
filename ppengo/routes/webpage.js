@@ -2,7 +2,8 @@ var express = require('express');
 var router = express.Router();
 var paginate = require('express-paginate');
 
-const json2csv = require('json2csv');
+const { Parser } = require('@json2csv/plainjs');
+
 var Diff = require('diff');
 
 const Webpage = require('./models/webpage');
@@ -55,7 +56,10 @@ router.get('/', function(req, res) {
     if(search.length)find = find.and(search);
     find.sort("-createdAt").then((webpage) => {
       var fields = ['createdAt', 'input', 'title', 'error', 'status', 'remoteAddress.ip', 'remoteAddress.reverse', 'remoteAddress.geoip', 'wappalyzer', 'securityDetails.issuer', 'securityDetails.validFrom', 'securityDetails.validTo', 'url'];
-      const csv = json2csv.parse(webpage, { withBOM:true, fields });
+      const opts ={ withBOM:true, fields:fields };
+      const parser = new Parser(opts);
+      const csv = parser.parse(websites);
+
       res.setHeader('Content-disposition', 'attachment; filename=webpages.csv');
       res.setHeader('Content-Type', 'text/csv; charset=UTF-8');
       res.send(csv);

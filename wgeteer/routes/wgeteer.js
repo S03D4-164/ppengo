@@ -1,5 +1,5 @@
 const puppeteer = require('puppeteer');
-const imageThumbnail = require('image-thumbnail');
+//const imageThumbnail = require('image-thumbnail');
 const crypto = require("crypto");
 //const fileType = require('file-type');
 
@@ -527,10 +527,10 @@ module.exports = {
         fullPage: false,
         encoding: 'base64',
       });
-      webpage.thumbnail = await imageThumbnail(
+      webpage.thumbnail = screenshot;/*await imageThumbnail(
         screenshot,
         {percentage: 20, responseType: 'base64'}
-      );
+      );*/
       //prediction.imgPrediction(webpage.thumbnail)
       screenshot = null;
 
