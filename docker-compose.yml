@@ -10,13 +10,30 @@ services:
       - MONGO_DATA_DIR=/data/db
       - MONGO_LOG_DIR=/dev/null
     ports:
-      - 127.0.0.1:27017:27017
+      - "127.0.0.1:27017:27017"
     volumes:
       - mongodata:/data/db
     container_name: mongodb
     command: --wiredTigerCacheSizeGB 2
     mem_limit: 3g
     #restart: always
+    networks:
+      - default
+      - mongo-express
+
+  mongo_express:
+    image: mongo-express
+    ports:
+      - "127.0.0.1:8081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_URL=mongodb://mongodb/wgeteer
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=password
+    depends_on:
+      - mongodb
+    container_name: mongo-express
+    networks:
+      - mongo-express
 
   ppengo:
     build: "ppengo"
@@ -58,6 +75,8 @@ services:
         max-file: "10"
     #restart: always
     mem_limit: 2g
+    networks:
+      - default
 
   elasticsearch:
     build: es
@@ -72,6 +91,8 @@ services:
       - JVM_OPTS=-Xmx2g -Xms2g -XX:MaxPermSize=2048m
       - ES_HEAP_SIZE=2g
     container_name: elasticsearch
+    networks:
+      - default
     
   kibana:
     image: docker.elastic.co/kibana/kibana:7.3.0
@@ -81,3 +102,11 @@ services:
       - "127.0.0.1:5601:5601"
     mem_limit: 1g
     container_name: kibana
+    networks:
+      - default
+
+networks:
+  default:
+    driver: bridge
+  mongo-express:
+    driver: bridge
