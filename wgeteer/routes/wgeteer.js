@@ -1,5 +1,5 @@
 const puppeteer = require('puppeteer');
-//const imageThumbnail = require('image-thumbnail');
+const Jimp = require('jimp');
 const crypto = require("crypto");
 //const fileType = require('file-type');
 
@@ -527,11 +527,16 @@ module.exports = {
         fullPage: false,
         encoding: 'base64',
       });
-      webpage.thumbnail = screenshot;/*await imageThumbnail(
-        screenshot,
-        {percentage: 20, responseType: 'base64'}
-      );*/
-      //prediction.imgPrediction(webpage.thumbnail)
+      async function imgResize(data) {
+        const buffer = Buffer.from(data, "base64");
+        const res = await Jimp.read(buffer);
+        if (res.getWidth() > 240){
+          res.resize(240, Jimp.AUTO);
+        }
+        return res.getBufferAsync(Jimp.AUTO);
+      }
+      const resizedImg = await imgResize(screenshot);
+      webpage.thumbnail = resizedImg.toString('base64');
       screenshot = null;
 
       let fullscreenshot = await page.screenshot({

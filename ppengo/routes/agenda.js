@@ -9,7 +9,7 @@ const mail = require("./mail");
 const yara = require("./yara");
 const wappalyze = require("./wappalyze");
 
-const mongoConnectionString = process.env.ME_CONFIG_MONGODB_URL;
+const mongoConnectionString = process.env.MONGO_DATABASE;
 
 const connectionOpts = {
     db: {

@@ -4,14 +4,15 @@ var paginate = require('express-paginate');
 var path = require('path');
 
 var cookieParser = require('cookie-parser');
-var csrf = require('csurf');
+const { doubleCsrf } = require("csrf-csrf");
+
 var bodyParser = require('body-parser');
 var session = require('express-session');
 
-const logger = require("./routes/logger")
+const logger = require("./routes/logger");
 const mongoose = require('mongoose');
 const mongoStore = require('connect-mongo');
-mongoose.connect(process.env.ME_CONFIG_MONGODB_URL, {
+mongoose.connect(process.env.MONGO_DATABASE, {
   useNewUrlParser: true,
   useCreateIndex: true,
   useFindAndModify: false,
@@ -36,17 +37,11 @@ app.use(morgan('combined'));
 
 var rootPath = "/ppengo/";
 
-/*
-var mongo_express = require('mongo-express/lib/middleware')
-var mongo_express_config = require('./config/mongo_express_config.js')
-app.use(rootPath + 'mongo_express/', mongo_express(mongo_express_config))
-*/
-
 var Agenda = require('agenda');
 var Agendash = require('agendash');
 var agenda = new Agenda({
   db: {
-    address: process.env.ME_CONFIG_MONGODB_URL,
+    address: process.env.MONGO_DATABASE,
     collection: 'agendaJobs',
     options: {
         useNewUrlParser: true,
@@ -65,20 +60,23 @@ app.use(rootPath + 'js', express.static(__dirname + '/node_modules/bootstrap/dis
 app.use(rootPath + 'js', express.static(__dirname + '/node_modules/jquery/dist')); // redirect JS jQuery
 app.use(rootPath + 'css', express.static(__dirname + '/node_modules/bootstrap/dist/css')); // redirect CSS bootstrap
 
-app.use(cookieParser());
-//app.use(csrf({ cookie: true }));
-var csrfFuc = csrf({ cookie: true });
-
 app.use(session({
   secret: 'keyboard cat',
   resave: false,
   saveUninitialized: true,
   store: mongoStore.create({
-    mongoUrl:process.env.ME_CONFIG_MONGODB_URL
+    mongoUrl:process.env.MONGO_DATABASE
   })
 }));
 app.use(passport.initialize());
 app.use(passport.session());
+
+app.use(cookieParser());
+const {
+  generateToken,
+} = doubleCsrf({
+  getSecret: () => "Secret",
+});
 
 app.use(function(req,res,next){
   var ignoreUris = ['^\/ppengo/api\/.*$']
@@ -88,16 +86,14 @@ app.use(function(req,res,next){
           return;
       }
   }
-  csrfFuc(req,res,next);
-
+  const csrfToken = generateToken(req, res);
+  res.locals.csrfToken = csrfToken;
+  next();
 })
-
 
 app.use(function (req, res, next) {
   res.locals.login = req.isAuthenticated();
   res.locals.user = req.user;
-  var token = req.csrfToken();
-  res.locals.csrfToken = token;
   next();
 });
 
