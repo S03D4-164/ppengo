@@ -18,7 +18,7 @@
     "geoip-lite": "^1.3.6",
     "ip2location-nodejs": "^8.3.0",
     "jimp": "^0.22.12",
-    "jpeg-js": "^0.3.6",
+    "jpeg-js": ">=0.4.4",
     "mongoosastic": "^5.0.0",
     "mongoose": "^5.5.4",
     "mongoose-elasticsearch-xp": "^5.8.0",
