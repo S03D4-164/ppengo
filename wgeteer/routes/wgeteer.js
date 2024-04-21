@@ -1,6 +1,15 @@
-const puppeteer = require('puppeteer');
+//const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-extra')
+const StealthPlugin = require('puppeteer-extra-plugin-stealth')
+puppeteer.use(StealthPlugin())
+async function prbstart() {
+  const { connect } = await import('puppeteer-real-browser')
+  return connect
+}
+
 const Jimp = require('jimp');
 const crypto = require("crypto");
+const fs = require('fs');
 //const fileType = require('file-type');
 
 const ipInfo = require('./ipInfo')
@@ -366,6 +375,11 @@ module.exports = {
         '--disable-setuid-sandbox',
         '--disable-gpu',
         '--disable-dev-shm-usage',
+        '--disable-web-security',
+        '--disable-features=IsolateOrigins',
+        '--disable-site-isolation-trials',
+        '--disable-features=BlockInsecurePrivateNetworkRequests',
+        '--devtools-flags=disable',
         //'--enable-logging=stderr','--v=1',
       ];
 
@@ -374,7 +388,7 @@ module.exports = {
           chromiumArgs.push(`--proxy-server=${webpage.option.proxy}`);
         }
       }
-      logger.debug(chromiumArgs);
+      logger.debug(webpage.option, chromiumArgs);
 
       let browserFetcher = puppeteer.createBrowserFetcher();
       const localChromiums = await puppeteer.createBrowserFetcher().localRevisions();
@@ -382,33 +396,79 @@ module.exports = {
         return logger.error('Can\'t find installed Chromium');
       }
       let {executablePath} = await browserFetcher.revisionInfo(localChromiums[0]);
-      let browser;
-      try{
-        browser = await puppeteer.launch({
-          executablePath:executablePath,
-          headless: true,
-          ignoreHTTPSErrors: true,
-          defaultViewport: {width: 1280, height: 720,},
-          dumpio:true,
-          args: chromiumArgs,
-        });
+
+      async function genPage(){
+        if (webpage.option.realBrowser){
+          process.env.CHROME_PATH = executablePath;
+          const connect = await prbstart();
+          const {page, browser, setTarget}  = await connect({
+	    headless: false,
+            args: chromiumArgs,
+	    tf: true,
+            turnstile: true
+          });
+	  return {page, browser, setTarget};
+        } else {
+          const browser = await puppeteer.launch({
+            executablePath:executablePath,
+            headless: true,
+            ignoreHTTPSErrors: true,
+            defaultViewport: {width: 1280, height: 720,},
+            dumpio:true,
+            args: chromiumArgs,
+            targetFilter: target => target.type() !== 'other'
+          });
+          const page = await browser.newPage();
+	  let setTarget;
+	  return {page, browser, setTarget}
+        }
+      }
+      const {page, browser, setTarget} = await genPage();
+
+      /*try{
       }catch(error){
         logger.error(error);
         webpage.error = error.message;
         return webpage;
-      }
+      }*/
 
       browser.once('disconnected', () => logger.info('[Browser] disconnected.'));
 
       const browserVersion = await browser.version();
-      //logger.debug(browserVersion);
+      logger.debug(browserVersion);
 
-      let page = await browser.newPage();
       if (webpage.option.userAgent) await page.setUserAgent(webpage.option.userAgent);
       if (exHeaders) await page.setExtraHTTPHeaders(exHeaders);
       if(webpage.option.disableScript) await page.setJavaScriptEnabled(false);
       else await page.setJavaScriptEnabled(true);
 
+      await page.setBypassCSP(true)
+
+      await page.evaluateOnNewDocument(() => {
+        try {
+          console.clear = () => console.log('Console was cleared')
+          const i = setInterval(() => {
+            if (window.turnstile) {
+              clearInterval(i)
+              window.turnstile.render = (a, b) => {
+                let params = {
+                  sitekey: b.sitekey,
+                  pageurl: window.location.href,
+                  data: b.cData,
+                  pagedata: b.chlPageData,
+                  action: b.action,
+                  userAgent: navigator.userAgent,
+                  json: 1
+                }
+                console.log('intercepted-params:' + JSON.stringify(params))
+                window.cfCallback = b.callback
+                return
+              }
+            }
+          }, 50)
+        }catch (err) {}
+      })
+	  
       let client = await page.target().createCDPSession();
 
       await client.send('Network.enable');
@@ -544,8 +604,8 @@ module.exports = {
         encoding: 'base64',
       });
 
-      let fs  = await saveFullscreenshot(fullscreenshot);
-      if (fs) webpage.screenshot = fs;
+      let fss  = await saveFullscreenshot(fullscreenshot);
+      if (fss) webpage.screenshot = fss;
       fullscreenshot = null;
 
       webpage.url = page.url();

@@ -75,7 +75,8 @@ router.get('/download/:id', function(req, res) {
       
       res.attachment(payload.md5 + '.zip');
       archive.pipe(res);
-      var buffer = Buffer.from(payload.payload);
+      //var buffer = Buffer.from(payload.payload);
+      var buffer = Buffer.from(payload.payload.buffer);
       archive.append(buffer, { name: payload.md5 });
       archive.finalize();
 
