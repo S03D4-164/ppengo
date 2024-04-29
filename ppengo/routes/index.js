@@ -42,7 +42,7 @@ router.post('/', async function(req, res, next) {
           if (req.body['proxy']) option['proxy'] = req.body['proxy'];
           if (req.body['exHeaders']) option['exHeaders'] = req.body['exHeaders'];
           if ("disableScript" in req.body) option["disableScript"] = true;
-          if ("realBrowser" in req.body) option["realBrowser"] = true;
+          if ("pptr" in req.body) option["pptr"] = req.body['pptr'];
 
           var track = ("track" in req.body)?req.body['track']:0;      
           const webpage = await wgeteer.registerUrl(inputUrl, option, track, req.user);

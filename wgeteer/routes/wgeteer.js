@@ -2,15 +2,39 @@
 const puppeteer = require('puppeteer-extra')
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 puppeteer.use(StealthPlugin())
+
 async function prbstart() {
   const { connect } = await import('puppeteer-real-browser')
   return connect
 }
 
+const antibotbrowser = require("antibotbrowser");
+
+/*
+const apikey = process.env.NOPECHA_KEY
+const NopeCHA = require('puppeteer-nopecha')
+NopeCHA.setKey(apikey)
+puppeteer.use(NopeCHA);
+const { Configuration, NopeCHAApi } = require('nopecha');
+const configuration = new Configuration({
+    apiKey: apikey
+});
+const nopecha = new NopeCHAApi(configuration);
+(async () => {
+    const balance = await nopecha.getBalance();
+    console.log(balance);
+})();
+*/
+
 const Jimp = require('jimp');
 const crypto = require("crypto");
 const fs = require('fs');
 //const fileType = require('file-type');
+
+const path =require('path');
+const pathToExtension = path.join(process.cwd(), 'chromium');
+//const pathToExtension = path.join(process.cwd(), 'chromium_automation');
+console.log(pathToExtension)
 
 const ipInfo = require('./ipInfo')
 const logger = require('./logger')
@@ -116,6 +140,34 @@ async function pptrEventSet(client, browser, page){
       });
       page.on('console', async msg => {
         logger.debug('[Page] console: ', msg.type(), msg.text())
+	/*
+	let txt = msg.text()
+	if (txt.includes('intercepted-params:')) {
+            const params = JSON.parse(txt.replace('intercepted-params:', ''))
+            console.log(params)
+            try {
+              console.log(`Solving the captcha...`)
+              const nopecha =  new NopeCHAApi();
+              const solvedToken = await nopecha.solveToken({
+                key: 'apikey,
+                type: 'turnstile',
+                sitekey: params.sitekey,
+                url: params.url,
+                data: {
+                  action: params.action,
+                  cdata: params.cdata,
+                },
+                useragent: params.useragent
+              });
+              await page.evaluate((token) => {
+                    cfCallback(token)
+              }, solvedToken)
+            } catch (e) {
+                console.log(e.err)
+            }
+        } else {
+            return;
+        }*/
       });
       page.on('error', async err => {
         logger.debug('[Page] error: ', err);
@@ -369,7 +421,6 @@ module.exports = {
           match = null;
         }
       }
-
       const chromiumArgs= [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -380,6 +431,8 @@ module.exports = {
         '--disable-site-isolation-trials',
         '--disable-features=BlockInsecurePrivateNetworkRequests',
         '--devtools-flags=disable',
+        //`--disable-extensions-except=${pathToExtension}`,
+        //`--load-extension=${pathToExtension}`,
         //'--enable-logging=stderr','--v=1',
       ];
 
@@ -396,9 +449,11 @@ module.exports = {
         return logger.error('Can\'t find installed Chromium');
       }
       let {executablePath} = await browserFetcher.revisionInfo(localChromiums[0]);
+      //let executablePath = path.join(process.cwd(), 'chromium-linux/chrome');
+      console.log(executablePath)
 
       async function genPage(){
-        if (webpage.option.realBrowser){
+        if (webpage.option.pptr == 'real'){
           process.env.CHROME_PATH = executablePath;
           const connect = await prbstart();
           const {page, browser, setTarget}  = await connect({
@@ -408,6 +463,12 @@ module.exports = {
             turnstile: true
           });
 	  return {page, browser, setTarget};
+	} else if (webpage.option.pptr == 'antibot'){
+          const antibrowser = await antibotbrowser.startbrowser();
+          const browser = await puppeteer.connect({browserWSEndpoint: antibrowser.websokcet});
+          const page = await browser.newPage();
+          let setTarget;
+	  return {page, browser, setTarget}
         } else {
           const browser = await puppeteer.launch({
             executablePath:executablePath,
@@ -416,9 +477,10 @@ module.exports = {
             defaultViewport: {width: 1280, height: 720,},
             dumpio:true,
             args: chromiumArgs,
-            targetFilter: target => target.type() !== 'other'
+            //targetFilter: (target) => target.type() !== 'other' || !!target.url()
           });
-          const page = await browser.newPage();
+          //const page = await browser.newPage();
+          const page = (await browser.pages())[0];
 	  let setTarget;
 	  return {page, browser, setTarget}
         }
@@ -444,31 +506,33 @@ module.exports = {
 
       await page.setBypassCSP(true)
 
-      await page.evaluateOnNewDocument(() => {
-        try {
-          console.clear = () => console.log('Console was cleared')
-          const i = setInterval(() => {
-            if (window.turnstile) {
-              clearInterval(i)
-              window.turnstile.render = (a, b) => {
-                let params = {
-                  sitekey: b.sitekey,
-                  pageurl: window.location.href,
-                  data: b.cData,
-                  pagedata: b.chlPageData,
-                  action: b.action,
-                  userAgent: navigator.userAgent,
-                  json: 1
-                }
-                console.log('intercepted-params:' + JSON.stringify(params))
-                window.cfCallback = b.callback
-                return
+      /*
+      const preloadFile = fs.readFileSync('./inject.js', 'utf8');
+      await page.evaluateOnNewDocument(preloadFile)
+      await page.evaluateOnNewDocument(async () =>{
+        console.clear = () => console.log('Console was cleared')
+        const i = setInterval( () => {
+          if (window.turnstile) {
+            clearInterval(i)
+            window.turnstile.render = async (a, b) => {
+              let params = {
+                sitekey: b.sitekey,
+                url: window.location.href,
+                cdata: b.cData,
+                pagedata: b.chlPageData,
+                action: b.action,
+                useragent: navigator.userAgent,
+                json: 1
               }
+              console.log('intercepted-params:' + JSON.stringify(params))
+              window.cfCallback = b.callback
+              return
             }
-          }, 50)
-        }catch (err) {}
-      })
-	  
+          }
+        }, 50)
+      });
+      */
+
       let client = await page.target().createCDPSession();
 
       await client.send('Network.enable');
@@ -631,7 +695,7 @@ module.exports = {
     }catch(error){
         //logger.info(error);
         console.log(error)
-        webpage.error = error.message;
+        if(!webpage.error)webpage.error = error.message;
         await new Promise(done => setTimeout(done, webpage.option.delay * 1000)); 
     }finally{
 
