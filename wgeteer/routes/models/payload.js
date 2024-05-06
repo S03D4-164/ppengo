@@ -26,7 +26,9 @@ const payloadSchema = new mongoose.Schema({
     yara:{
         type: Object,
     },
-},{timestamps:true},
+},
+{timestamps:true},
+{read:'secondaryPreferred'}
 );
 
 payloadSchema.index({createdAt:-1});

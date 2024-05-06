@@ -1,0 +1,145 @@
+version: "3"
+
+volumes:
+  mongodata:
+
+services:
+  mongodb:
+    image: mongo:4.4.29
+    environment:
+      - MONGO_DATA_DIR=/data/db
+      - MONGO_LOG_DIR=/dev/null
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - mongodata:/data/db
+      - ./mongodb/init:/docker-entrypoint-initdb.d:ro
+    container_name: mongodb
+    command: mongod --wiredTigerCacheSizeGB 2 --replSet rs0
+    mem_limit: 2g
+    #restart: always
+    networks:
+      - default
+      - mongo-express
+  mongodb-secondary:
+    image: mongo:4.4.29
+    environment:
+      - MONGO_DATA_DIR=/data/db
+      - MONGO_LOG_DIR=/dev/null
+    ports:
+      - "127.0.0.1:27018:27017"
+    volumes:
+      - ./mongodb/secondary/db:/data/db
+    container_name: mongodb-secondary
+    command: mongod --wiredTigerCacheSizeGB 2 --replSet rs0
+    mem_limit: 2g
+    #restart: always
+    networks:
+      - default
+      - mongo-express
+  mongodb-arbiter:
+    image: mongo:4.4.29
+    ports:
+      - "127.0.0.1:27019:27017"
+    container_name: mongodb-arbiter
+    command: mongod --replSet rs0
+    #restart: always
+    networks:
+      - default
+      - mongo-express
+
+  mongo_express:
+    image: mongo-express
+    ports:
+      - "127.0.0.1:8081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_URL=mongodb://mongodb/wgeteer
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=password
+    depends_on:
+      - mongodb
+    container_name: mongo-express
+    networks:
+      - mongo-express
+    profiles:
+      - extra
+
+  ppengo:
+    build: "ppengo"
+    container_name: ppengo
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - MONGO_DATABASE=mongodb://mongodb/wgeteer
+      - REDIS_URL=redis://cache
+      - TZ=Asia/Tokyo
+      - ME_CONFIG_MONGODB_URL=mongodb://mongodb/wgeteer
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=password
+#      - NODE_OPTIONS="--optimize_for_size --gc_interval=100 --max-old-space-size=1024"
+    tty: true
+    ports:
+      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:9222:9222"
+    links:
+      - mongodb
+      - elasticsearch
+    depends_on:
+      - mongodb
+      - elasticsearch
+    volumes:
+      - ./ppengo/public:/home/node/public
+      - ./ppengo/routes:/home/node/routes
+      - ./wgeteer/routes/models:/home/node/routes/models
+      - ./ppengo/views:/home/node/views
+      - ./ppengo/bin:/home/node/bin
+      - ./ppengo/config:/home/node/config
+      - ./ppengo/app.js:/home/node/app.js
+    command: npm start
+    #command: npm run start:debug
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "10"
+    #restart: always
+    mem_limit: 2g
+    networks:
+      - default
+    profiles:
+      - extra
+
+  elasticsearch:
+    build: es
+    #image: docker.elastic.co/elasticsearch/elasticsearch:7.3.0 
+    ports:
+      - "127.0.0.1:9200:9200"
+    volumes:
+      - ../share/elasticsearch/data:/usr/share/elasticsearch/data
+      - ../share/elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+    mem_limit: 3g
+    environment:
+      - JVM_OPTS=-Xmx2g -Xms2g -XX:MaxPermSize=2048m
+      - ES_HEAP_SIZE=2g
+    container_name: elasticsearch
+    networks:
+      - default
+    
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.3.0
+    links:
+      - elasticsearch:elasticsearch
+    ports:
+      - "127.0.0.1:5601:5601"
+    mem_limit: 1g
+    container_name: kibana
+    networks:
+      - default
+    profiles:
+      - extra
+
+networks:
+  default:
+    driver: bridge
+  mongo-express:
+    driver: bridge

@@ -9,14 +9,17 @@ const { doubleCsrf } = require("csrf-csrf");
 var bodyParser = require('body-parser');
 var session = require('express-session');
 
+require('dotenv').config();
 const logger = require("./routes/logger");
 const mongoose = require('mongoose');
 const mongoStore = require('connect-mongo');
 mongoose.connect(process.env.MONGO_DATABASE, {
+//mongoose.connect('mongodb://localhost:27017,localhost:27018,localhost:27019/wgeteer', {
   useNewUrlParser: true,
   useCreateIndex: true,
   useFindAndModify: false,
-  useUnifiedTopology: true 
+  useUnifiedTopology: true,
+  //replicaSet: 'rs0',
 }).then(() =>  logger.debug('[mongoose] connect completed'))
 .catch((err) => logger.error(err));
 mongoose.set('debug', function (coll, method, query, doc) {
