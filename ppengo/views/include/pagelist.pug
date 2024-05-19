@@ -1,4 +1,4 @@
-mixin webpages-include(webpages, title, website, search, result)
+mixin webpages-include(webpages, title, website, search, result, err)
   if result
     - var webpages = result.docs
     include pagination.pug
@@ -90,8 +90,11 @@ mixin webpages-include(webpages, title, website, search, result)
               if webpage.thumbnail
                 a.colorbox(href=rootPath + "screenshot/" +webpage.screenshot)
                   img(width="100%" src="data:image/png;base64," + webpage.thumbnail)
+  else if err
+    div.alert.alert-error
+      pre= err
   else
     div.alert.alert-warning
       p No data
 
-+webpages-include(webpages, title, website, search, result)
++webpages-include(webpages, title, website, search, result, err)

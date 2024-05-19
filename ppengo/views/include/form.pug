@@ -9,14 +9,14 @@ div
                 label.col-2.mr-2(for="timeout") Timeout(s): 
                 input.col-2.mr-2.form-control(type="number" name="timeout", id="timeout", max="300", min="30", step="30", value="30")
                 label.col-2.mr-2(for="delay") Delay(s): 
-                input.col-2.mr-2.form-control(type="number" name="delay", id="delay", max="60", min="0", step="5", value="5")
+                input.col-2.mr-2.form-control(type="number" name="delay", id="delay", max="60", min="0", step="5", value="10")
+            br
             .form-group.row
               label.col-2(for="pptr") pptr:
               select.form-control.col-9(name='pptr' id='pptr')
                 option(value='stealth', selected= true) Stealth
                 option(value='real') Real
                 option(value='antibot') Antibot
-
             .form-inline
                 .form-check-inline
                     label.form-check-label(for="disableScript") disable script:

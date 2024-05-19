@@ -36,9 +36,9 @@ router.get('/', function(req, res) {
   }
 
   if(typeof req.query.rurl !== 'undefined' && req.query.rurl){
-    //search.push({"url":new RegExp(RegExp.escape(req.query.rurl))});
-    search.push({"url":new RegExp(req.query.rurl)});
-
+    search.push({"url":new RegExp(
+      req.query.rurl.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&')
+    )});
   }
 
   if(typeof req.query.track !== 'undefined' && req.query.track){

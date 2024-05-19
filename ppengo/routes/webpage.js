@@ -30,7 +30,9 @@ router.get('/', function(req, res) {
     search.push({"url": req.query.url});
   }
   if(typeof req.query.rurl !== 'undefined' && req.query.rurl){
-    search.push({"url":new RegExp(req.query.rurl)});
+    search.push({"url":new RegExp(
+      req.query.rurl.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&')
+    )});
   }
 
   if(typeof req.query.source !== 'undefined' && req.query.source){
@@ -74,12 +76,18 @@ router.get('/', function(req, res) {
       limit: req.query.limit,
       lean: true,
     }, function(err, result) {
+        //console.log(query, err, result)
+        let pages = {};
+        if (result) pages = paginate.getArrayPages(req)(
+          5, result.totalPages, req.query.page
+        );
         res.render('pages', {
-          title:"Pages",
-          search:req.query,
+          title: "Pages",
+          search: req.query,
           result,
           verbose,
-          pages: paginate.getArrayPages(req)(5, result.totalPages, req.query.page)
+          pages: pages,
+          err: err
         });
     });
 
@@ -137,7 +145,7 @@ router.get('/:id', async function(req, res, next) {
       lean: true,
       populate:{
         path: "response",
-        select: "_id remoteAddress status securityDetails payload"
+        select: "_id remoteAddress status securityDetails payload text"
       },
     }, function(err, result) {
       return result

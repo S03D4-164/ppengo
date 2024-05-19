@@ -41,7 +41,7 @@ app.use(morgan('combined'));
 var rootPath = "/ppengo/";
 
 var Agenda = require('agenda');
-var Agendash = require('agendash');
+//var Agendash = require('agendash');
 var agenda = new Agenda({
   db: {
     address: process.env.MONGO_DATABASE,
@@ -100,6 +100,7 @@ app.use(function (req, res, next) {
   next();
 });
 
+/*
 app.use(rootPath + 'dash/',
   function (req, res, next) {
     if (!req.user) res.send(401);
@@ -107,6 +108,7 @@ app.use(rootPath + 'dash/',
   },
   Agendash(agenda)
 );
+*/
 
 var indexRouter = require('./routes/index');
 app.use(rootPath, indexRouter);

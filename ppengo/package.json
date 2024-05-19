@@ -7,13 +7,11 @@
     "start:debug": "node --inspect=0.0.0.0:9222 ./bin/www --optimize_for_size --gc_interval=100 --max-old-space-size=1024"
   },
   "dependencies": {
-    "@clinic/heap-profiler": "^5.0.0",
     "@elastic/elasticsearch": "^7.17.13",
     "@json2csv/plainjs": "^7.0.6",
     "@tensorflow-models/mobilenet": "^2.0.4",
     "@tensorflow/tfjs": "1.2.11",
     "agenda": "^5.0.0",
-    "agendash": "^4.0.0",
     "archiver-zip-encrypted": "^1.0.3",
     "base64-to-uint8array": "^1.0.0",
     "bootstrap": "^4.6.0",
@@ -45,8 +43,6 @@
     "passport": ">=0.6.0",
     "passport-local": "^1.0.0",
     "passport-local-mongoose": "^5.0.1",
-    "pprof": "^4.0.0",
-    "pprof-it": "^2.0.0",
     "pug": ">=3.0.1",
     "save": "^2.3.3",
     "wapalyzer": "^6.10.65",

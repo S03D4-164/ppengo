@@ -443,13 +443,15 @@ module.exports = {
       }
       logger.debug(webpage.option, chromiumArgs);
 
+      /*
       let browserFetcher = puppeteer.createBrowserFetcher();
       const localChromiums = await puppeteer.createBrowserFetcher().localRevisions();
       if(!localChromiums.length) {
         return logger.error('Can\'t find installed Chromium');
       }
       let {executablePath} = await browserFetcher.revisionInfo(localChromiums[0]);
-      //let executablePath = path.join(process.cwd(), 'chromium-linux/chrome');
+      */
+      let executablePath = "/usr/bin/google-chrome-stable";
       console.log(executablePath)
 
       async function genPage(){
@@ -633,12 +635,13 @@ module.exports = {
           referer: webpage.option.referer,
           waitUntil: 'networkidle2',
         });
-        await page.waitFor(webpage.option.delay * 1000);
+        //await page.waitFor(webpage.option.delay * 1000);
+        await new Promise(done => setTimeout(done, webpage.option.delay * 1000)); 
     }catch(err){
-        //logger.info(err);
-        console.log(err)
+        logger.info(err);
+        //console.log(err)
         webpage.error = err.message;
-        await page._client.send("Page.stopLoading");
+        //await page._client.send("Page.stopLoading");
     }
 
     console.log(requestArray.length, responseArray.length)
