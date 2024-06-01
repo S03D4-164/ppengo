@@ -8,13 +8,16 @@ services:
       - GSBKEY
       - PPENGO
     tty: true
+    init: true
     container_name: wgeteer
     volumes:
       - ./routes:/home/node/app
+      - ./IP2LOCATION-LITE-DB1.IPV6.BIN:/tmp/IP2LOCATION-LITE-DB1.IPV6.BIN
     network_mode: "host"
     working_dir: /home/node/app
     #command: dumb-init -- node --inspect --optimize_for_size --gc_interval=100 --max-old-space-size=1024 scheduler
-    command: dumb-init -- node --inspect --optimize_for_size --gc_interval=100 --max-old-space-size=1024 agenda
+    #command: dumb-init -- node --inspect --optimize_for_size --gc_interval=100 --max-old-space-size=1024 agenda
+    command: node --inspect --optimize_for_size --gc_interval=100 --max-old-space-size=1024 agenda
     mem_limit: 2g
     #restart: always
     logging:

@@ -51,7 +51,8 @@ const getIpinfo = async function(host){
         var geo = {}
         try{
             //geo = await geoip.lookup(ip);
-            ip2loc.IP2Location_init("./IP2LOCATION-LITE-DB1.IPV6.BIN");
+            //ip2loc.IP2Location_init("./IP2LOCATION-LITE-DB1.IPV6.BIN");
+            ip2loc.IP2Location_init("/tmp/IP2LOCATION-LITE-DB1.IPV6.BIN");
             const country = ip2loc.IP2Location_get_country_short(ip);
             const country_long = ip2loc.IP2Location_get_country_long(ip);
             geo = {

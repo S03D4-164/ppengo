@@ -2,6 +2,7 @@
 const puppeteer = require('puppeteer-extra')
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 puppeteer.use(StealthPlugin())
+//const PuppeteerHar = require('puppeteer-har');
 
 async function prbstart() {
   const { connect } = await import('puppeteer-real-browser')
@@ -34,7 +35,7 @@ const fs = require('fs');
 const path =require('path');
 const pathToExtension = path.join(process.cwd(), 'chromium');
 //const pathToExtension = path.join(process.cwd(), 'chromium_automation');
-console.log(pathToExtension)
+//console.log(pathToExtension)
 
 const ipInfo = require('./ipInfo')
 const logger = require('./logger')
@@ -450,9 +451,17 @@ module.exports = {
         return logger.error('Can\'t find installed Chromium');
       }
       let {executablePath} = await browserFetcher.revisionInfo(localChromiums[0]);
+
+      let executablePath = "/usr/bin/firefox";
+      const product = 'firefox' ;
+      const ffArgs = [
+        '-wait-for-browser',
+        '--disable-blink-features=AutomationControlled'
+      ];
       */
       let executablePath = "/usr/bin/google-chrome-stable";
-      console.log(executablePath)
+      const product = 'chrome' ;
+      //console.log(executablePath)
 
       async function genPage(){
         if (webpage.option.pptr == 'real'){
@@ -474,15 +483,22 @@ module.exports = {
         } else {
           const browser = await puppeteer.launch({
             executablePath:executablePath,
-            headless: true,
+            headless: 'new',
             ignoreHTTPSErrors: true,
             defaultViewport: {width: 1280, height: 720,},
-            dumpio:true,
+            dumpio: false,
             args: chromiumArgs,
+            product: product,
+            ignoreDefaultArgs: ['--enable-automation'],
             //targetFilter: (target) => target.type() !== 'other' || !!target.url()
           });
-          //const page = await browser.newPage();
+          /*
+          const browserContext = await browser.defaultContext();
+          const browserPages = await browserContext.pages();
+          const page = browserPages.length > 0 ? browserPages[0] : await browserContext.newPage();
           const page = (await browser.pages())[0];
+          */
+          const page = await browser.newPage();
 	  let setTarget;
 	  return {page, browser, setTarget}
         }
@@ -500,13 +516,16 @@ module.exports = {
 
       const browserVersion = await browser.version();
       logger.debug(browserVersion);
+      const browserProc = browser.process();
+      logger.debug(browserProc.pid);
 
-      if (webpage.option.userAgent) await page.setUserAgent(webpage.option.userAgent);
-      if (exHeaders) await page.setExtraHTTPHeaders(exHeaders);
-      if(webpage.option.disableScript) await page.setJavaScriptEnabled(false);
-      else await page.setJavaScriptEnabled(true);
-
-      await page.setBypassCSP(true)
+      if(product == 'chrome'){
+        if (webpage.option.userAgent) await page.setUserAgent(webpage.option.userAgent);
+        if(webpage.option.disableScript) await page.setJavaScriptEnabled(false);
+        else await page.setJavaScriptEnabled(true);
+        if (exHeaders) await page.setExtraHTTPHeaders(exHeaders);
+        await page.setBypassCSP(true)
+      }
 
       /*
       const preloadFile = fs.readFileSync('./inject.js', 'utf8');
@@ -535,10 +554,18 @@ module.exports = {
       });
       */
 
-      let client = await page.target().createCDPSession();
+      var responseCache = [];
+      var requestArray = [];
+      var responseArray = [];
+
+      let client;
+
+      client = await page.target().createCDPSession();
 
       await client.send('Network.enable');
       //const urlPatterns = ['*']
+
+      if(product == 'chrome'){
       await client.send('Network.setRequestInterception', { 
         //patterns: urlPatterns.map(pattern => ({
         patterns: ['*'].map(pattern => ({
@@ -546,11 +573,9 @@ module.exports = {
           interceptionStage: 'HeadersReceived'
         }))
       });
+     }
 
-      var responseCache = [];
-      var requestArray = [];
-      var responseArray = [];
-
+     try{
       client.on('Network.requestIntercepted',
         async ({ interceptionId, request, isDownload, responseStatusCode, responseHeaders, requestId}) => {
         //console.log(`[Intercepted] ${requestId} ${request.url} ${responseStatusCode} ${isDownload}`);
@@ -564,15 +589,20 @@ module.exports = {
           cache = null;
           newBody = null;
           response = null;
+          client.send('Network.continueInterceptedRequest', {
+            interceptionId,
+          })
         }catch(err){
-          //if (err.message) logger.debug("[Intercepted] error", err.message);
+          if (err.message) logger.debug("[Intercepted] error", err.message);
           //console.log("[Intercepted] error", err);
         }
         //console.log(`Continuing interception ${interceptionId}`)
-        client.send('Network.continueInterceptedRequest', {
-          interceptionId,
-        })
       });
+
+      }catch(err){
+        logger.error('[client]',err);
+        webpage.error = error.message;
+      }
 
       page.once('load', () => logger.info('[Page] loaded'));
       page.once('domcontentloaded', () => logger.info('[Page] DOM content loaded'));
@@ -580,7 +610,7 @@ module.exports = {
 
       page.on('requestfailed', async function (request) {
         try{
-          //console.log('[Request] failed: ', request.url().slice(0,100) + request.failure());
+          console.log('[Request] failed: ', request.url().slice(0,100) + request.failure());
           const req = await saveRequest(request, pageId);
           if(req)requestArray.push(req)
           const response = request.response();
@@ -604,21 +634,23 @@ module.exports = {
         try{
           //logger.debug('[Request] finished: ' + request.method() +request.url().slice(0,100));
           const req = await saveRequest(request, pageId);
-          if(req)requestArray.push(req)
-          const response = request.response();
+          if(req && requestArray!=null)requestArray.push(req)
+          const response = await request.response();
           if(response){
             const res = await saveResponse(response, pageId, responseCache);
-            if(res)responseArray.push(res)
+            if(res && responseArray!=null)responseArray.push(res)
           }
-          console.log(
-            requestArray.length,
-            responseArray.length,
-            request.method(),
-            request.url().slice(0,100)
-          )
+          if(requestArray!=null && requestArray!=null){
+            console.log(
+              requestArray.length,
+              responseArray.length,
+              request.method(),
+              request.url().slice(0,100)
+            )
+          }
         }catch(error){
-          //logger.error(error);
-          console.log(error)
+          logger.error(error);
+          //console.log(error)
         }
       });
 
@@ -629,6 +661,8 @@ module.exports = {
 
     let finalResponse;
     try{
+      //const har = new PuppeteerHar(page);
+      //await har.start({ path: '/tmp/results.har' });
         await page.goto(webpage.input,
         {
           timeout: webpage.option.timeout * 1000,
@@ -702,7 +736,7 @@ module.exports = {
         await new Promise(done => setTimeout(done, webpage.option.delay * 1000)); 
     }finally{
 
-    console.log(requestArray.length, responseArray.length)
+    console.log('[finished]',requestArray.length, responseArray.length, webpage.url)
     
     const req = await Request.insertMany(requestArray, {ordered:false})
     .then((doc)=>{return doc})
@@ -734,7 +768,7 @@ module.exports = {
     }
 
 
-      if(webpage.url){
+    if(webpage.url){
         for(let num in responses){
           if (responses[num].url){
             if (responses[num].url === webpage.url){
@@ -742,16 +776,16 @@ module.exports = {
            }
           }
         }
-      }
+    }
 
-      if (!finalResponse){
+    if (!finalResponse){
         if(responses.length===1){
           finalResponse=responses[0];
           webpage.url = finalResponse.url;
         }
-      }
+    }
 
-      if(finalResponse){
+    if(finalResponse){
         webpage.status = finalResponse.status;
         webpage.headers = finalResponse.headers;
         webpage.remoteAddress = finalResponse.remoteAddress;
@@ -774,14 +808,18 @@ module.exports = {
         else logger.info("webpage saved");
 
       });
+
+      try{
       ss = null;
       ipInfo.setResponseIp(responses);
 
+      await client.send('Network.disable');
       client.removeAllListeners();
       client = null;
 
+      //await har.stop();
       page.removeAllListeners();
-      page = null;
+      //page = null;
 
       //responses = null;
       finalResponse = null;
@@ -794,7 +832,10 @@ module.exports = {
 
       await browser.close();
       await closeDB();
-
+      process.kill(browserProc.pid);
+      }catch(err){
+        console.log(err)
+      }
       return;
     }
   },
