@@ -7,6 +7,8 @@ const Website = require('./models/website');
 const wgeteer = require('./wgeteer');
 const agenda = require('./agenda');
 
+const bulkregister = require('./bulkregister');
+
 //const scheduler = require('./scheduler');
 //scheduler.start();
 //const scheduler = require('./agenda');
@@ -15,9 +17,8 @@ router.post('/', async function(req, res, next) {
 
   const input = req.body['url'];
 
-  var ids = [];
-  var webpages = [];
- 
+  //var webpages = [];
+  var urls = []; 
   for (let inputUrl of input.split('\r\n')){
     const ex =　/(https?|ftp):\/\/.+/
     //if(inputUrl){
@@ -43,19 +44,32 @@ router.post('/', async function(req, res, next) {
           if (req.body['exHeaders']) option['exHeaders'] = req.body['exHeaders'];
           if ("disableScript" in req.body) option["disableScript"] = true;
           if ("pptr" in req.body) option["pptr"] = req.body['pptr'];
+          urls.push({
+            url: inputUrl,
+            option: option
+          })
 
-          var track = ("track" in req.body)?req.body['track']:0;      
+          /*
           const webpage = await wgeteer.registerUrl(inputUrl, option, track, req.user);
-          ids.push(webpage._id.toString());
-          webpages.push(webpage);
+          */
           //await wgeteer.wgetJob(webpage);
           //await wgeteer.wgetJob(webpage._id);
-          agenda.now('wgeteer', {pageId: webpage._id});
           //const job = await wgeteer.wgetJob(webpage);
         }      
       }
     }
   }
+
+  var track = ("track" in req.body)?req.body['track']:0;
+  const webpages = await bulkregister.registerUrl(
+    urls, track, req.user
+  );
+  var ids = [];
+  for (let webpage of webpages){
+    ids.push(webpage._id.toString());
+    agenda.now('wgeteer', {pageId: webpage._id});
+  }
+
   res.render(
     'progress', {
     title:"Progress",
