@@ -81,7 +81,7 @@ async function closeDB(){
   })
 
   }catch(err){
-    consoel.log(err);
+    console.log(err);
   }
 }
 
@@ -579,7 +579,7 @@ module.exports = {
      try{
       client.on('Network.requestIntercepted',
         async ({ interceptionId, request, isDownload, responseStatusCode, responseHeaders, requestId}) => {
-        //console.log(`[Intercepted] ${requestId} ${request.url} ${responseStatusCode} ${isDownload}`);
+        //console.log(`[Intercepted] ${requestId}, ${responseStatusCode}, ${isDownload}, ${request.url}`);
         try{  
           let response = await client.send('Network.getResponseBodyForInterception', {interceptionId});
           //console.log("[Intercepted]", requestId, response.body.length, response.base64Encoded);    
@@ -590,12 +590,13 @@ module.exports = {
           cache = null;
           newBody = null;
           response = null;
+        }catch(err){
+          if (err.message) logger.debug(`[Intercepted] ${err.message} ${responseStatusCode} ${request.url}`);
+          //console.log("[Intercepted] error", err);
+        }finally{
           client.send('Network.continueInterceptedRequest', {
             interceptionId,
           })
-        }catch(err){
-          if (err.message) logger.debug("[Intercepted] error", err.message);
-          //console.log("[Intercepted] error", err);
         }
         //console.log(`Continuing interception ${interceptionId}`)
       });
