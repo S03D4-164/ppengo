@@ -83,6 +83,8 @@ services:
       - ./ppengo/bin:/home/node/bin
       - ./ppengo/config:/home/node/config
       - ./ppengo/app.js:/home/node/app.js
+      - ./ppengo/config/rules:/tmp/rules
+    init: true
     command: npm start
     #command: npm run start:debug
     logging:
@@ -136,6 +138,7 @@ services:
      - NGINX_PORT=80
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/prod:/usr/share/nginx/html/CyberChef
     networks:
       - default
       - mongo-express

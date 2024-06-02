@@ -13,11 +13,12 @@ require('dotenv').config();
 const logger = require("./routes/logger");
 const mongoose = require('mongoose');
 const mongoStore = require('connect-mongo');
+
 mongoose.connect(process.env.MONGO_DATABASE, {
 //mongoose.connect('mongodb://localhost:27017,localhost:27018,localhost:27019/wgeteer', {
   useNewUrlParser: true,
-  useCreateIndex: true,
-  useFindAndModify: false,
+  //useCreateIndex: true,
+  //useFindAndModify: false,
   useUnifiedTopology: true,
   //replicaSet: 'rs0',
 }).then(() =>  logger.debug('[mongoose] connect completed'))

@@ -12,7 +12,8 @@ async function yaraScan(source){
         var scanner = yara.createScanner();
         var options = {
           rules: [
-            {filename: "/home/node/config/rules/index.yar"},
+            //{filename: "/home/node/config/rules/index.yar"},
+            {filename: "/tmp/rules/index.yar"},
           ]
         }
         scanner.configure(options, function(error, warnings) {

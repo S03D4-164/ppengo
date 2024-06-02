@@ -5,11 +5,16 @@ const mongoConnectionString = 'mongodb://127.0.0.1:27017/wgeteer';
 
 mongoose.connect(mongoConnectionString, {
   useNewUrlParser: true,
-  useCreateIndex: true,
-  useFindAndModify: false,
+  //useCreateIndex: true,
+  //useFindAndModify: false,
   useUnifiedTopology: true
 }).then(() =>  logger.debug('[mongoose] connect completed'))
 .catch((err) => logger.debug('[mongoose] connect error', err));
+require('./models/webpage');
+require('./models/request');
+require('./models/response');
+require('./models/screenshot');
+require('./models/payload');
 
 const Agenda = require('agenda');
 const connectionOpts = {

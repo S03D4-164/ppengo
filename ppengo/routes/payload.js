@@ -14,6 +14,7 @@ const { Parser } = require('@json2csv/plainjs');
 
 const hexdump = require('hexdump-nodejs')
 const logger = require('./logger')
+const moment = require('moment');
 
 router.get('/',  function(req, res) {
   var search = []
@@ -35,6 +36,8 @@ router.get('/',  function(req, res) {
       res.send(csv);
     })
   }else{
+    var end = moment().toDate();
+    search.push({"createdAt": {"$lte": end}});
     var query = search.length?{"$and":search}:{};
     Payload.paginate(
       query, {

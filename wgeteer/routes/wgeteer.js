@@ -43,28 +43,25 @@ const logger = require('./logger')
 
 const mongoose = require('mongoose');
 
-require('./models/webpage');
-require('./models/request');
-require('./models/response');
-require('./models/screenshot');
-require('./models/payload');
 
 const mongoConnectionString = 'mongodb://127.0.0.1:27017/wgeteer';
 
 var db = mongoose.createConnection(mongoConnectionString, {
   useUnifiedTopology: true,
   useNewUrlParser: true,
-  useCreateIndex: true,
-  useFindAndModify: false,
+  //useCreateIndex: true,
+  //useFindAndModify: false,
 });
 
-const Webpage = db.model('Webpage');
-const Request = db.model('Request');
-const Response = db.model('Response');
-const Screenshot = db.model('Screenshot');
-const Payload = db.model('Payload');
+const Webpage = require('./models/webpage');
+const Request = require('./models/request');
+const Response = require('./models/response');
+const Screenshot = require('./models/screenshot');
+const Payload = require('./models/payload');
 
 async function closeDB(){
+  try{
+
   const modelNames = Object.keys(db.models)
   modelNames.forEach(modelName => {
     delete db.models[modelName]
@@ -76,12 +73,16 @@ async function closeDB(){
     delete db.collections[collectionName]
     logger.debug("deleted collection " + collectionName);
   })
-  
+ 
   const modelSchemaNames = Object.keys(db.base.modelSchemas)
   modelSchemaNames.forEach(modelSchemaName => {
     delete db.base.modelSchemas[modelSchemaName]
     logger.debug("deleted schema " + modelSchemaName);
   })
+
+  }catch(err){
+    consoel.log(err);
+  }
 }
 
 async function pptrEventSet(client, browser, page){
@@ -834,7 +835,7 @@ module.exports = {
       await closeDB();
       process.kill(browserProc.pid);
       }catch(err){
-        console.log(err)
+        console.log(err);
       }
       return;
     }
