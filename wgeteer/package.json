@@ -29,12 +29,17 @@
     "puppeteer": "^19.7.0",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
-    "puppeteer-har": "^1.1.2",
     "puppeteer-nopecha": "^1.0.6",
     "puppeteer-real-browser": "^1.2.12",
+    "request": "^2.88.2",
     "request-promise": "^4.2.4",
-    "wapalyzer": "^6.10.65",
+    "simple-wappalyzer": "^1.1.66",
     "wappalyzer": "^6.10.66",
     "winston": "^3.2.1"
+  },
+  "devDependencies": {
+    "eslint": "^9.4.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.3.1"
   }
 }

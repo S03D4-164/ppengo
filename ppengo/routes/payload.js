@@ -36,9 +36,8 @@ router.get('/',  function(req, res) {
       res.send(csv);
     })
   }else{
-    var end = moment().toDate();
-    search.push({"createdAt": {"$lte": end}});
-    var query = search.length?{"$and":search}:{};
+    const now = moment().toDate();
+    const query = search.length?{"$and":search}:{"createdAt": {"$lte": now}};
     Payload.paginate(
       query, {
       sort:{"createdAt":-1},

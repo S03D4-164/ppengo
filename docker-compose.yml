@@ -64,7 +64,7 @@ services:
       - ME_CONFIG_MONGODB_URL=mongodb://mongodb/wgeteer
         #- ME_CONFIG_BASICAUTH_USERNAME=admin
         #- ME_CONFIG_BASICAUTH_PASSWORD=password
-#      - NODE_OPTIONS="--optimize_for_size --gc_interval=100 --max-old-space-size=1024"
+    #      - NODE_OPTIONS="--optimize_for_size --gc_interval=100 --max-old-space-size=1024"
     tty: true
     ports:
       - "127.0.0.1:3000:3000"
@@ -81,7 +81,8 @@ services:
       - ./wgeteer/routes/models:/home/node/routes/models
       - ./ppengo/views:/home/node/views
       - ./ppengo/bin:/home/node/bin
-      - ./ppengo/config:/home/node/config
+      #- ./ppengo/config:/home/node/config
+      - ./ppengo/config:/tmp/config
       - ./ppengo/app.js:/home/node/app.js
       - ./ppengo/config/rules:/tmp/rules
     init: true
@@ -99,7 +100,7 @@ services:
 
   elasticsearch:
     build: es
-    #image: docker.elastic.co/elasticsearch/elasticsearch:7.3.0 
+    #image: docker.elastic.co/elasticsearch/elasticsearch:7.3.0
     ports:
       - "127.0.0.1:9200:9200"
     volumes:
@@ -112,7 +113,7 @@ services:
     container_name: elasticsearch
     networks:
       - default
-    
+
   kibana:
     image: docker.elastic.co/kibana/kibana:7.3.0
     links:
@@ -135,7 +136,7 @@ services:
       - "127.0.0.1:80:80"
     container_name: nginx
     environment:
-     - NGINX_PORT=80
+      - NGINX_PORT=80
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
       - ./nginx/prod:/usr/share/nginx/html/CyberChef

@@ -13,7 +13,7 @@ async function yaraScan(source){
         var options = {
           rules: [
             //{filename: "/home/node/config/rules/index.yar"},
-            {filename: "/tmp/rules/index.yar"},
+            {filename: "/tmp/config/rules/index.yar"},
           ]
         }
         scanner.configure(options, function(error, warnings) {
@@ -60,10 +60,10 @@ module.exports = {
   async yaraPage(id){
     await Webpage.findById(id)
     .then(async (page) => {
-      //console.log(page._id, page.content.length)
+      console.log(page._id, page.content.length)
       if(page.content){
         var yara = await yaraScan(page.content);
-        logger.debug(`yara ${yara}`)  
+        //logger.debug(`yara ${yara.rules}`);  
         if(yara.rules.length > 0){
           await Webpage.findOneAndUpdate(
             {_id: page._id},
@@ -73,24 +73,27 @@ module.exports = {
         yara = null;
       }
     });
+    let newResponses = [];
     await Response.find({"webpage":id})
     .then(async (responses) => {
         //logger.debug(responses.length);
         for(let res of responses){
             if(res.text){
-              logger.debug(`url ${res.url}`);
+              //logger.debug(`url ${res.url}`);
               var yara = await yaraScan(res.text);
-              logger.debug(`yara ${yara}`);
+              //logger.debug(`yara ${yara.rules}`);
               if(yara.rules.length > 0){
-                await Response.findOneAndUpdate(
-                  {_id: res._id},
-                  {yara: yara}
-                );
+                //await Response.findOneAndUpdate(
+                //  {_id: res._id}, {yara: yara}
+                //);
+                res.yara = yara;
+                newResponses.push(res);
               }
               yara = null;
             }
         }
     });
+    await Response.bulkSave(newResponses);
     return;
   }
 }

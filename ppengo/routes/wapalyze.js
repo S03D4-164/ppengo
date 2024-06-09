@@ -1,45 +1,25 @@
-const Driver = require('wappalyzer/driver');
-const processHtml = require('wappalyzer/driver').processHtml;
-const processJs = require('wappalyzer/driver').processJs;
+//const { Wappalyzer, technologies, categories } = require("wapalyzer-core");
+const wappalyzer = require('simple-wappalyzer')
 
 const Webpage = require('./models/webpage');
 const Response = require('./models/response');
 
 const logger = require('./logger')
 
-const wappalyze = async function (url, headers, text, cookies){
-  let Browser = null;
-  let driver = new Driver(Browser, url, {"debug":false});
-  let wappalyzer = driver.wappalyzer;  
-  //let html = text?processHtml(text):null;
-  //const html = text;
-  //const js = text?processJs(text, wappalyzer.jsPatterns):null;
-  var header = {};
-  for (let head in headers){
-    header[head] = headers[head].split(';');
+const wappalyze = async function (url, headers, text, status){
+  //console.log(url, headers);
+  let wapps = [];
+  try{
+    const results = await wappalyzer({ url, text, status, headers });
+    for (let result of results){
+      //console.log(result);
+      if (result.confidence==100){
+        wapps.push(result.name);
+      }
+    }
+  }catch(err){
+    console.log(err);
   }
-  wappalyzer.parseJsPatterns();
-  var data = {
-    //"scripts":text?[text]:null,
-    "cookies":cookies,
-    "headers":header,
-    "js": text?processJs(text, wappalyzer.jsPatterns):null,
-    "html": text?processHtml(text):null,
-  };
-  await wappalyzer.analyze(url, data);
-  logger.debug(url, driver.apps);
-  //const wappalyzed = driver.apps;
-  var wapps = [];
-  for (let wap in driver.apps){
-    //wapps.push(wappalyzed[wap]["name"]);
-    wapps.push(driver.apps[wap]["name"]);
-  }
-  data = null;
-  driver.apps = null;
-  driver.wappalyzer = null;
-  driver = null;
-  wappalyzer.jsPatterns = null;
-  wappalyzer = null;
   return wapps;
 };
 
@@ -57,7 +37,8 @@ module.exports = {
               webpage.url,
               webpage.headers,
               webpage.content,
-              cookies,
+              webpage.status,
+              //cookies,
           );
           if (wapps.length > 0) {
             await Webpage.findOneAndUpdate(
@@ -83,9 +64,10 @@ module.exports = {
                   response.url,
                   response.headers,
                   response.text,
-                  cookies,
+                  response.status,
+                  //cookies,
                 );
-                console.log(wapps);
+                //console.log(wapps);
                 if (wapps.length > 0) {
                   //await Response.findOneAndUpdate(
                   //  {_id: response._id}, {wappalyzer: wapps}

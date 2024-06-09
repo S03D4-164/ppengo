@@ -7,7 +7,8 @@ const Response = require('./models/response');
 
 const mail = require("./mail");
 const yara = require("./yara");
-const wappalyze = require("./wappalyze");
+//const wappalyze = require("./wappalyze");
+const wappalyze = require("./wapalyze");
 
 const mongoConnectionString = process.env.MONGO_DATABASE;
 
@@ -112,12 +113,16 @@ agenda.define('crawlWeb', {
 agenda.define('analyzePage', {
   priority: "low"
 }, async (job, done) => {
+  try{
     const {pageId, previous} = job.attrs.data;    
     logger.debug(`wappalyzer -> ${pageId}`);
     await wappalyze.analyze(pageId);
     logger.debug(`yara -> ${pageId}`);
     await yara.yaraPage(pageId);
     done();
+  }catch(err){
+    console.log(err);
+  }
 });
 
 agenda.define('hello world', function(job, done) {
