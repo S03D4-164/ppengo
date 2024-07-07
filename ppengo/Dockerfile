@@ -2,6 +2,8 @@ FROM node:20-slim
 
 WORKDIR /home/node
 
+ENV HUSKY=0
+
 COPY package.json ./
 
 RUN apt-get update \
