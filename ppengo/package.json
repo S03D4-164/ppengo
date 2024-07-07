@@ -4,7 +4,16 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www --optimize_for_size --gc_interval=100 --max-old-space-size=1024",
-    "start:debug": "node --inspect=0.0.0.0:9222 ./bin/www --optimize_for_size --gc_interval=100 --max-old-space-size=1024"
+    "start:debug": "node --inspect=0.0.0.0:9222 ./bin/www --optimize_for_size --gc_interval=100 --max-old-space-size=1024",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{js,ts,tsx, jsx}": [
+      "eslint --quiet"
+    ],
+    "*.{json,md,html,js,jsx,ts,tsx}": [
+      "prettier --check"
+    ]
   },
   "dependencies": {
     "@elastic/elasticsearch": "^7.17.13",
@@ -51,10 +60,12 @@
     "yara": "npm:@automattic/yara@^2.6.0-beta.1"
   },
   "devDependencies": {
-    "@eslint/js": "^9.4.0",
-    "eslint": "^9.4.0",
+    "@eslint/js": "^9.6.0",
+    "eslint": "^9.6.0",
     "eslint-config-prettier": "^9.1.0",
-    "globals": "^15.4.0",
+    "globals": "^15.8.0",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.7",
     "prettier": "^3.3.1"
   }
 }
