@@ -1,0 +1,1 @@
+cd wgeteer && npx lint-staged

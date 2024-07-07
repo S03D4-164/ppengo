@@ -8,6 +8,7 @@ COPY package.json ./
 
 ENV DBUS_SESSION_BUS_ADDRESS autolaunch:
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
+HUSKY=0
 
 RUN apt-get update \
     && apt-get install -y wget gnupg \
