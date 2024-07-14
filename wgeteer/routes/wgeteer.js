@@ -70,14 +70,15 @@ async function closeDB() {
       delete db.collections[collectionName];
       logger.debug("deleted collection " + collectionName);
     });
-
+    /*
     const modelSchemaNames = Object.keys(db.base.modelSchemas);
     modelSchemaNames.forEach((modelSchemaName) => {
       delete db.base.modelSchemas[modelSchemaName];
       logger.debug("deleted schema " + modelSchemaName);
     });
+    */
   } catch (err) {
-    console.log(err);
+    logger.error(err);
   }
 }
 
@@ -268,11 +269,11 @@ async function savePayload(responseBuffer) {
   return;
 }
 
-async function saveResponse(interceptedResponse, pageId, responseCache) {
+async function saveResponse(interceptedResponse, request, responseCache) {
   let responseBuffer;
   let text;
   let payloadId;
-
+  let responseStatus = await interceptedResponse.status();
   try {
     for (let seq in responseCache) {
       if (interceptedResponse.url() in responseCache[seq]) {
@@ -284,23 +285,24 @@ async function saveResponse(interceptedResponse, pageId, responseCache) {
         break;
       }
     }
-    if (responseBuffer) console.log("[Response] cache exists");
-    else console.log("[Response] no cache");
-    responseBuffer = await interceptedResponse.buffer();
+    //if (responseBuffer) console.log("[Response] cache exists");
+    //else console.log("[Response] no cache");
+    if (responseStatus < 300 && responseStatus > 399)
+      responseBuffer = await interceptedResponse.buffer();
   } catch (err) {
-    //console.log("[Response] failed on save buffer");
-    logger.debug("[Response] failed on save buffer", err);
+    console.log("[Response] failed on save buffer", err);
+    //logger.debug("[Response] failed on save buffer", err);
   }
 
   if (responseBuffer) payloadId = await savePayload(responseBuffer);
 
   try {
-    text = await interceptedResponse.text();
+    if (responseStatus < 300 && responseStatus > 399)
+      text = await interceptedResponse.text();
   } catch (err) {
-    //console.log("[Response] failed on save text");
-    logger.debug("[Response] failed on save text", err);
+    console.log("[Response] failed on save text", err);
+    //logger.debug("[Response] failed on save text", err);
   }
-
   let securityDetails = {};
   try {
     if (interceptedResponse.securityDetails()) {
@@ -331,7 +333,7 @@ async function saveResponse(interceptedResponse, pageId, responseCache) {
       }
     }
     const response = {
-      webpage: pageId,
+      webpage: request.webpage,
       url: url,
       urlHash: urlHash,
       status: interceptedResponse.status(),
@@ -477,7 +479,7 @@ module.exports = {
         chromiumArgs.push(`--proxy-server=${webpage.option.proxy}`);
       }
     }
-    logger.debug(webpage.option, chromiumArgs);
+    logger.debug(webpage.option);
 
     /*
       let browserFetcher = puppeteer.createBrowserFetcher();
@@ -496,7 +498,7 @@ module.exports = {
       */
     let executablePath = "/usr/bin/google-chrome-stable";
     const product = "chrome";
-    //console.log(executablePath)
+    console.log(executablePath);
 
     async function genPage() {
       if (webpage.option.pptr == "real") {
@@ -541,7 +543,7 @@ module.exports = {
       }
     }
     const { page, browser, setTarget } = await genPage();
-    logger.debug(page, browser, setTarget);
+    logger.debug(page, setTarget);
     /*try{
       }catch(error){
         logger.error(error);
@@ -552,9 +554,8 @@ module.exports = {
     browser.once("disconnected", () => logger.info("[Browser] disconnected."));
 
     const browserVersion = await browser.version();
-    logger.debug(browserVersion);
     const browserProc = browser.process();
-    logger.debug(browserProc.pid);
+    logger.debug(browserVersion, browserProc.pid);
 
     if (product == "chrome") {
       if (webpage.option.userAgent)
@@ -669,7 +670,7 @@ module.exports = {
         if (req && requestArray != null) requestArray.push(req);
         const response = await request.response();
         if (response) {
-          const res = await saveResponse(response, pageId, responseCache);
+          const res = await saveResponse(response, req, responseCache);
           if (res && responseArray != null) responseArray.push(res);
         }
         if (requestArray != null && requestArray != null) {
@@ -688,7 +689,8 @@ module.exports = {
     page.on("requestfailed", async function (request) {
       console.log(
         "[Request] failed: ",
-        request.url().slice(0, 100) + request.failure(),
+        request.url().slice(0, 100),
+        request.failure().errorText,
       );
       docToArray(request);
     });
@@ -709,17 +711,18 @@ module.exports = {
         referer: webpage.option.referer,
         waitUntil: "load",
       });
+      logger.debug("goto started.", requestArray.length, responseArray.length);
       await new Promise((done) =>
         setTimeout(done, webpage.option.delay * 1000),
       );
     } catch (err) {
-      logger.info(err);
-      //console.log(err)
+      //logger.info(err);
+      console.log(err);
       webpage.error = err.message;
       //await page._client.send("Page.stopLoading");
     }
 
-    console.log(requestArray.length, responseArray.length);
+    logger.debug("goto completed.", requestArray.length, responseArray.length);
 
     try {
       webpage.title = await page.title();
@@ -811,14 +814,16 @@ module.exports = {
         for (let reqIndex in req) {
           if (responses[resIndex].url === req[reqIndex].url) {
             responses[resIndex].request = req[reqIndex];
-            responses[resIndex].save();
+            //responses[resIndex].save();
             req[reqIndex].response = responses[resIndex];
-            req[reqIndex].save();
-            delete req[reqIndex];
+            //req[reqIndex].save();
+            //delete req[reqIndex];
             break;
           }
         }
       }
+      await Request.bulkSave(req);
+      await Response.bulkSave(responses);
 
       if (webpage.url) {
         for (let num in responses) {
@@ -877,7 +882,7 @@ module.exports = {
         responseCache = null;
         webpage = null;
 
-        console.log(requestArray.length, responseArray.length);
+        //console.log(requestArray.length, responseArray.length);
         requestArray = null;
         responseArray = null;
 
