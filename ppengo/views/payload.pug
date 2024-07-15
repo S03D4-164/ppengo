@@ -1,8 +1,8 @@
 extends layout
 
 block content
-    h1 Payload
-    if payload
+  h1 Payload
+  if payload
       h2
         a(href=rootPath + "response?payload=" + payload._id) 🔍
         a id:  #{payload._id} / md5: #{payload.md5}
@@ -15,10 +15,10 @@ block content
         a= " / "
         a  text size: #{payload.payload.toString().length}
       ul.nav.nav-pills
-        li.nav-item
+        //li.nav-item
           a.nav-link.active(data-toggle="tab",href="#content-tab") Content
         li.nav-item
-          a.nav-link(data-toggle="tab",href="#hex-tab") Hex
+          a.nav-link.active(data-toggle="tab",href="#hex-tab") Hex
         li.nav-item
           if payload.vt
             if payload.vt.total && payload.vt.positives
@@ -36,10 +36,10 @@ block content
           button.btn.btn-sm.btn-primary(onclick="vt()") VT search
           pre#vt= JSON.stringify(payload.vt, null, " ")
 
-        div#content-tab.tab-pane.active
+        //div#content-tab.tab-pane.active
             pre.prettyprint.linenums(style="white-space: pre-wrap")= payload.payload.toString() 
 
-        div#hex-tab.tab-pane
+        div#hex-tab.tab-pane.active
             pre.prettyprint.linenums(style="white-space: pre-wrap")= hex
 
         div#yara-tab.tab-pane
@@ -60,6 +60,6 @@ block content
               })
             };
 
-    else
-      div.alert.alert-warning
-        p No data
+  else
+    div.alert.alert-warning
+      p No data
