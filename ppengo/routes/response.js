@@ -161,8 +161,9 @@ router.get("/", function (req, res) {
       });
   } else {
     const now = moment().toDate();
-    //const past = moment().subtract(3, "days").toDate();
-    const query = search.length ? { $and: search } : { $lte: now };
+    if (search.length == 0) search.push({ createdAt: { $lte: now } });
+    //const query = search.length ? { $and: search } : { $lte: now };
+    const query = { $and: search };
     Response.paginate(
       query,
       {
@@ -172,7 +173,6 @@ router.get("/", function (req, res) {
         lean: true,
       },
       function (err, result) {
-        //console.log(result);
         res.render("responses", {
           title: "Responses",
           search: req.query,
