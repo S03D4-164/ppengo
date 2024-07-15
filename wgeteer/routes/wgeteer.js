@@ -274,6 +274,7 @@ async function saveResponse(interceptedResponse, request, responseCache) {
   let text;
   let payloadId;
   let responseStatus = await interceptedResponse.status();
+
   try {
     for (let seq in responseCache) {
       if (interceptedResponse.url() in responseCache[seq]) {
@@ -331,6 +332,11 @@ async function saveResponse(interceptedResponse, request, responseCache) {
       } else {
         newHeaders[key] = headers[key];
       }
+    }
+    if (text) {
+      const sizelimit = 1024 * 1024 * 10;
+      //console.log(text.length);
+      if (text.length > sizelimit) text = undefined;
     }
     const response = {
       webpage: request.webpage,
@@ -624,7 +630,14 @@ module.exports = {
               "Network.getResponseBodyForInterception",
               { interceptionId },
             );
-            //console.log("[Intercepted]", requestId, response.body.length, response.base64Encoded);
+            /*
+            console.log(
+              "[Intercepted]",
+              //requestId,
+              response.body.length,
+              response.base64Encoded,
+            );
+            */
             let newBody = response.base64Encoded
               ? Buffer.from(response.body, "base64")
               : response.body;
@@ -682,8 +695,8 @@ module.exports = {
           );
         }
       } catch (error) {
-        logger.error(error);
-        //console.log(error)
+        //logger.error(error);
+        console.log(error);
       }
     }
     page.on("requestfailed", async function (request) {
@@ -780,118 +793,127 @@ module.exports = {
       await new Promise((done) =>
         setTimeout(done, webpage.option.delay * 1000),
       );
-    } finally {
-      console.log(
-        "[finished]",
-        requestArray.length,
-        responseArray.length,
-        webpage.url,
-      );
+    }
 
-      const req = await Request.insertMany(requestArray, { ordered: false })
-        .then((doc) => {
-          return doc;
-        })
-        .catch((err) => {
-          console.log(err);
-          return;
-        });
-      if (req) webpage.requests = req;
+    console.log(
+      "[finished]",
+      requestArray.length,
+      responseArray.length,
+      webpage.url,
+    );
 
-      const responses = await Response.insertMany(responseArray, {
-        ordered: false,
+    const req = await Request.insertMany(requestArray, { ordered: false })
+      .then((doc) => {
+        return doc;
       })
-        .then((doc) => {
-          return doc;
-        })
-        .catch((err) => {
-          console.log(err);
-          return;
-        });
-      if (responses) webpage.responses = responses;
-
-      for (let resIndex in responses) {
-        for (let reqIndex in req) {
-          if (responses[resIndex].url === req[reqIndex].url) {
-            responses[resIndex].request = req[reqIndex];
-            //responses[resIndex].save();
-            req[reqIndex].response = responses[resIndex];
-            //req[reqIndex].save();
-            //delete req[reqIndex];
-            break;
-          }
-        }
-      }
-      await Request.bulkSave(req);
-      await Response.bulkSave(responses);
-
-      if (webpage.url) {
-        for (let num in responses) {
-          if (responses[num].url) {
-            if (responses[num].url === webpage.url) {
-              finalResponse = responses[num];
-            }
-          }
-        }
-      }
-
-      if (!finalResponse) {
-        if (responses.length === 1) {
-          finalResponse = responses[0];
-          webpage.url = finalResponse.url;
-        }
-      }
-
-      if (finalResponse) {
-        webpage.status = finalResponse.status;
-        webpage.headers = finalResponse.headers;
-        webpage.remoteAddress = finalResponse.remoteAddress;
-        webpage.securityDetails = finalResponse.securityDetails;
-        if (webpage.remoteAddress) {
-          if (webpage.remoteAddress.ip) {
-            let hostinfo = await ipInfo.getHostInfo(webpage.remoteAddress.ip);
-            if (hostinfo) {
-              if (hostinfo.reverse)
-                webpage.remoteAddress.reverse = hostinfo.reverse;
-              if (hostinfo.bgp) webpage.remoteAddress.bgp = hostinfo.bgp;
-              if (hostinfo.geoip) webpage.remoteAddress.geoip = hostinfo.geoip;
-              if (hostinfo.ip) webpage.remoteAddress.ip = hostinfo.ip;
-            }
-          }
-        }
-      }
-
-      await webpage.save(function (err, success) {
-        if (err) logger.info(err);
-        else logger.info("webpage saved", success);
+      .catch((err) => {
+        console.log("[Request]", err);
+        return;
       });
 
-      try {
-        //ss = null;
-        ipInfo.setResponseIp(responses);
-
-        await client.send("Network.disable");
-        client.removeAllListeners();
-        client = null;
-
-        page.removeAllListeners();
-        //page = null;
-
-        //responses = null;
-        finalResponse = null;
-        responseCache = null;
-        webpage = null;
-
-        //console.log(requestArray.length, responseArray.length);
-        requestArray = null;
-        responseArray = null;
-
-        await browser.close();
-        await closeDB();
-        //process.kill(browserProc.pid);
-      } catch (err) {
-        console.log(err);
+    const responses = await Response.insertMany(responseArray, {
+      ordered: false,
+      //rawResult: true,
+    })
+      .then((doc) => {
+        return doc;
+      })
+      .catch((err) => {
+        console.log("[Response]", err);
+        return;
+      });
+    try {
+      if (req && responses) {
+        for (let resIndex in responses) {
+          for (let reqIndex in req) {
+            if (responses[resIndex].url === req[reqIndex].url) {
+              responses[resIndex].request = req[reqIndex];
+              //responses[resIndex].save();
+              req[reqIndex].response = responses[resIndex];
+              //req[reqIndex].save();
+              //delete req[reqIndex];
+              break;
+            }
+          }
+        }
       }
+      if (req) {
+        await Request.bulkSave(req);
+        webpage.requests = req;
+      }
+      if (responses) {
+        await Response.bulkSave(responses);
+        webpage.responses = responses;
+
+        if (webpage.url) {
+          for (let num in responses) {
+            if (responses[num].url) {
+              if (responses[num].url === webpage.url) {
+                finalResponse = responses[num];
+              }
+            }
+          }
+        }
+
+        if (!finalResponse) {
+          if (responses.length === 1) {
+            finalResponse = responses[0];
+            webpage.url = finalResponse.url;
+          }
+        }
+      }
+    } catch (err) {
+      console.log(err);
+    }
+    if (finalResponse) {
+      webpage.status = finalResponse.status;
+      webpage.headers = finalResponse.headers;
+      webpage.remoteAddress = finalResponse.remoteAddress;
+      webpage.securityDetails = finalResponse.securityDetails;
+      if (webpage.remoteAddress) {
+        if (webpage.remoteAddress.ip) {
+          let hostinfo = await ipInfo.getHostInfo(webpage.remoteAddress.ip);
+          if (hostinfo) {
+            if (hostinfo.reverse)
+              webpage.remoteAddress.reverse = hostinfo.reverse;
+            if (hostinfo.bgp) webpage.remoteAddress.bgp = hostinfo.bgp;
+            if (hostinfo.geoip) webpage.remoteAddress.geoip = hostinfo.geoip;
+            if (hostinfo.ip) webpage.remoteAddress.ip = hostinfo.ip;
+          }
+        }
+      }
+    }
+
+    await webpage.save(function (err, success) {
+      if (err) console.log("[Webpage]", err);
+      else logger.info("webpage saved", success);
+    });
+
+    try {
+      //ss = null;
+      ipInfo.setResponseIp(responses);
+
+      await client.send("Network.disable");
+      client.removeAllListeners();
+      client = null;
+
+      page.removeAllListeners();
+      //page = null;
+
+      //responses = null;
+      finalResponse = null;
+      responseCache = null;
+      webpage = null;
+
+      //console.log(requestArray.length, responseArray.length);
+      requestArray = null;
+      responseArray = null;
+
+      await browser.close();
+      await closeDB();
+      //process.kill(browserProc.pid);
+    } catch (err) {
+      console.log(err);
     }
     return pageId;
   },
