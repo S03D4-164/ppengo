@@ -39,6 +39,7 @@ const crypto = require("crypto");
 const ipInfo = require("./ipInfo");
 const logger = require("./logger");
 //const prediction = require('./prediction')
+const wapalyze = require("./wapptr");
 
 const mongoose = require("mongoose");
 
@@ -767,25 +768,6 @@ module.exports = {
       fullscreenshot = null;
 
       webpage.url = page.url();
-
-      /*
-      try{
-        const cookies = await page.cookies();
-        //console.log(cookies, finalResponse.headers);
-        if (finalResponse){
-          const wapps = await wapptr(
-            webpage.url,
-            finalResponse.headers,
-            webpage.content,
-            cookies,
-          );
-          //console.log(wapps);
-          if (wapps) webpage.wappalyzer = wapps;
-        }  
-      }catch(err){
-        console.log(err);
-      }
-      */
     } catch (error) {
       //logger.info(error);
       console.log(error);
@@ -883,7 +865,28 @@ module.exports = {
         }
       }
     }
-
+    try {
+      const cookies = await page.cookies();
+      let headers = finalResponse.headers;
+      for (let head in headers) {
+        headers[head] = headers[head].split(";");
+      }
+      //console.log(cookies, headers);
+      const wapalyzed = await wapalyze(
+        webpage.url,
+        headers,
+        webpage.content,
+        cookies,
+      );
+      let wapps = [];
+      for (let wap of wapalyzed) {
+        wapps.push(wap.name);
+      }
+      console.log(wapps);
+      if (wapps) webpage.wappalyzer = wapps;
+    } catch (err) {
+      console.log(err);
+    }
     await webpage.save(function (err, success) {
       if (err) console.log("[Webpage]", err);
       else logger.info("webpage saved", success);

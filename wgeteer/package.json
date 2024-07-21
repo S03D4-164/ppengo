@@ -17,8 +17,6 @@
   },
   "dependencies": {
     "@elastic/elasticsearch": "^7.17.13",
-    "@tensorflow-models/mobilenet": "^2.0.4",
-    "@tensorflow/tfjs-node": "1.1.0",
     "agenda": "^5.0.0",
     "antibotbrowser": "^1.0.5",
     "base64-to-uint8array": "^1.0.0",
@@ -40,10 +38,8 @@
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "puppeteer-nopecha": "^1.0.6",
     "puppeteer-real-browser": "^1.2.12",
-    "request": "^2.88.2",
     "request-promise": "^4.2.4",
-    "simple-wappalyzer": "^1.1.66",
-    "wappalyzer": "^6.10.66",
+    "wapalyzer-core": "^6.11.0",
     "winston": "^3.2.1"
   },
   "devDependencies": {

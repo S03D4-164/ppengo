@@ -19,7 +19,7 @@
     "@elastic/elasticsearch": "^7.17.13",
     "@json2csv/plainjs": "^7.0.6",
     "agenda": "^5.0.0",
-    "archiver-zip-encrypted": "^1.0.3",
+    "archiver-zip-encrypted": "^2.0.0",
     "base64-to-uint8array": "^1.0.0",
     "bootstrap": "^4.6.0",
     "canvas": "^2.6.0",

@@ -1,78 +1,86 @@
-const Driver = require('wappalyzer/driver');
-const processHtml = require('wappalyzer/driver').processHtml;
-const processJs = require('wappalyzer/driver').processJs;
+const wapalyze = async (url, headers, html, cookies) => {
+  let result;
+  const { Wappalyzer, technologies, categories } = require("wapalyzer-core");
+  /*
+  const path = require("node:path");
+  const fs = require("fs");
+  const { Wappalyzer } = require("wapalyzer-core");
+  //const categories = require("./webappanalyzer/src/categories.json");
+  const categories = JSON.parse(
+    fs.readFileSync(path.resolve(`./webappanalyzer/src/categories.json`)),
+  );
+  //console.log(categories)
+  let technologies = {};
+  for (const index of Array(27).keys()) {
+    const character = index ? String.fromCharCode(index + 96) : "_";
+    technologies = {
+      ...technologies,
+      ...JSON.parse(
+        fs.readFileSync(
+          path.resolve(`./webappanalyzer/src/technologies/${character}.json`),
+        ),
+      ),
+    };
+  }
+  console.log(technologies)
+  */
+  Wappalyzer.setTechnologies(technologies);
+  Wappalyzer.setCategories(categories);
+  //console.log("[headers]", headers)
+  //console.log("[cookies]", cookies)
+  try {
+    const detections = await Wappalyzer.analyze({
+      url: url,
+      //meta: { generator: ["WordPress"] },
+      headers: headers,
+      //scriptSrc: ["jquery-3.0.0.js"],
+      cookies: cookies,
+      html: html,
+    });
 
-const wapptr = async function (url, headers, text, cookies){
-  let Browser,
-  options = {"debug":true};
-  const driver = new Driver(Browser, url, options);
-  const wappalyzer = driver.wappalyzer;  
-  const html = processHtml(text);
-  //const html = text;
-  wappalyzer.parseJsPatterns();
-  const js = processJs(text, wappalyzer.jsPatterns);
-  var header = {};
-  for (let head in headers){
-    header[head] = headers[head].split(';');
+    result = Wappalyzer.resolve(detections);
+    //console.log("[result] ", result);
+  } catch (error) {
+    console.error("Error analyzing website:", error);
   }
-  let scripts;
-  var data = {
-    //"scripts":[text],
-    "scripts":scripts,
-    "cookies":cookies,
-    "headers":header,
-    "js":js,
-    "html":html,
-  };
-  await wappalyzer.analyze(url, data);
-  //console.log(url, driver.apps);
-  const wappalyzed = driver.apps;
-  var wapps = [];
-  for (let wap in wappalyzed){
-    wapps.push(wappalyzed[wap]["name"]);
-  }
-  return wapps;
+  return result;
 };
 
+/*
 const pptryze = async () => {
-  const puppeteer = require('puppeteer');
-  var chromiumArgs= [
-    '--no-sandbox',
-    '--disable-setuid-sandbox',
-    '--disable-gpu',
-    '--disable-dev-shm-usage',
+  const url = "http://localhost/";
+  const puppeteer = require("puppeteer");
+  var chromiumArgs = [
+    "--no-sandbox",
+    "--disable-setuid-sandbox",
+    "--disable-gpu",
+    "--disable-dev-shm-usage",
     //'--enable-logging=stderr','--v=1',
   ];
   const browser = await puppeteer.launch({
     headless: true,
     ignoreHTTPSErrors: true,
-    defaultViewport: {width: 1280, height: 720,},
-    dumpio:true,
+    defaultViewport: { width: 1280, height: 720 },
+    //dumpio: true,
     args: chromiumArgs,
-});
+  });
   const page = await browser.newPage();
   const response = await page.goto(url);
-
+  console.log(await page.title(), await page.url());
+  //const status = await response.status();
   const text = await response.text();
   const cookies = await page.cookies();
-  headers = response.headers();
-  for (let head in headers){
-    headers[head] = headers[head].split(';');
+  let headers = response.headers();
+  for (let head in headers) {
+    headers[head] = headers[head].split(";");
   }
-  /*
-  const html = driver.processHtml(text);
-  const js = driver.processJs(text);
-  var data = {
-    "scripts":[text],
-    "cookies":cookies,
-    "headers":headers,
-    "js":js,
-    "html":html,
-  };
-  await wapptr(url, data);*/
-  await wapptr(url, headers, text, cookies);
+  //await wappalyze(url, response.headers(), text);
+  await wapalyze(url, headers, text, cookies);
 
   await browser.close();
 };
 
-module.exports = wapptr;
+pptryze();
+*/
+
+module.exports = wapalyze;
