@@ -1,0 +1,39 @@
+extends layout
+
+block content
+  h1 Remove
+  if payloads
+      if payloads.length >= 0
+          h3="Payload: " + payloads.length
+          table.table.table-striped.table-bordered.table-hover.table-sm
+            tr.thead-light.d-flex
+              th.col-2 createdAt
+              th.col-4 md5
+              th.col-1 tag
+
+            each payload in payloads
+                tr.d-flex
+                  td.col-2= moment(payload.createdAt).format('YYYY-MM-DD HH:mm:ss.SSS')
+                  td.col-4
+                    a(href=rootPath + "payload/" + payload._id)= payload.md5
+                  td.col-1
+                    if payload.tag
+                      a= payload.tag
+
+  if responses
+    if responses.length >= 0 
+      h3="Response: " + responses.length
+      table.table.table-bordered.table-sm
+        tr.thead-light.d-flex
+          th.col-2 createdAt
+          th.col-5 url
+        each response in responses
+          tr.d-flex 
+            td.col-2= moment(response.createdAt).format('YYYY-MM-DD HH:mm:ss.SSS')
+            td.col-5
+              if response.url
+                if response.url.length > 100
+                  a(href=rootPath + "response/" +response._id)= response.url.slice(0,100) + "(truncated)"
+                else
+                  a(href=rootPath + "response/" +response._id)= response.url
+      

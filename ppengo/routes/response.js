@@ -268,4 +268,48 @@ router.get("/:id", async function (req, res) {
   });
 });
 
+router.get("/remove/:id", async function (req, res) {
+  const id = req.params.id;
+  const response = await Response.findById(id)
+    .populate("webpage")
+    .populate("payload")
+    .then((document) => {
+      return document;
+    });
+  const webpage = response.webpage;
+  const payload = response.payload;
+  var rawQuery = {
+    query: {
+      query_string: {
+        query: id,
+        fields: ["_id"],
+      },
+    },
+  };
+  logger.debug(rawQuery);
+  var hidrate = {
+    hydrate: true,
+    hydrateOptions: { lean: true },
+    hydrateWithESResults: { source: true },
+  };
+  const es = await Response.esSearch(
+    rawQuery,
+    hidrate,
+    function (err, results) {
+      let result
+      if (results) {
+        result = results.hits ? results.hits.hits : [];
+      }
+      return result;
+    },
+  );
+  //console.log(es);
+  res.render("remove", {
+    webpages: [webpage],
+    responses: [response],
+    payloads: [payload],
+    es: es,
+  });
+});
+
 module.exports = router;
