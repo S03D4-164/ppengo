@@ -8,32 +8,105 @@ block content
           table.table.table-striped.table-bordered.table-hover.table-sm
             tr.thead-light.d-flex
               th.col-2 createdAt
+              th.col-2 id
               th.col-4 md5
-              th.col-1 tag
-
+              th.col-2 tag
+              th.col-2 size
             each payload in payloads
                 tr.d-flex
                   td.col-2= moment(payload.createdAt).format('YYYY-MM-DD HH:mm:ss.SSS')
+                  td.col-2
+                    a(href=rootPath + "payload/" + payload._id)= payload._id
                   td.col-4
-                    a(href=rootPath + "payload/" + payload._id)= payload.md5
-                  td.col-1
+                    a= payload.md5
+                  td.col-2
                     if payload.tag
                       a= payload.tag
+                  td.col-2
+                    if payload.payload
+                      a= payload.payload.length
 
   if responses
-    if responses.length >= 0 
+    if responses.length >= 0
       h3="Response: " + responses.length
       table.table.table-bordered.table-sm
         tr.thead-light.d-flex
           th.col-2 createdAt
-          th.col-5 url
+          th.col-2 id
+          th.col-6 url
+          th.col-2 text size
         each response in responses
-          tr.d-flex 
+          tr.d-flex
             td.col-2= moment(response.createdAt).format('YYYY-MM-DD HH:mm:ss.SSS')
-            td.col-5
+            td.col-2
+              a(href=rootPath + "response/" +response._id)= response._id
+            td.col-6
               if response.url
                 if response.url.length > 100
-                  a(href=rootPath + "response/" +response._id)= response.url.slice(0,100) + "(truncated)"
+                  a= response.url.slice(0,100) + "(truncated)"
                 else
-                  a(href=rootPath + "response/" +response._id)= response.url
+                  a= response.url
+            td.col-2
+              if response.text
+                  a= response.text.length
+
+  if es
+    if es.length >= 0
+      h3="ElasticSearch: " + es.length
+      table.table.table-bordered.table-sm
+        tr.thead-light.d-flex
+          th.col-2 createdAt
+          th.col-2 id
+          th.col-8 url
+        each e in es
+          tr.d-flex
+            td.col-2= moment(e.doc.createdAt).format('YYYY-MM-DD HH:mm:ss.SSS')
+            td.col-2
+              a(href=rootPath + "response/" +e.doc._id)= e.doc._id
+            td.col-8
+              if e.doc.url
+                if e.doc.url.length > 100
+                  a= e.doc.url.slice(0,100) + "(truncated)"
+                else
+                  a= e.doc.url
       
+  if webpages
+    if webpages.length >= 0
+      h3="Webpage: " + webpages.length
+      table.table.table-bordered.table-sm
+        tr.thead-light.d-flex
+          th.col-2 createdAt
+          th.col-2 id
+          th.col-4 url
+          th.col-2 content length
+          th.col-2 thumbnail
+        each webpage in webpages
+          tr.d-flex
+            td.col-2= moment(webpage.createdAt).format('YYYY-MM-DD HH:mm:ss.SSS')
+            td.col-2
+              a(href=rootPath + "page/" + webpage._id)= webpage._id
+            td.col-4
+              if webpage.url
+                if webpage.url.length > 100
+                  a= webpage.url.slice(0,100) + "(truncated)"
+                else
+                  a= webpage.url
+            td.col-2
+              if webpage.content
+                a= webpage.content.length
+            td.col-2
+              if webpage.thumbnail
+                img(width="100%" src="data:image/png;base64," + webpage.thumbnail)
+
+  if screenshots
+    if screenshots.length >= 0
+      h3="Screenshot: " + screenshots.length
+      table.table.table-bordered.table-sm
+        tr.thead-light.d-flex
+          th.col-2 createdAt
+          th.col-10 id
+        each ss in screenshots
+          tr.d-flex
+            td.col-2= moment(ss.createdAt).format('YYYY-MM-DD HH:mm:ss.SSS')
+            td.col-10
+              a.colorbox(href=rootPath + "screenshot/" + ss._id)= ss._id

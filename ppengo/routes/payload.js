@@ -3,6 +3,8 @@ var router = express.Router();
 
 const Payload = require("./models/payload");
 const Response = require("./models/response");
+const Webpage = require("./models/webpage");
+const Screenshot = require("./models/screenshot");
 
 var archiver = require("archiver");
 archiver.registerFormat("zip-encrypted", require("archiver-zip-encrypted"));
@@ -125,6 +127,84 @@ router.get("/:id", function (req, res) {
       payload,
       responses,
       hex,
+    });
+  });
+});
+
+router.get("/remove/:id", function (req, res) {
+  const id = req.params.id;
+  Payload.findById(id).then(async (payload) => {
+    const payloads = [payload];
+
+    const responses = await Response.find()
+      .where({ payload: payload._id })
+      .populate({ path: "webpage", populate: { path: "screenshot" } })
+      .sort("-createdAt")
+      .then((document) => {
+        return document;
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+
+    let es = [];
+    let webpages = [];
+    let screenshots = [];
+    /*
+    webpages = await Webpage.find()
+      .where({ responses: { $in: responses } })
+      .sort("-createdAt")
+      .then((document) => {
+        return document;
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+      */
+    for (let response of responses) {
+      if (response.webpage) {
+        const webpage = response.webpage;
+        if (!webpages.includes(webpage)) {
+          webpages.push(response.webpage);
+        }
+        if (webpage.screenshot) {
+          const ss = webpage.screenshot;
+          if (!screenshots.includes(ss)) {
+            screenshots.push(ss);
+          }
+        }
+      }
+      var rawQuery = {
+        query: {
+          query_string: {
+            query: response._id,
+            fields: ["_id"],
+          },
+        },
+      };
+      //logger.debug(rawQuery);
+      var hidrate = {
+        hydrate: true,
+        hydrateOptions: { lean: true },
+        hydrateWithESResults: { source: true },
+      };
+      await Response.esSearch(rawQuery, hidrate).then(function (results) {
+        console.log(JSON.stringify(results, null, " "));
+        if (results.hits) {
+          if (results.hits.hits) {
+            es.push(results.hits.hits[0]);
+          }
+        }
+      });
+    }
+    //console.log(JSON.stringify(es, null, " "));
+
+    res.render("remove", {
+      payloads,
+      responses,
+      es,
+      webpages,
+      screenshots,
     });
   });
 });
