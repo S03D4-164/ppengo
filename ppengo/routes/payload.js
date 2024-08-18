@@ -131,6 +131,64 @@ router.get("/:id", function (req, res) {
   });
 });
 
+router.post("/remove", async function (req, res) {
+  console.log(req.body);
+  let payloads;
+  if (req.body["payload[]"]) {
+    const pl = req.body["payload[]"];
+    payloads = await Payload.find()
+      .where({ _id: { $in: pl } })
+      .then((document) => {
+        return document;
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+  let responses;
+  if (req.body["response[]"]) {
+    const res = req.body["response[]"];
+    responses = await Response.find()
+      .where({ _id: { $in: res } })
+      .then((document) => {
+        return document;
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+  let webpages;
+  if (req.body["webpage[]"]) {
+    const wp = req.body["webpage[]"];
+    webpages = await Webpage.deleteMany()
+      .where({ _id: { $in: wp } })
+      .then((document) => {
+        return document;
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+  let screenshots;
+  if (req.body["ss[]"]) {
+    const ss = req.body["ss[]"];
+    screenshots = await Screenshot.deleteMany()
+      .where({ _id: { $in: ss } })
+      .then((document) => {
+        return document;
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+  res.render("remove", {
+    payloads,
+    responses,
+    webpages,
+    screenshots,
+  });
+});
+
 router.get("/remove/:id", function (req, res) {
   const id = req.params.id;
   Payload.findById(id).then(async (payload) => {

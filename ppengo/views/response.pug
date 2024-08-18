@@ -1,10 +1,13 @@
 extends layout
 
 block content
- if webpage
   h2 Request / Response
-    a= " from "
-    a(href=rootPath+"page/"+webpage._id) #{webpage.input}
+    if webpage
+      a= " from "
+      a(href=rootPath+"page/"+webpage._id) #{webpage.input}
+    //else
+      div.alert.alert-warning
+        p No data
   h3
     - var url = response?response.url:request.url
     a(href=rootPath + "response?url=" + encodeURIComponent(url)) 🔍
@@ -272,6 +275,3 @@ block content
                   }
                 })
               };
- else
-    div.alert.alert-warning
-      p No data

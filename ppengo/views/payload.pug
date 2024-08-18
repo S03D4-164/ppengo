@@ -14,6 +14,8 @@ block content
         a  buffer size: #{payload.payload.length}
         a= " / "
         a  text size: #{payload.payload.toString().length}
+      h3
+        a.btn.btn-danger(href=rootPath + "payload/remove/" + payload._id) Remove
       ul.nav.nav-pills
         //li.nav-item
           a.nav-link.active(data-toggle="tab",href="#content-tab") Content
