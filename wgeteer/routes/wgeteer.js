@@ -8,7 +8,8 @@ async function prbstart() {
   return connect;
 }
 
-const antibotbrowser = require("antibotbrowser");
+//const antibotbrowser = require("antibotbrowser");
+const antibotbrowser = require("./antibotbrowser");
 
 /*
 const apikey = process.env.NOPECHA_KEY
@@ -508,65 +509,72 @@ module.exports = {
     console.log(executablePath);
 
     async function genPage() {
-      if (webpage.option.pptr == "real") {
-        process.env.CHROME_PATH = executablePath;
-        const connect = await prbstart();
-        const { page, browser, setTarget } = await connect({
-          headless: false,
-          args: chromiumArgs,
-          tf: true,
-          turnstile: true,
-        });
-        return { page, browser, setTarget };
-      } else if (webpage.option.pptr == "antibot") {
-        const antibrowser = await antibotbrowser.startbrowser();
-        const browser = await puppeteer.connect({
-          browserWSEndpoint: antibrowser.websokcet,
-        });
-        const page = await browser.newPage();
-        let setTarget;
-        return { page, browser, setTarget };
-      } else {
-        const browser = await puppeteer.launch({
-          executablePath: executablePath,
-          headless: "new",
-          ignoreHTTPSErrors: true,
-          defaultViewport: { width: 1280, height: 720 },
-          dumpio: false,
-          args: chromiumArgs,
-          product: product,
-          ignoreDefaultArgs: ["--enable-automation"],
-          //targetFilter: (target) => target.type() !== 'other' || !!target.url()
-        });
-        /*
+      try {
+        if (webpage.option.pptr == "real") {
+          process.env.CHROME_PATH = executablePath;
+          const connect = await prbstart();
+          const { page, browser, setTarget } = await connect({
+            headless: false,
+            args: chromiumArgs,
+            tf: true,
+            turnstile: true,
+          });
+          return { page, browser, setTarget };
+        } else if (webpage.option.pptr == "antibot") {
+          const antibrowser = await antibotbrowser.startbrowser();
+          console.log(antibrowser);
+          const opt = {
+            browserWSEndpoint: antibrowser.websocket,
+          };
+          console.log(opt);
+          const browser = await puppeteer.connect(opt);
+          const page = await browser.newPage();
+          let setTarget;
+          return { page, browser, setTarget };
+        } else {
+          const browser = await puppeteer.launch({
+            executablePath: executablePath,
+            //headless: "new",
+            headless: false,
+            ignoreHTTPSErrors: true,
+            defaultViewport: { width: 1280, height: 720 },
+            dumpio: false,
+            args: chromiumArgs,
+            product: product,
+            ignoreDefaultArgs: ["--enable-automation"],
+            //targetFilter: (target) => target.type() !== 'other' || !!target.url()
+          });
+          /*
           const browserContext = await browser.defaultContext();
           const browserPages = await browserContext.pages();
           const page = browserPages.length > 0 ? browserPages[0] : await browserContext.newPage();
           const page = (await browser.pages())[0];
           */
-        const page = await browser.newPage();
-        let setTarget;
-        return { page, browser, setTarget };
+          const page = await browser.newPage();
+          let setTarget;
+          return { page, browser, setTarget };
+        }
+      } catch (err) {
+        console.log(err);
       }
     }
     const { page, browser, setTarget } = await genPage();
-    logger.debug(page, setTarget);
-    /*try{
-      }catch(error){
-        logger.error(error);
-        webpage.error = error.message;
-        return webpage;
-      }*/
+    try {
+      const browserVersion = await browser.version();
+      const browserProc = browser.process();
+      logger.debug(browserVersion, browserProc.pid);
+      logger.debug(page, setTarget);
+    } catch (error) {
+      logger.error(error);
+      //webpage.error = error.message;
+      //return webpage;
+    }
 
     browser.once("disconnected", () => logger.info("[Browser] disconnected."));
 
-    const browserVersion = await browser.version();
-    const browserProc = browser.process();
-    logger.debug(browserVersion, browserProc.pid);
-
     if (product == "chrome") {
-      if (webpage.option.userAgent)
-        await page.setUserAgent(webpage.option.userAgent);
+      //if (webpage.option.userAgent)
+      //  await page.setUserAgent(webpage.option.userAgent);
       if (webpage.option.disableScript) await page.setJavaScriptEnabled(false);
       else await page.setJavaScriptEnabled(true);
       if (exHeaders) await page.setExtraHTTPHeaders(exHeaders);

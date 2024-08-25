@@ -7,17 +7,22 @@ services:
       - VTKEY
       - GSBKEY
       - PPENGO
+      - X11VNC_PASSWORD="password"
+      - DISPLAY=:99
     tty: true
     init: true
     container_name: wgeteer
     volumes:
       - ./routes:/home/node/app
       - ./IP2LOCATION-LITE-DB1.IPV6.BIN:/tmp/IP2LOCATION-LITE-DB1.IPV6.BIN
+      - ./entrypoint.sh:/home/node/app/entrypoint.sh
     network_mode: "host"
+    ports:
+      - 127.0.0.1:5900:5900
     working_dir: /home/node/app
-    #command: dumb-init -- node --inspect --optimize_for_size --gc_interval=100 --max-old-space-size=1024 scheduler
     #command: dumb-init -- node --inspect --optimize_for_size --gc_interval=100 --max-old-space-size=1024 agenda
-    command: node --inspect --optimize_for_size --gc_interval=100 --max-old-space-size=1024 agenda
+    #command: node --inspect --optimize_for_size --gc_interval=100 --max-old-space-size=1024 agenda
+    command: /bin/bash /home/node/app/entrypoint.sh
     mem_limit: 2g
     #restart: always
     logging:
