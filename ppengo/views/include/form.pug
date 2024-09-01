@@ -5,6 +5,9 @@ div
             .form-group.row
                 label.col-2(for="proxy") Proxy: 
                 input.col-9.form-control(type="text" name="proxy", id="proxy", placeholder="ip:port")
+            .form-group.row
+                label.col-2(for="cilck") Click:
+                input.col-9.form-control(type="text" name="click", id="click", placeholder="")
             .form-inline
                 label.col-2.mr-2(for="timeout") Timeout(s): 
                 input.col-2.mr-2.form-control(type="number" name="timeout", id="timeout", max="300", min="30", step="30", value="60")
@@ -21,6 +24,8 @@ div
                 .form-check-inline
                     label.form-check-label(for="disableScript") disable script:
                     input.form-check-input(type="checkbox", name="disableScript", id="disableScript" value="")
+                    label.form-check-label(for="cf") cloudflare:
+                    input.form-check-input(type="checkbox", name="cf", id="cf" value="")
             .form-group
                 label(for="exHeaders") Extra Headers: 
                 textarea.form-control(id="exHeaders", name="exHeaders", rows=2)

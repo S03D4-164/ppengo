@@ -467,6 +467,7 @@ module.exports = {
     }
     const chromiumArgs = [
       "--no-sandbox",
+      "--window-size=1280,720",
       "--disable-setuid-sandbox",
       "--disable-gpu",
       "--disable-dev-shm-usage",
@@ -537,12 +538,14 @@ module.exports = {
             //headless: "new",
             headless: false,
             ignoreHTTPSErrors: true,
-            defaultViewport: { width: 1280, height: 720 },
+            //defaultViewport: { width: 1280, height: 720 },
             dumpio: false,
             args: chromiumArgs,
             product: product,
             ignoreDefaultArgs: ["--enable-automation"],
-            //targetFilter: (target) => target.type() !== 'other' || !!target.url()
+            /*targetFilter: (target) => {
+              target.type() !== "other" || !!target.url();
+            },*/
           });
           /*
           const browserContext = await browser.defaultContext();
@@ -733,10 +736,47 @@ module.exports = {
         referer: webpage.option.referer,
         waitUntil: "load",
       });
-      logger.debug("goto started.", requestArray.length, responseArray.length);
       await new Promise((done) =>
         setTimeout(done, webpage.option.delay * 1000),
       );
+      if (webpage.option.cf) {
+        const selector = ".spacer > div > div";
+        const info = await page.evaluate((selector) => {
+          var el = document.querySelector(selector);
+          var zoom = 1.0;
+          for (var e = el; e != null; e = e.parentElement) {
+            if (e.style.zoom) {
+              zoom *= parseFloat(e.style.zoom);
+            }
+          }
+          var rect = el.getBoundingClientRect();
+          return {
+            height: rect.height,
+            width: rect.width,
+            x: rect.left,
+            y: rect.top,
+            zoom: zoom,
+          };
+        }, selector);
+        //console.log(info);
+        const center_height = info.height / 2;
+        //const center_width = info.width / 2;
+        const click_x = (info.x + center_height) * info.zoom;
+        const click_y = (info.y + center_height) * info.zoom;
+        console.log(
+          "move: %s(%s) => (%s,%s)",
+          selector,
+          JSON.stringify(info),
+          click_x,
+          click_y,
+        );
+        //await page.mouse.move(click_x, click_y, { steps: 1 });
+        await page.mouse.click(click_x, click_y);
+
+        await new Promise((done) =>
+          setTimeout(done, webpage.option.delay * 1000),
+        );
+      }
     } catch (err) {
       //logger.info(err);
       console.log(err);
@@ -860,6 +900,10 @@ module.exports = {
       webpage.headers = finalResponse.headers;
       webpage.remoteAddress = finalResponse.remoteAddress;
       webpage.securityDetails = finalResponse.securityDetails;
+      await webpage.save(function (err, success) {
+        if (err) console.log("[Webpage]", err);
+        else logger.info("webpage saved", success);
+      });
       if (webpage.remoteAddress) {
         if (webpage.remoteAddress.ip) {
           let hostinfo = await ipInfo.getHostInfo(webpage.remoteAddress.ip);
