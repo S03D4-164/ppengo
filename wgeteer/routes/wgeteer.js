@@ -1,4 +1,4 @@
-//const puppeteer = require('puppeteer');
+//const puppeteer = require("puppeteer");
 const puppeteer = require("puppeteer-extra");
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
 puppeteer.use(StealthPlugin());
@@ -26,7 +26,7 @@ const nopecha = new NopeCHAApi(configuration);
     console.log(balance);
 })();
 */
-
+const findProc = require("find-process");
 const Jimp = require("jimp");
 const crypto = require("crypto");
 //const fs = require('fs');
@@ -507,11 +507,17 @@ module.exports = {
       */
     let executablePath = "/usr/bin/google-chrome-stable";
     const product = "chrome";
-    console.log(executablePath);
-
     async function genPage() {
       try {
-        if (webpage.option.pptr == "real") {
+        if (webpage.option.pptr == "firefox") {
+          console.log(executablePath);
+          const browser = await puppeteer.launch({
+            product: "firefox",
+            //executablePath: executablePath,
+          });
+          let setTarget;
+          return { page, browser, setTarget };
+        } else if (webpage.option.pptr == "real") {
           process.env.CHROME_PATH = executablePath;
           const connect = await prbstart();
           const { page, browser, setTarget } = await connect({
@@ -543,6 +549,7 @@ module.exports = {
             args: chromiumArgs,
             product: product,
             ignoreDefaultArgs: ["--enable-automation"],
+            userDataDir: "/tmp/" + webpage._id,
             /*targetFilter: (target) => {
               target.type() !== "other" || !!target.url();
             },*/
@@ -565,8 +572,25 @@ module.exports = {
     try {
       const browserVersion = await browser.version();
       const browserProc = browser.process();
-      logger.debug(browserVersion, browserProc.pid);
-      logger.debug(page, setTarget);
+      logger.debug(
+        `${browserVersion}, ${browserProc.pid}, ${page}, ${setTarget}`,
+      );
+      findProc("name", "chrome").then(
+        function (list) {
+          console.log(list, list.length);
+          for (let ps of list) {
+            if (ps.name === "chrome") {
+              if (!ps.cmd.match("/tmp/" + webpage._id)) {
+                //console.log(ps);
+                process.kill(ps.pid);
+              }
+            }
+          }
+        },
+        function (err) {
+          console.log(err.stack || err);
+        },
+      );
     } catch (error) {
       logger.error(error);
       //webpage.error = error.message;
@@ -740,6 +764,7 @@ module.exports = {
         setTimeout(done, webpage.option.delay * 1000),
       );
       if (webpage.option.cf) {
+        // click checkbox
         const selector = ".spacer > div > div";
         const info = await page.evaluate((selector) => {
           var el = document.querySelector(selector);
@@ -784,7 +809,9 @@ module.exports = {
       //await page._client.send("Page.stopLoading");
     }
 
-    logger.debug("goto completed.", requestArray.length, responseArray.length);
+    logger.debug(
+      `goto completed. ${requestArray.length}, ${responseArray.length}`,
+    );
 
     try {
       webpage.title = await page.title();
@@ -964,9 +991,8 @@ module.exports = {
       requestArray = null;
       responseArray = null;
 
-      await browser.close();
+      //await browser.close();
       await closeDB();
-      //process.kill(browserProc.pid);
     } catch (err) {
       console.log(err);
     }

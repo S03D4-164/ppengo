@@ -16,6 +16,7 @@ async function startbrowser(port, url) {
       chromium.path,
       [
         "--no-sandbox",
+        "--window-size=1280,720",
         "--disable-setuid-sandbox",
         // "--disable-dev-shm-usage",
         // "--disable-accelerated-2d-canvas",

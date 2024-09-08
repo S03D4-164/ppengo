@@ -16,6 +16,7 @@ services:
       - ./routes:/home/node/app
       - ./IP2LOCATION-LITE-DB1.IPV6.BIN:/tmp/IP2LOCATION-LITE-DB1.IPV6.BIN
       - ./entrypoint.sh:/home/node/app/entrypoint.sh
+      - ./tmp:/tmp
     network_mode: "host"
     ports:
       - 127.0.0.1:5900:5900
