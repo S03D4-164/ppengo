@@ -12,6 +12,7 @@ mongoose
   })
   .then(() => logger.debug("[mongoose] connect completed"))
   .catch((err) => logger.debug("[mongoose] connect error", err));
+mongoose.set("maxTimeMS", 30000);
 require("./models/webpage");
 require("./models/request");
 require("./models/response");
@@ -28,6 +29,7 @@ const connectionOpts = {
     },
   },
   processEvery: "5 seconds",
+  defaultLockLifetime: 100 * 60 * 3,
 };
 
 const agenda = new Agenda(connectionOpts);

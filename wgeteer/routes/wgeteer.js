@@ -276,16 +276,13 @@ async function saveResponse(interceptedResponse, request, responseCache) {
   let text;
   let payloadId;
   let responseStatus = await interceptedResponse.status();
-
+  let interceptionId;
   try {
-    for (let seq in responseCache) {
-      if (interceptedResponse.url() in responseCache[seq]) {
-        let cache = responseCache[seq];
-        responseBuffer = cache[interceptedResponse.url()];
-        text = cache[interceptedResponse.url()].toString("utf-8");
-        responseCache.splice(seq, 1);
-        cache = null;
-        break;
+    for (let cache of responseCache) {
+      if (interceptedResponse.url() == cache["url"]) {
+        responseBuffer = cache["body"];
+        text = cache["body"].toString("utf-8");
+        interceptionId = cache["interceptionId"];
       }
     }
     //if (responseBuffer) console.log("[Response] cache exists");
@@ -353,6 +350,7 @@ async function saveResponse(interceptedResponse, request, responseCache) {
       securityDetails: securityDetails,
       payload: payloadId,
       text: text,
+      interceptionId: interceptionId,
     };
 
     return response;
@@ -677,8 +675,12 @@ module.exports = {
             let newBody = response.base64Encoded
               ? Buffer.from(response.body, "base64")
               : response.body;
-            let cache = {};
-            cache[request.url] = newBody;
+            let cache = {
+              url: request.url,
+              body: newBody,
+              interceptionId: interceptionId,
+            };
+            //cache[request.url] = newBody;
             responseCache.push(cache);
             cache = null;
             newBody = null;
@@ -715,15 +717,17 @@ module.exports = {
     async function docToArray(request) {
       try {
         //logger.debug('[Request] finished: ' + request.method() +request.url().slice(0,100));
-        const req = await saveRequest(request, pageId);
-        if (req && requestArray != null) requestArray.push(req);
+        let req = await saveRequest(request, pageId);
         const response = await request.response();
         if (response) {
-          const res = await saveResponse(response, req, responseCache);
+          let res = await saveResponse(response, req, responseCache);
           if (res && responseArray != null) responseArray.push(res);
+          req["interceptionId"] = res["interceptionId"];
         }
+        if (req && requestArray != null) requestArray.push(req);
         if (requestArray != null && requestArray != null) {
           console.log(
+            req["interceptionId"],
             requestArray.length,
             responseArray.length,
             request.method(),
@@ -763,8 +767,9 @@ module.exports = {
       await new Promise((done) =>
         setTimeout(done, webpage.option.delay * 1000),
       );
+
+      // click cloudflare checkbox
       if (webpage.option.cf) {
-        // click checkbox
         const selector = ".spacer > div > div";
         const info = await page.evaluate((selector) => {
           var el = document.querySelector(selector);
@@ -859,7 +864,7 @@ module.exports = {
       webpage.url,
     );
 
-    const req = await Request.insertMany(requestArray, { ordered: false })
+    const requests = await Request.insertMany(requestArray, { ordered: false })
       .then((doc) => {
         return doc;
       })
@@ -879,24 +884,23 @@ module.exports = {
         console.log("[Response]", err);
         return;
       });
+
     try {
-      if (req && responses) {
-        for (let resIndex in responses) {
-          for (let reqIndex in req) {
-            if (responses[resIndex].url === req[reqIndex].url) {
-              responses[resIndex].request = req[reqIndex];
-              //responses[resIndex].save();
-              req[reqIndex].response = responses[resIndex];
-              //req[reqIndex].save();
-              //delete req[reqIndex];
+      if (requests && responses) {
+        for (let res of responses) {
+          for (let req of requests) {
+            console.log(req.interceptionId, res.interceptionId);
+            if (res.interceptionId === req.interceptionId) {
+              res.request = req;
+              req.response = res;
               break;
             }
           }
         }
       }
-      if (req) {
-        await Request.bulkSave(req);
-        webpage.requests = req;
+      if (requests) {
+        await Request.bulkSave(requests);
+        webpage.requests = requests;
       }
       if (responses) {
         await Response.bulkSave(responses);

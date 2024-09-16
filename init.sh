@@ -10,3 +10,5 @@ sudo sysctl -w vm.swappiness=10
 wget https://download.ip2location.com/lite/IP2LOCATION-LITE-DB1.IPV6.BIN.ZIP \
 && unzip IP2LOCATION-LITE-DB1.IPV6.BIN.ZIP -x *.TXT \
 && mv IP2LOCATION-LITE-DB1.IPV6.BIN wgeteer/
+
+git clone https://github.com/enthec/webappanalyzer && mv webappanalyzer ./wgeteer 

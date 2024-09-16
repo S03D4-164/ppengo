@@ -1,5 +1,7 @@
 volumes:
   mongodata:
+  netdatalib:
+  netdatacache:
 
 services:
   mongodb:
@@ -11,8 +13,10 @@ services:
       - "127.0.0.1:27017:27017"
     volumes:
       - mongodata:/data/db
+      - ./mongo:/etc/mongo
     container_name: mongodb
-    command: --wiredTigerCacheSizeGB 1 --setParameter logLevel=1
+    #command: --wiredTigerCacheSizeGB 1 --setParameter logLevel=1
+    command: --config /etc/mongo/mongod.conf
     mem_limit: 1g
     #restart: always
     networks:
@@ -141,6 +145,32 @@ services:
     networks:
       - default
       - mongo-express
+
+  netdata:
+    image: netdata/netdata
+    container_name: netdata
+    pid: host
+    network_mode: host
+    restart: unless-stopped
+    cap_add:
+      - SYS_PTRACE
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    volumes:
+      - ./netdata:/etc/netdata
+      - netdatalib:/var/lib/netdata
+      - netdatacache:/var/cache/netdata
+      - /:/host/root:ro,rslave
+      - /etc/passwd:/host/etc/passwd:ro
+      - /etc/group:/host/etc/group:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /etc/os-release:/host/etc/os-release:ro
+      - /var/log:/host/var/log:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./netdata/cloud.conf:/var/lib/netdata/cloud.d/cloud.conf
 
 networks:
   default:

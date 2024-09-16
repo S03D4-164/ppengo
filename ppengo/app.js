@@ -26,6 +26,7 @@ mongoose
   })
   .then(() => logger.debug("[mongoose] connect completed"))
   .catch((err) => logger.error(err));
+mongoose.set("maxTimeMS", 30000);
 mongoose.set("debug", function (coll, method, query, doc) {
   logger.debug(
     coll +
