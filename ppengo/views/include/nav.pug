@@ -24,10 +24,10 @@ nav.navbar.navbar-expand-sm.bg-primary.navbar-dark
         
   ul.navbar-nav
     if user
-      //li.nav-item
-        a.nav-link(href=rootPath + "mongo_express/") mongo-express
       li.nav-item
-        a.nav-link(href=rootPath + "dash/") Agendash
+        a.nav-link(href="/mongo-express/") mongo-express
+      li.nav-item
+        a.nav-link(href="/agendash/") Agendash
 
       li.nav-item.dropdown
         a.nav-link.dropdown-toggle(href="#" id="navbardrop" data-toggle="dropdown") user: #{user.username}

@@ -31,13 +31,14 @@ services:
       - ME_CONFIG_MONGODB_URL=mongodb://mongodb/wgeteer
       - ME_CONFIG_BASICAUTH_USERNAME=admin
       - ME_CONFIG_BASICAUTH_PASSWORD=password
+      - ME_CONFIG_SITE_BASEURL=/mongo-express/
     depends_on:
       - mongodb
     container_name: mongo-express
     networks:
       - mongo-express
-    profiles:
-      - extra
+    #profiles:
+    #  - extra
 
   agendash:
     image: agenda/agendash
@@ -51,8 +52,6 @@ services:
     container_name: agendash
     networks:
       - mongo-express
-    profiles:
-      - extra
 
   ppengo:
     build: "ppengo"
@@ -64,17 +63,12 @@ services:
         #- REDIS_URL=redis://cache
       - TZ=Asia/Tokyo
       - ME_CONFIG_MONGODB_URL=mongodb://mongodb/wgeteer
-        #- ME_CONFIG_BASICAUTH_USERNAME=admin
-        #- ME_CONFIG_BASICAUTH_PASSWORD=password
     #      - NODE_OPTIONS="--optimize_for_size --gc_interval=100 --max-old-space-size=1024"
     tty: true
     init: true
     ports:
       - "127.0.0.1:3000:3000"
       - "127.0.0.1:9222:9222"
-    links:
-      - mongodb
-      - elasticsearch
     depends_on:
       - mongodb
       - elasticsearch
@@ -131,9 +125,6 @@ services:
 
   nginx:
     image: nginx
-    links:
-      - mongodb
-      - ppengo
     ports:
       - "127.0.0.1:80:80"
     container_name: nginx
@@ -171,6 +162,8 @@ services:
       - /var/log:/host/var/log:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./netdata/cloud.conf:/var/lib/netdata/cloud.d/cloud.conf
+    profiles:
+      - extra
 
 networks:
   default:

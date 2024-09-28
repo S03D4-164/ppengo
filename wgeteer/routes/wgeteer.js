@@ -889,7 +889,7 @@ module.exports = {
       if (requests && responses) {
         for (let res of responses) {
           for (let req of requests) {
-            console.log(req.interceptionId, res.interceptionId);
+            //console.log(req.interceptionId, res.interceptionId);
             if (res.interceptionId === req.interceptionId) {
               res.request = req;
               req.response = res;
