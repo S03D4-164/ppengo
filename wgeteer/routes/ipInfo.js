@@ -1,5 +1,6 @@
 //const whois = require('node-xwhois');
 const whois = require("./node-xwhois/whois");
+const dns = require("dns").promises;
 //const geoip = require('geoip-lite');
 const ip2loc = require("ip2location-nodejs");
 
@@ -39,26 +40,23 @@ const getIpinfo = async function (host) {
         }
         */
     //const who = await whoisCache(host);
-    const reverses = await whois
-      .reverse(ip)
-      .then((info) => {
-        logger.debug(info);
-        return info;
-      })
-      .catch((err) => {
-        logger.error(err);
-      });
+    let reverses = [];
+    try {
+      const resolver = new dns.Resolver({ timeout: 1 });
+      reverses = await resolver.reverse(ip);
+      console.log(reverses);
+      //reverses = await whois.reverse(ip, 1);
+    } catch (err) {
+      logger.error(err);
+    }
     const hostnames = Array.from(new Set(reverses));
 
-    const bgp = await whois
-      .bgpInfo(ip)
-      .then((info) => {
-        logger.debug(info);
-        return info;
-      })
-      .catch((err) => {
-        logger.error(err);
-      });
+    let bgp;
+    try {
+      bgp = await whois.bgpInfo(ip, 1000);
+    } catch (err) {
+      logger.error(err);
+    }
 
     var geo = {};
     try {
@@ -83,7 +81,7 @@ const getIpinfo = async function (host) {
       geoip: geo,
       ip: ip,
     };
-
+    logger.debug(ipInfo);
     /*
         //client.set(host, ipInfo, 'EX', 30000);
         await client.set(host, who, 'EX', 30000);
@@ -114,6 +112,7 @@ module.exports = {
         ip = null;
       }
     }
+    //console.log(ips);
     for (let ip in ips) {
       let hostinfo = await getIpinfo(ip);
       if (hostinfo) {

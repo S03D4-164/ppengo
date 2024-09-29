@@ -23,6 +23,7 @@ const connectionOpts = {
   processEvery: "3 seconds",
   maxConcurrency: 4,
   defaultConcurrency: 1,
+  defaultLockLifetime: 1000 * 60 * 3,
 };
 const agenda = new Agenda(connectionOpts);
 
@@ -141,16 +142,18 @@ agenda.define("hello world", function (job, done) {
   done();
 });
 
-agenda.on("ready", function () {
-  agenda.purge((err, numRemoved) => {
-    if (err) logger.error(err);
-    if (numRemoved) logger.debug(`${numRemoved} removed`);
-  });
+agenda.on("ready", async function () {
+  /*
+  const purged = await agenda.purge();
+  logger.debug(`purged: ${purged}`);
+  */
+  const canceled = await agenda.cancel({ name: "analyzePage" });
+  logger.debug(`canceled: ${canceled}`);
 
-  agenda.now("hello world", { time: new Date() });
+  await agenda.now("hello world", { time: new Date() });
   //agenda.now('crawlWeb');
-  agenda.every("*/10 * * * *", ["crawlWeb"]);
-  agenda.start();
+  await agenda.every("*/10 * * * *", ["crawlWeb"]);
+  await agenda.start();
 });
 
 agenda.on("start", (job) => {

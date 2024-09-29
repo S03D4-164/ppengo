@@ -728,8 +728,12 @@ const geoUpdate = async (dbPath, token) => {
  * @param {string} host IP address to get info about.
  * @return {Promise} Promise.
  */
-const bgpInfo = async (host) => {
+const bgpInfo = async (host, timeout) => {
   const ip = host.trim();
+  const options = {
+    timeout: timeout,
+  };
+  const resolver = new dns.Resolver(options);
 
   // special servers to check BGP info
   const bgpServer4 = "origin.asn.cymru.com";
@@ -761,7 +765,8 @@ const bgpInfo = async (host) => {
   const result = [];
 
   // get 'AS', 'BGP Prefix', 'CC', 'Registry', 'Allocated'
-  const response = await dns.resolve(bgpRequestHost, "TXT");
+  //const response = await dns.resolve(bgpRequestHost, "TXT");
+  const response = await resolver.resolve(bgpRequestHost, "TXT");
 
   // empty answer
   if (response === null || !(0 in response) || !(0 in response[0])) {
@@ -782,7 +787,8 @@ const bgpInfo = async (host) => {
     bgp.as = as;
 
     bgpRequestHost = `AS${as}.${bgpAsServer}`;
-    const response = await dns.resolve(bgpRequestHost, "TXT");
+    //const response = await dns.resolve(bgpRequestHost, "TXT");
+    const response = await resolver.resolve(bgpRequestHost, "TXT");
     if (response !== null && 0 in response && 0 in response[0]) {
       response_arr = response[0][0].split(" | ");
       bgp.name = response_arr[4];
@@ -876,11 +882,30 @@ const hostInfo = async (host) => {
   return result;
 };
 
+/**
+ */
+const reverse = async (host, timeout) => {
+  const ip = host.trim();
+  const options = {
+    timeout: timeout,
+  };
+  const resolver = new dns.Resolver(options);
+  const response = await resolver.reverse(ip, (err, hostnames) => {
+    if (err) {
+      return err;
+    } else {
+      return hostnames;
+    }
+  });
+  return response;
+};
+
 exports.ip2long = ip2long;
 exports.isIP = isIP;
 exports.isDomain = isDomain;
 exports.ipReverse = ipReverse;
-exports.reverse = dns.reverse;
+//exports.reverse = dns.reverse;
+exports.reverse = reverse;
 exports.nslookup = nslookup;
 exports.whois = whois;
 exports.torInfo = torInfo;

@@ -446,6 +446,31 @@ module.exports = {
       logger.error(`page ${pageId} not found`);
       return;
     }
+    try {
+      findProc("name", "chrome").then(
+        function (list) {
+          //console.log(list, list.length);
+          for (let ps of list) {
+            if (ps.name === "chrome") {
+              if (ps.cmd.match("/tmp/" + webpage._id)) {
+                console.log("kill", ps);
+                process.kill(ps.pid);
+              }
+            }
+          }
+        },
+        function (err) {
+          console.log(err.stack || err);
+        },
+      );
+    } catch (err) {
+      logger.error(err);
+    }
+    if (webpage.url || webpage.title) {
+      webpage.error = "job has been terminated.";
+      await webpage.save();
+      return webpage;
+    }
     //var timeout = option['timeout'];
     //timeout = (timeout >= 30 && timeout <= 300) ? timeout * 1000 : 30000;
     //var delay = option['delay'];
@@ -572,22 +597,6 @@ module.exports = {
       const browserProc = browser.process();
       logger.debug(
         `${browserVersion}, ${browserProc.pid}, ${page}, ${setTarget}`,
-      );
-      findProc("name", "chrome").then(
-        function (list) {
-          console.log(list, list.length);
-          for (let ps of list) {
-            if (ps.name === "chrome") {
-              if (!ps.cmd.match("/tmp/" + webpage._id)) {
-                //console.log(ps);
-                process.kill(ps.pid);
-              }
-            }
-          }
-        },
-        function (err) {
-          console.log(err.stack || err);
-        },
       );
     } catch (error) {
       logger.error(error);
@@ -863,7 +872,10 @@ module.exports = {
       responseArray.length,
       webpage.url,
     );
-
+    await webpage.save();
+    /*await new Promise((done) =>
+      setTimeout(done, webpage.option.delay * 1000 * 4),
+    );*/
     const requests = await Request.insertMany(requestArray, { ordered: false })
       .then((doc) => {
         return doc;
@@ -995,7 +1007,7 @@ module.exports = {
       requestArray = null;
       responseArray = null;
 
-      //await browser.close();
+      await browser.close();
       await closeDB();
     } catch (err) {
       console.log(err);

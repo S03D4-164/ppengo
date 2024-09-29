@@ -29,7 +29,7 @@ const connectionOpts = {
     },
   },
   processEvery: "5 seconds",
-  defaultLockLifetime: 100 * 60 * 3,
+  defaultLockLifetime: 1000 * 60 * 3,
 };
 
 const agenda = new Agenda(connectionOpts);
@@ -58,9 +58,11 @@ agenda.define("gsblookupUrl", async (job, done) => {
   done();
 });
 
-agenda.on("ready", function () {
-  agenda.now("hello world", { time: new Date() });
-  agenda.start();
+agenda.on("ready", async function () {
+  const canceled = await agenda.cancel({ name: "wgeteer" });
+  logger.debug(`canceled: ${canceled}`);
+  await agenda.now("hello world", { time: new Date() });
+  await agenda.start();
 });
 
 agenda.on("start", (job) => {
