@@ -873,9 +873,9 @@ module.exports = {
       webpage.url,
     );
     await webpage.save();
-    /*await new Promise((done) =>
+    await new Promise((done) =>
       setTimeout(done, webpage.option.delay * 1000 * 4),
-    );*/
+    );
     const requests = await Request.insertMany(requestArray, { ordered: false })
       .then((doc) => {
         return doc;

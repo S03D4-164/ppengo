@@ -66,7 +66,10 @@ router.post("/", async function (req, res) {
   var ids = [];
   for (let webpage of webpages) {
     ids.push(webpage._id.toString());
-    agenda.now("wgeteer", { pageId: webpage._id });
+    agenda.now("wgeteer", {
+      pageId: webpage._id,
+      count: 0,
+    });
   }
 
   res.render("progress", {
@@ -84,7 +87,8 @@ router.post("/progress", function (req, res) {
     .then((webpages) => {
       var completed = true;
       for (let i in webpages) {
-        if (!webpages[i].url && !webpages[i].title && !webpages[i].error) {
+        //if (!webpages[i].url && !webpages[i].title && !webpages[i].error) {
+        if (!webpages[i].requests.length > 0 && !webpages[i].error) {
           completed = false;
         }
       }

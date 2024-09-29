@@ -29,7 +29,7 @@ const connectionOpts = {
     },
   },
   processEvery: "5 seconds",
-  defaultLockLifetime: 1000 * 60 * 3,
+  defaultLockLifetime: 1000 * 60 * 1,
 };
 
 const agenda = new Agenda(connectionOpts);
@@ -39,9 +39,17 @@ const gsblookup = require("./gsblookup");
 //const vt = require('./vt')
 
 agenda.define("wgeteer", async (job, done) => {
-  const { pageId } = job.attrs.data;
-  await wgeteer.wget(pageId);
-  agenda.now("analyzePage", { pageId: pageId });
+  console.log(job.attrs.data);
+  const data = job.attrs.data;
+  if (data.count > 1) {
+    logger.error(`wgeteer failed: ${data.pageId}`);
+    done();
+  } else {
+    job.attrs.data.count += 1;
+    job.save();
+  }
+  await wgeteer.wget(data.pageId);
+  agenda.now("analyzePage", { pageId: data.pageId });
   done();
 });
 
