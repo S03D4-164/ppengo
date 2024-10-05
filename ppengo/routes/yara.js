@@ -2,22 +2,34 @@ var yara = require("yara");
 const Webpage = require("./models/webpage");
 const Response = require("./models/response");
 const Payload = require("./models/payload");
+const Yara = require("./models/yara");
 const logger = require("./logger");
 
 async function yaraScan(source) {
   return new Promise(function (resolve, reject) {
-    yara.initialize(function (error) {
+    yara.initialize(async function (error) {
       if (error) {
         logger.error(error.message);
         reject();
       } else {
         var scanner = yara.createScanner();
+
+        let rules = [];
+        const yararules = await Yara.find();
+        for (let yararule of yararules) {
+          rules.push(yararule.rule);
+        }
+        let rule_string = rules.join("\n");
+        console.log(rule_string);
+        let options = { rules: [{ string: rule_string }] };
+        /*
         var options = {
           rules: [
             //{filename: "/home/node/config/rules/index.yar"},
             { filename: "/tmp/config/rules/index.yar" },
           ],
         };
+        */
         scanner.configure(options, function (error, warnings) {
           if (error) {
             logger.error(error);

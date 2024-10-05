@@ -6,7 +6,7 @@ const Webpage = require("./models/webpage");
 const Response = require("./models/response");
 
 //const mail = require("./mail");
-//const yara = require("./yara");
+const yara = require("./yara");
 //const wappalyze = require("./wappalyze");
 const wappalyze = require("./wapalyze");
 
@@ -128,8 +128,8 @@ agenda.define(
       const { pageId } = job.attrs.data;
       logger.debug(`wappalyzer -> ${pageId}`);
       await wappalyze.analyze(pageId);
-      //logger.debug(`yara -> ${pageId}`);
-      //await yara.yaraPage(pageId);
+      logger.debug(`yara -> ${pageId}`);
+      await yara.yaraPage(pageId);
       done();
     } catch (err) {
       console.log(err);

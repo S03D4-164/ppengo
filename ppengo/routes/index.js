@@ -124,6 +124,9 @@ router.use("/website", website);
 const payload = require("./payload");
 router.use("/payload", payload);
 
+const yararule = require("./yararule");
+router.use("/yararule", yararule);
+
 const screenshot = require("./screenshot");
 router.use("/screenshot", screenshot);
 
