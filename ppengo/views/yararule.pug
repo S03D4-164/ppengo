@@ -1,0 +1,21 @@
+extends layout
+
+block content
+
+  h1
+    a(href=rootPath + "yararule") YARA Rule
+  h3= yara._id
+  form(role='form', action=rootPath + "yararule/" + yara._id, method="post" style="width:100%")
+    .form-group
+      button.btn-sm.btn-primary(type='submit') Save
+      input.form-control(type='text', name="name" value=yara.name)
+    .form-group
+      textarea#input.form-control(name="rule" rows=8)= yara.rule
+    input(type="hidden" name="_csrf", value=csrfToken)
+    input(type="hidden" name="id", value=yara._id)
+  if message
+    div.alert.alert-warning
+      p= message
+  //else 
+    div.alert.alert-warning
+      p No data

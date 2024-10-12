@@ -3,10 +3,10 @@ extends layout
 block content
   h1 Payload
   if payload
-      h2
+    h2
         a(href=rootPath + "response?payload=" + payload._id) 🔍
-        a id:  #{payload._id} / md5: #{payload.md5}
-      h3
+        a(href=rootPath + "payload/" + payload._id) id:  #{payload._id} / md5: #{payload.md5}
+    h3
         a.btn.btn-danger(href=rootPath + "payload/download/" + payload._id) Download
         - var type = payload.fileType?payload.fileType:" - "
         a= " fileType:" +  type
@@ -14,8 +14,8 @@ block content
         a  buffer size: #{payload.payload.length}
         a= " / "
         a  text size: #{payload.payload.toString().length}
-      h3
-        a.btn.btn-danger(href=rootPath + "payload/remove/" + payload._id) Remove
+    .row
+     .col-8
       ul.nav.nav-pills
         //li.nav-item
           a.nav-link.active(data-toggle="tab",href="#content-tab") Content
@@ -29,7 +29,7 @@ block content
             a.nav-link(data-toggle="tab",href="#vt-tab") VT #{pos}/#{total}
           else
             a.nav-link(data-toggle="tab",href="#vt-tab") VT
-        li.nav-item
+        //li.nav-item
           a.nav-link(data-toggle="tab",href="#yara-tab") yara
 
       div.tab-content
@@ -44,8 +44,7 @@ block content
         div#hex-tab.tab-pane.active
             pre.prettyprint.linenums(style="white-space: pre-wrap")= hex
 
-        div#yara-tab.tab-pane
-            pre.prettyprint.linenums(style="white-space: pre-wrap")= JSON.stringify(payload.yara, null, " ")
+        //div#yara-tab.tab-pane
       
         script.
             function vt(){
@@ -61,6 +60,11 @@ block content
                 },
               })
             };
+     .col-4
+         h3
+             a.btn.btn-primary(href=rootPath + "payload/" + payload._id + "?yara=1") yara
+         pre.prettyprint.linenums(style="white-space: pre-wrap")= JSON.stringify(payload.yara, null, " ")
+         a.btn.btn-danger(href=rootPath + "payload/remove/" + payload._id) Remove Payload #{payload._id}
 
   else
     div.alert.alert-warning

@@ -1,0 +1,45 @@
+extends layout
+
+block content
+
+  h1 YARA Rule
+  form(role='form', action=rootPath + "yararule", method="post" style="width:100%")
+    .form-group
+      button.btn-sm.btn-primary(type='submit') Save
+      input.form-control(type='text', name="name", placeholder='Enter rule name')
+    .form-group
+      textarea#input.form-control(name="rule" rows=8)
+        | rule ExampleRule
+        | {
+        |     strings:
+        |         $my_text_string = "text here"
+        |         $my_hex_string = { E2 34 A1 C8 23 FB }
+        |     condition:
+        |         $my_text_string or $my_hex_string
+        | }
+    input(type="hidden" name="_csrf", value=csrfToken)
+  if error
+    div.alert.alert-warning
+      p= error
+  if result
+    - var yararules = result.docs
+    include include/pagination.pug
+
+  if yararules
+      if yararules.length
+          table.table.table-striped.table-bordered.table-hover.table-sm
+            tr.thead-light.d-flex
+              th.col-3 name
+              th.col-9 rule
+
+            each yararule in yararules
+                tr.d-flex
+                  td.col-3
+                    p= moment(yararule.createdAt).format('YYYY-MM-DD HH:mm:ss.SSS')
+                    p= yararule.name
+                    a(href=rootPath + "yararule/" + yararule._id)= yararule._id
+                  td.col-9
+                    p= yararule.rule
+  else 
+    div.alert.alert-warning
+      p No data

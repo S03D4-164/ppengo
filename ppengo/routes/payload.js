@@ -104,6 +104,7 @@ router.get("/download/:id", function (req, res) {
 
 router.get("/:id", function (req, res) {
   const id = req.params.id;
+  console.log(req.query);
   Payload.findById(id).then(async (payload) => {
     const responses = await Response.find()
       .where({ payload: payload._id })
@@ -115,7 +116,10 @@ router.get("/:id", function (req, res) {
       .catch((err) => {
         console.log(err);
       });
-    if (req.query.yara) yara.yaraPayload(payload._id);
+    if (req.query.yara) {
+      await yara.yaraPayload(payload._id);
+      console.log(payload.yara);
+    }
     let hex;
     if (payload.payload) {
       console.log(payload.payload.length);

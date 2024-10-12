@@ -42,9 +42,9 @@ const getIpinfo = async function (host) {
     //const who = await whoisCache(host);
     let reverses = [];
     try {
-      const resolver = new dns.Resolver({ timeout: 1 });
+      const resolver = new dns.Resolver({ timeout: 10000 });
       reverses = await resolver.reverse(ip);
-      console.log(reverses);
+      //console.log(reverses);
       //reverses = await whois.reverse(ip, 1);
     } catch (err) {
       logger.error(err);
@@ -53,7 +53,7 @@ const getIpinfo = async function (host) {
 
     let bgp;
     try {
-      bgp = await whois.bgpInfo(ip, 1000);
+      bgp = await whois.bgpInfo(ip, 10000);
     } catch (err) {
       logger.error(err);
     }
@@ -69,7 +69,7 @@ const getIpinfo = async function (host) {
         country: country,
         country_long: country_long,
       };
-      logger.debug(geo);
+      //logger.debug(geo);
     } catch (error) {
       logger.error("[GeoIP] error: " + error.message);
     }

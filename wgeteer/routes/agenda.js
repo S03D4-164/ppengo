@@ -5,10 +5,10 @@ const mongoConnectionString = "mongodb://127.0.0.1:27017/wgeteer";
 
 mongoose
   .connect(mongoConnectionString, {
-    useNewUrlParser: true,
+    //useNewUrlParser: true,
     //useCreateIndex: true,
     //useFindAndModify: false,
-    useUnifiedTopology: true,
+    //useUnifiedTopology: true,
   })
   .then(() => logger.debug("[mongoose] connect completed"))
   .catch((err) => logger.debug("[mongoose] connect error", err));

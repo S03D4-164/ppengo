@@ -47,8 +47,8 @@ const mongoose = require("mongoose");
 const mongoConnectionString = "mongodb://127.0.0.1:27017/wgeteer";
 
 var db = mongoose.createConnection(mongoConnectionString, {
-  useUnifiedTopology: true,
-  useNewUrlParser: true,
+  //useUnifiedTopology: true,
+  //useNewUrlParser: true,
   //useCreateIndex: true,
   //useFindAndModify: false,
 });
@@ -176,6 +176,7 @@ async function pptrEventSet(client, browser, page) {
   });
   page.on("console", async (msg) => {
     logger.debug("[Page] console: ", msg.type(), msg.text());
+  });
 
 	let txt = msg.text()
 	if (txt.includes('intercepted-params:')) {
@@ -205,6 +206,7 @@ async function pptrEventSet(client, browser, page) {
             return;
         }
   });
+
   page.on("error", async (err) => {
     logger.debug("[Page] error: ", err);
   });
@@ -332,11 +334,6 @@ async function saveResponse(interceptedResponse, request, responseCache) {
         newHeaders[key] = headers[key];
       }
     }
-    if (text) {
-      const sizelimit = 1024 * 1024 * 10;
-      //console.log(text.length);
-      if (text.length > sizelimit) text = undefined;
-    }
     const response = {
       webpage: request.webpage,
       url: url,
@@ -352,7 +349,14 @@ async function saveResponse(interceptedResponse, request, responseCache) {
       text: text,
       interceptionId: interceptionId,
     };
-
+    if (text) {
+      const sizelimit = 16000000;
+      const resLength = JSON.stringify(response).length;
+      console.log(resLength);
+      if (resLength > sizelimit) {
+        response.text = undefined;
+      }
+    }
     return response;
   } catch (error) {
     //logger.info(error);
@@ -447,7 +451,7 @@ module.exports = {
       return;
     }
     try {
-      findProc("name", "chrome").then(
+      await findProc("name", "chrome").then(
         function (list) {
           //console.log(list, list.length);
           for (let ps of list) {
@@ -464,17 +468,14 @@ module.exports = {
         },
       );
     } catch (err) {
-      logger.error(err);
+      //logger.error(err);
+      console.log(err);
     }
     if (webpage.url || webpage.title) {
       webpage.error = "job has been terminated.";
       await webpage.save();
       return webpage;
     }
-    //var timeout = option['timeout'];
-    //timeout = (timeout >= 30 && timeout <= 300) ? timeout * 1000 : 30000;
-    //var delay = option['delay'];
-    //delay = (delay > 0 && delay <= 60) ? delay * 1000 : 0;
 
     let exHeaders = {};
     if (webpage.option.lang) exHeaders["Accept-Language"] = webpage.option.lang;
@@ -573,6 +574,7 @@ module.exports = {
             product: product,
             ignoreDefaultArgs: ["--enable-automation"],
             userDataDir: "/tmp/" + webpage._id,
+            protocolTimeout: webpage.option.timeout * 1000,
             /*targetFilter: (target) => {
               target.type() !== "other" || !!target.url();
             },*/
@@ -650,13 +652,11 @@ module.exports = {
 
     try {
       client = await page.target().createCDPSession();
-
+      //await pptrEventSet(client, browser, page);
       await client.send("Network.enable");
-      //const urlPatterns = ['*']
 
       if (product == "chrome") {
         await client.send("Network.setRequestInterception", {
-          //patterns: urlPatterns.map(pattern => ({
           patterns: ["*"].map((pattern) => ({
             urlPattern: pattern,
             interceptionStage: "HeadersReceived",
@@ -766,7 +766,6 @@ module.exports = {
       await dialog.dismiss();
     });
 
-    let finalResponse;
     try {
       await page.goto(webpage.input, {
         timeout: webpage.option.timeout * 1000,
@@ -866,16 +865,15 @@ module.exports = {
       );
     }
 
-    console.log(
-      "[finished]",
-      requestArray.length,
-      responseArray.length,
-      webpage.url,
+    logger.debug(
+      `[finished] ${requestArray.length}, ${responseArray.length}, ${webpage.url}`,
     );
     await webpage.save();
+    /*
     await new Promise((done) =>
       setTimeout(done, webpage.option.delay * 1000 * 4),
     );
+    */
     const requests = await Request.insertMany(requestArray, { ordered: false })
       .then((doc) => {
         return doc;
@@ -885,7 +883,15 @@ module.exports = {
         return;
       });
 
-    const responses = await Response.insertMany(responseArray, {
+    let responses = [];
+    /*
+    for (let res of responseArray) {
+      const newRes = new Response(res);
+      await newRes.save();
+      responses.push(newRes);
+    }
+    */
+    responses = await Response.insertMany(responseArray, {
       ordered: false,
       //rawResult: true,
     })
@@ -897,6 +903,7 @@ module.exports = {
         return;
       });
 
+    let finalResponse;
     try {
       if (requests && responses) {
         for (let res of responses) {
@@ -911,18 +918,18 @@ module.exports = {
         }
       }
       if (requests) {
-        await Request.bulkSave(requests);
+        await Request.bulkSave(requests, { ordered: false });
         webpage.requests = requests;
       }
       if (responses) {
-        await Response.bulkSave(responses);
+        await Response.bulkSave(responses, { ordered: false });
         webpage.responses = responses;
 
         if (webpage.url) {
-          for (let num in responses) {
-            if (responses[num].url) {
-              if (responses[num].url === webpage.url) {
-                finalResponse = responses[num];
+          for (let res of responses) {
+            if (res.url) {
+              if (res.url === webpage.url) {
+                finalResponse = res;
               }
             }
           }
@@ -935,32 +942,28 @@ module.exports = {
           }
         }
       }
-    } catch (err) {
-      console.log(err);
-    }
-    if (finalResponse) {
-      webpage.status = finalResponse.status;
-      webpage.headers = finalResponse.headers;
-      webpage.remoteAddress = finalResponse.remoteAddress;
-      webpage.securityDetails = finalResponse.securityDetails;
-      await webpage.save(function (err, success) {
-        if (err) console.log("[Webpage]", err);
-        else logger.info("webpage saved", success);
-      });
-      if (webpage.remoteAddress) {
-        if (webpage.remoteAddress.ip) {
-          let hostinfo = await ipInfo.getHostInfo(webpage.remoteAddress.ip);
-          if (hostinfo) {
-            if (hostinfo.reverse)
-              webpage.remoteAddress.reverse = hostinfo.reverse;
-            if (hostinfo.bgp) webpage.remoteAddress.bgp = hostinfo.bgp;
-            if (hostinfo.geoip) webpage.remoteAddress.geoip = hostinfo.geoip;
-            if (hostinfo.ip) webpage.remoteAddress.ip = hostinfo.ip;
+      if (finalResponse) {
+        if (webpage.error && finalResponse.status) {
+          webpage.error = undefined;
+        }
+        webpage.status = finalResponse.status;
+        webpage.headers = finalResponse.headers;
+        webpage.remoteAddress = finalResponse.remoteAddress;
+        webpage.securityDetails = finalResponse.securityDetails;
+        //console.log(webpage.status, webpage.error);
+        if (webpage.remoteAddress) {
+          if (webpage.remoteAddress.ip) {
+            let hostinfo = await ipInfo.getHostInfo(webpage.remoteAddress.ip);
+            if (hostinfo) {
+              if (hostinfo.reverse)
+                webpage.remoteAddress.reverse = hostinfo.reverse;
+              if (hostinfo.bgp) webpage.remoteAddress.bgp = hostinfo.bgp;
+              if (hostinfo.geoip) webpage.remoteAddress.geoip = hostinfo.geoip;
+              if (hostinfo.ip) webpage.remoteAddress.ip = hostinfo.ip;
+            }
           }
         }
       }
-    }
-    try {
       const cookies = await page.cookies();
       let headers = finalResponse.headers;
       for (let head in headers) {
@@ -979,15 +982,8 @@ module.exports = {
       }
       console.log(wapps);
       if (wapps) webpage.wappalyzer = wapps;
-    } catch (err) {
-      console.log(err);
-    }
-    await webpage.save(function (err, success) {
-      if (err) console.log("[Webpage]", err);
-      else logger.info("webpage saved", success);
-    });
+      await webpage.save();
 
-    try {
       //ss = null;
       ipInfo.setResponseIp(responses);
 

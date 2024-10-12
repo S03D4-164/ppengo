@@ -34,6 +34,7 @@ services:
       - ME_CONFIG_SITE_BASEURL=/mongo-express/
     depends_on:
       - mongodb
+      - ppengo
     container_name: mongo-express
     networks:
       - mongo-express
@@ -49,6 +50,7 @@ services:
       - "127.0.0.1:8082:3000"
     depends_on:
       - mongodb
+      - ppengo
     container_name: agendash
     networks:
       - mongo-express
@@ -132,10 +134,14 @@ services:
       - NGINX_PORT=80
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
-      - ./nginx/prod:/usr/share/nginx/html/CyberChef
+      #- ./nginx/prod:/usr/share/nginx/html/CyberChef
+      - ./nginx/prod:/usr/share/nginx/html
     networks:
       - default
       - mongo-express
+    depends_on:
+      - ppengo
+      #- agendash
 
   netdata:
     image: netdata/netdata

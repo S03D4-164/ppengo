@@ -65,12 +65,17 @@ async function yaraScan(source) {
 
 module.exports = {
   async yaraPayload(id) {
+    console.log(`[yara] Payload ${id}`);
     await Payload.findById(id).then(async (payload) => {
       if (payload.payload) {
         payload.yara = await yaraScan(payload.payload);
         await payload.save();
         logger.debug(payload.yara);
+        return payload;
+      } else {
+        console.log("[yara] payload is empty");
       }
+      return;
     });
   },
   async yaraPage(id) {
