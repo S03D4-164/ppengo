@@ -83,8 +83,11 @@ services:
       #- ./ppengo/config:/home/node/config
       - ./ppengo/config:/tmp/config
       - ./ppengo/app.js:/home/node/app.js
+      - ./ppengo/entrypoint.sh:/home/node/entrypoint.sh
+      - ./ppengo/package.json:/home/node/package.json
       - ./ppengo/config/rules:/tmp/rules
-    command: npm start
+    command: /bin/bash /home/node/entrypoint.sh
+    #command: npm run start
     #command: npm run start:debug
     logging:
       driver: "json-file"

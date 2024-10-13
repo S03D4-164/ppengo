@@ -1,7 +1,7 @@
-//extends layout
+extends layout
 
 block content
-  title= "Error: " + message
-  h1= message
-  h2= error.status
+  title= "Error: " + error.message
+  h1 Error:
+  h2= error.message
   pre #{error.stack}

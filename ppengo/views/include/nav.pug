@@ -32,12 +32,13 @@ nav.navbar.navbar-expand-sm.bg-primary.navbar-dark
         a.nav-link(href="/agendash/") Agendash
 
       li.nav-item.dropdown
-        a.nav-link.dropdown-toggle(href="#" id="navbardrop" data-toggle="dropdown") user: #{user.username}
+        a.nav-link.dropdown-toggle(href="#" id="navbardrop" data-toggle="dropdown") user: #{user.username} / #{user.group}
         .dropdown-menu
+          if (user.admin)
+            a.dropdown-item(href=rootPath + "administration") Administration
+            a.dropdown-item(href=rootPath + "auth/register") Register
           a.dropdown-item(href=rootPath + "auth") Account
           a.dropdown-item(href=rootPath + "auth/logout") Logout
-          if (user.admin)
-            a.dropdown-item(href=rootPath + "auth/register") Register
     else
       li.nav-item
         a.nav-link(href=rootPath + "auth") Login

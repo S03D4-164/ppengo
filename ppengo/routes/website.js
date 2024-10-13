@@ -132,8 +132,11 @@ router.get("/:id", async function (req, res) {
     .then((document) => {
       return document;
     })
-    .catch((err) => {
-      return err;
+    .catch((error) => {
+      res.render("error", {
+        error,
+      });
+      //return err;
     });
   const tag = await Tag.find().sort({ key: 1, value: 1 });
   var search = [];
