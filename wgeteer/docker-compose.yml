@@ -12,17 +12,19 @@ services:
     init: true
     container_name: wgeteer
     volumes:
-      - ./routes:/home/node/app
+      - ./routes:/home/node/routes
       - ./IP2LOCATION-LITE-DB1.IPV6.BIN:/tmp/IP2LOCATION-LITE-DB1.IPV6.BIN
-      - ./entrypoint.sh:/home/node/app/entrypoint.sh
+      - ./entrypoint.sh:/home/node/entrypoint.sh
+      - ./package.json:/home/node/package.json
+      - ./ecosystem.config.js:/home/node/ecosystem.config.js
       - ./tmp:/tmp
     network_mode: "host"
     ports:
       - 127.0.0.1:5900:5900
-    working_dir: /home/node/app
+    #working_dir: /home/node/app
     #command: dumb-init -- node --inspect --optimize_for_size --gc_interval=100 --max-old-space-size=1024 agenda
     #command: node --inspect --optimize_for_size --gc_interval=100 --max-old-space-size=1024 agenda
-    command: /bin/bash /home/node/app/entrypoint.sh
+    command: /bin/bash /home/node/entrypoint.sh
     mem_limit: 2g
     #restart: always
     logging:

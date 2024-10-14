@@ -2,4 +2,4 @@
 
 echo "starting node server"
 npm install
-npm start
+npm run pm2

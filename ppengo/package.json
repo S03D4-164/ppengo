@@ -3,8 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "forever ./bin/www --optimize_for_size --gc_interval=100 --max-old-space-size=2048",
-    "start:debug": "forever --inspect=0.0.0.0:9222 ./bin/www --optimize_for_size --gc_interval=100 --max-old-space-size=2048",
+    "start": "node ./bin/www --optimize_for_size --gc_interval=100 --max-old-space-size=2048",
+    "pm2": "pm2 --no-daemon start ecosystem.config.js",
+    "start:debug": "node --inspect=0.0.0.0:9222 ./bin/www --optimize_for_size --gc_interval=100 --max-old-space-size=2048",
     "prepare": "cd .. && husky ppengo/.husky"
   },
   "lint-staged": {
@@ -37,7 +38,6 @@
     "express": ">=4.19.2",
     "express-paginate": "^1.0.0",
     "express-session": "^1.16.1",
-    "forever": "^4.0.3",
     "hexdump-nodejs": "^0.1.0",
     "http-errors": "^2.0.0",
     "jquery": "^3.3.1",
@@ -48,10 +48,10 @@
     "mongoose-paginate-v2": "^1.8.1",
     "morgan": "~1.9.0",
     "nodemailer": "^6.1.1",
-    "nodemon": "^3.1.7",
     "passport": ">=0.6.0",
     "passport-local": "^1.0.0",
     "passport-local-mongoose": "^5.0.1",
+    "pm2": "^5.4.2",
     "pug": ">=3.0.1",
     "save": "^2.3.3",
     "simple-wappalyzer": "^1.1.66",
