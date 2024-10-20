@@ -1,6 +1,11 @@
+process.env.REBROWSER_PATCHES_DEBUG = 1;
+//process.env.REBROWSER_PATCHES_RUNTIME_FIX_MODE = "enableDisable";
 //const puppeteer = require("puppeteer");
-const puppeteer = require("puppeteer-extra");
+//const puppeteer = require("puppeteer-extra");
+const { addExtra } = require("puppeteer-extra");
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
+const rebrowserPuppeteer = require("rebrowser-puppeteer");
+const puppeteer = addExtra(rebrowserPuppeteer);
 puppeteer.use(StealthPlugin());
 
 async function prbstart() {
@@ -11,21 +16,6 @@ async function prbstart() {
 //const antibotbrowser = require("antibotbrowser");
 const antibotbrowser = require("./antibotbrowser");
 
-/*
-const apikey = process.env.NOPECHA_KEY
-const NopeCHA = require('puppeteer-nopecha')
-NopeCHA.setKey(apikey)
-puppeteer.use(NopeCHA);
-const { Configuration, NopeCHAApi } = require('nopecha');
-const configuration = new Configuration({
-    apiKey: apikey
-});
-const nopecha = new NopeCHAApi(configuration);
-(async () => {
-    const balance = await nopecha.getBalance();
-    console.log(balance);
-})();
-*/
 const findProc = require("find-process");
 const Jimp = require("jimp");
 const crypto = require("crypto");
@@ -84,8 +74,8 @@ async function closeDB() {
   }
 }
 
-/*
 async function pptrEventSet(client, browser, page) {
+  /*
   client.on("Network.requestWillBeSent", async ({ requestId, request }) => {
     logger.debug("[requestWillBeSent]", requestId);
     const req = await new Request({
@@ -155,6 +145,7 @@ async function pptrEventSet(client, browser, page) {
       }
     },
   );
+  */
 
   client.on("Network.dataReceived", async ({ requestId, dataLength }) => {
     logger.debug("[dataReceived]", requestId, dataLength);
@@ -177,36 +168,6 @@ async function pptrEventSet(client, browser, page) {
   page.on("console", async (msg) => {
     logger.debug("[Page] console: ", msg.type(), msg.text());
   });
-
-	let txt = msg.text()
-	if (txt.includes('intercepted-params:')) {
-            const params = JSON.parse(txt.replace('intercepted-params:', ''))
-            console.log(params)
-            try {
-              console.log(`Solving the captcha...`)
-              const nopecha =  new NopeCHAApi();
-              const solvedToken = await nopecha.solveToken({
-                key: 'apikey,
-                type: 'turnstile',
-                sitekey: params.sitekey,
-                url: params.url,
-                data: {
-                  action: params.action,
-                  cdata: params.cdata,
-                },
-                useragent: params.useragent
-              });
-              await page.evaluate((token) => {
-                    cfCallback(token)
-              }, solvedToken)
-            } catch (e) {
-                console.log(e.err)
-            }
-        } else {
-            return;
-        }
-  });
-
   page.on("error", async (err) => {
     logger.debug("[Page] error: ", err);
   });
@@ -250,7 +211,6 @@ async function pptrEventSet(client, browser, page) {
     }
   });
 }
-*/
 
 async function savePayload(responseBuffer) {
   try {
@@ -352,7 +312,7 @@ async function saveResponse(interceptedResponse, request, responseCache) {
     if (text) {
       const sizelimit = 16000000;
       const resLength = JSON.stringify(response).length;
-      console.log(resLength);
+      //console.log(resLength);
       if (resLength > sizelimit) {
         response.text = undefined;
       }
@@ -496,10 +456,12 @@ module.exports = {
       "--disable-gpu",
       "--disable-dev-shm-usage",
       "--disable-web-security",
-      "--disable-features=IsolateOrigins",
-      "--disable-site-isolation-trials",
       "--disable-features=BlockInsecurePrivateNetworkRequests",
       "--devtools-flags=disable",
+      "--disable-features=IsolateOrigins",
+      /* Detected as a bot. Do not use.
+       * "--disable-site-isolation-trials",
+       */
       //`--disable-extensions-except=${pathToExtension}`,
       //`--load-extension=${pathToExtension}`,
       //'--enable-logging=stderr','--v=1',
@@ -515,13 +477,6 @@ module.exports = {
     logger.debug(webpage.option);
 
     /*
-      let browserFetcher = puppeteer.createBrowserFetcher();
-      const localChromiums = await puppeteer.createBrowserFetcher().localRevisions();
-      if(!localChromiums.length) {
-        return logger.error('Can\'t find installed Chromium');
-      }
-      let {executablePath} = await browserFetcher.revisionInfo(localChromiums[0]);
-
       let executablePath = "/usr/bin/firefox";
       const product = 'firefox' ;
       const ffArgs = [
@@ -565,8 +520,8 @@ module.exports = {
         } else {
           const browser = await puppeteer.launch({
             executablePath: executablePath,
-            //headless: "new",
-            headless: false,
+            headless: "new",
+            //headless: false,
             ignoreHTTPSErrors: true,
             //defaultViewport: { width: 1280, height: 720 },
             dumpio: false,
@@ -609,50 +564,24 @@ module.exports = {
     browser.once("disconnected", () => logger.info("[Browser] disconnected."));
 
     if (product == "chrome") {
-      //if (webpage.option.userAgent)
-      //  await page.setUserAgent(webpage.option.userAgent);
+      if (webpage.option.userAgent)
+        await page.setUserAgent(webpage.option.userAgent);
       if (webpage.option.disableScript) await page.setJavaScriptEnabled(false);
       else await page.setJavaScriptEnabled(true);
       if (exHeaders) await page.setExtraHTTPHeaders(exHeaders);
-      await page.setBypassCSP(true);
+      /* Detected as a bot. Do not use.
+       * await page.setBypassCSP(true);
+       */
     }
-
-    /*
-      const preloadFile = fs.readFileSync('./inject.js', 'utf8');
-      await page.evaluateOnNewDocument(preloadFile)
-      await page.evaluateOnNewDocument(async () =>{
-        console.clear = () => console.log('Console was cleared')
-        const i = setInterval( () => {
-          if (window.turnstile) {
-            clearInterval(i)
-            window.turnstile.render = async (a, b) => {
-              let params = {
-                sitekey: b.sitekey,
-                url: window.location.href,
-                cdata: b.cData,
-                pagedata: b.chlPageData,
-                action: b.action,
-                useragent: navigator.userAgent,
-                json: 1
-              }
-              console.log('intercepted-params:' + JSON.stringify(params))
-              window.cfCallback = b.callback
-              return
-            }
-          }
-        }, 50)
-      });
-      */
 
     var responseCache = [];
     var requestArray = [];
     var responseArray = [];
 
     let client;
-
     try {
       client = await page.target().createCDPSession();
-      //await pptrEventSet(client, browser, page);
+      await pptrEventSet(client, browser, page);
       await client.send("Network.enable");
 
       if (product == "chrome") {
@@ -673,14 +602,12 @@ module.exports = {
               "Network.getResponseBodyForInterception",
               { interceptionId },
             );
-            /*
             console.log(
               "[Intercepted]",
               //requestId,
               response.body.length,
               response.base64Encoded,
             );
-            */
             let newBody = response.base64Encoded
               ? Buffer.from(response.body, "base64")
               : response.body;
@@ -728,8 +655,9 @@ module.exports = {
         //logger.debug('[Request] finished: ' + request.method() +request.url().slice(0,100));
         let req = await saveRequest(request, pageId);
         const response = await request.response();
+        let res;
         if (response) {
-          let res = await saveResponse(response, req, responseCache);
+          res = await saveResponse(response, req, responseCache);
           if (res && responseArray != null) responseArray.push(res);
           req["interceptionId"] = res["interceptionId"];
         }
@@ -737,6 +665,7 @@ module.exports = {
         if (requestArray != null && requestArray != null) {
           console.log(
             req["interceptionId"],
+            res["interceptionId"],
             requestArray.length,
             responseArray.length,
             request.method(),
@@ -752,7 +681,8 @@ module.exports = {
       console.log(
         "[Request] failed: ",
         request.url().slice(0, 100),
-        request.failure().errorText,
+        request.failure(),
+        //request.failure().errorText,
       );
       docToArray(request);
     });
@@ -827,9 +757,11 @@ module.exports = {
     );
 
     try {
-      webpage.title = await page.title();
-      webpage.content = await page.content();
-
+      webpage.url = page.url();
+      if (responseArray.length > 0) {
+        webpage.title = await page.title();
+        webpage.content = await page.content();
+      }
       let screenshot = await page.screenshot({
         fullPage: false,
         encoding: "base64",
@@ -854,8 +786,6 @@ module.exports = {
       let fss = await saveFullscreenshot(fullscreenshot);
       if (fss) webpage.screenshot = fss;
       fullscreenshot = null;
-
-      webpage.url = page.url();
     } catch (error) {
       //logger.info(error);
       console.log(error);
@@ -987,9 +917,11 @@ module.exports = {
       //ss = null;
       ipInfo.setResponseIp(responses);
 
+      /*
       await client.send("Network.disable");
       client.removeAllListeners();
       client = null;
+      */
 
       page.removeAllListeners();
       //page = null;

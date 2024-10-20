@@ -29,7 +29,7 @@ const connectionOpts = {
     },
   },
   processEvery: "5 seconds",
-  defaultLockLifetime: 1000 * 60 * 1,
+  defaultLockLifetime: 1000 * 60 * 3,
 };
 
 const agenda = new Agenda(connectionOpts);

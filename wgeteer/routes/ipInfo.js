@@ -81,7 +81,7 @@ const getIpinfo = async function (host) {
       geoip: geo,
       ip: ip,
     };
-    logger.debug(ipInfo);
+    //logger.debug(ipInfo);
     /*
         //client.set(host, ipInfo, 'EX', 30000);
         await client.set(host, who, 'EX', 30000);
