@@ -145,6 +145,9 @@ router.use("/auth", auth);
 const jstillery = require("./jstillery");
 router.use("/jstillery", jstillery);
 
+const administration = require("./administration");
+router.use("/administration", administration);
+
 router.use("/", website);
 
 module.exports = router;

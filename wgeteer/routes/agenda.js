@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const logger = require("./logger");
+const findChrome = require("./findproc");
 
 const mongoConnectionString = "mongodb://127.0.0.1:27017/wgeteer";
 
@@ -63,6 +64,22 @@ agenda.define("gsblookupUrl", async (job, done) => {
   const result = await gsblookup.lookupUrl(job.attrs.data.url);
   logger.debug(result);
   await agenda.now("gsbUrlResult", { result: result });
+  done();
+});
+
+agenda.define("psChrome", async function (job, done) {
+  await job.setShouldSaveResult(true);
+  const ps = await findChrome();
+  job.attrs.data = ps;
+  await job.save();
+  done();
+});
+
+agenda.define("killChrome", async function (job, done) {
+  await job.setShouldSaveResult(true);
+  const ps = await findChrome(-1);
+  job.attrs.data = ps;
+  await job.save();
   done();
 });
 

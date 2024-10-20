@@ -3,7 +3,7 @@ const path = require("path");
 module.exports = {
   apps: [
     {
-      name: "puppeteer",
+      name: "ppengo",
       script: "bin/www",
       instances: 1,
       autorestart: true,

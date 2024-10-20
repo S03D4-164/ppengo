@@ -1,0 +1,71 @@
+extends layout
+
+block content
+    h1
+        a(href=rootPath + "administration/") Administration
+    ul.nav.nav-pills
+        li.nav-item
+            a.nav-link.active(data-toggle="tab",href="#pschrome-tab") PsChrome
+        li.nav-item
+            a.nav-link(data-toggle="tab",href="#crawlweb-tab") CrawlWeb
+        li.nav-item
+            a.nav-link(data-toggle="tab",href="#crawladmin-tab") CrawlAdmin
+    div.tab-content
+        div#pschrome-tab.tab-pane.active
+            a.btn.btn-sm.btn-info(href=rootPath + "administration/chrome/ps") Run
+            a.btn.btn-sm.btn-danger(href=rootPath + "administration/chrome/kill") Kill All
+            pre#content(style="white-space: pre-wrap")= JSON.stringify(result, null, 2)
+        div#crawlweb-tab.tab-pane
+            each sched in scheduled 
+              a.btn.btn-sm.btn-info(href=rootPath + "administration/schedule/" + sched.attrs.name) ▶
+              a.btn.btn-sm.btn-danger(href=rootPath + "administration/cancel/" + sched.attrs.name) □ 
+              pre#content(style="white-space: pre-wrap")= JSON.stringify(sched.attrs, null, 2)
+
+    script.
+              var apiPath = #{rootPath};
+              function reset(){
+                $('pre#content').text("result");
+                $('pre#content').removeClass("prettyprinted");
+              };
+              function jstillery(){
+                var content=$("#input").val();
+                $.ajax({
+                  type: "post",
+                  url: apiPath + "api/jstillery",
+                  data:JSON.stringify({"source":content}),
+                  contentType: 'application/json',
+                  dataType: "json",            
+                  success: function(result) { 
+                    $('pre#content').text(result["source"]);
+                  },
+                  error: function(err) {
+                    $('pre#content').text(err);
+                  }
+                })
+              };
+              function yara(){
+                var content=$("#input").val();
+                $.ajax({
+                  type: "post",
+                  url: apiPath + "api/yara",
+                  data: JSON.stringify({"source":content}),
+                  contentType: 'application/json',
+                  dataType: "json",            
+                  success: function(result) { 
+                    console.log(result)
+                    $('pre#content').text(JSON.stringify(result, null, " "));
+                  },
+                error: function(err) {
+                    $('pre#content').text(err);
+                  }
+                })
+              };
+              function beautify(type){
+                var content=$("#input").val();
+                var beautified;
+                var opts = {"unescape-strings":true};
+                if (type==="script") beautified = js_beautify(content, opts);
+                else if (type==="stylesheet") beautified = css_beautify(content);
+                else beautified = html_beautify(content);
+                $('pre#content').text(beautified);
+              };
