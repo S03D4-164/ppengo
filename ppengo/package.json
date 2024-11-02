@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node ./bin/www --optimize_for_size --gc_interval=100 --max-old-space-size=2048",
     "pm2": "pm2 --no-daemon start ecosystem.config.js",
+    "dev": "pm2 --no-daemon start ecosystem.config.js --env development",
     "start:debug": "node --inspect=0.0.0.0:9222 ./bin/www --optimize_for_size --gc_interval=100 --max-old-space-size=2048",
     "prepare": "cd .. && husky ppengo/.husky"
   },

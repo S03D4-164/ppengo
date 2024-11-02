@@ -14,7 +14,7 @@ const logger = require("./routes/logger");
 const mongoose = require("mongoose");
 const mongoStore = require("connect-mongo");
 //process.env.MONGO_DATABASE = 'mongodb://localhost:27017/wgeteer';
-process.env.MONGO_DATABASE = "mongodb://mongodb:27017/wgeteer";
+//process.env.MONGO_DATABASE = "mongodb://mongodb:27017/wgeteer";
 mongoose
   .connect(process.env.MONGO_DATABASE, {
     //mongoose.connect('mongodb://localhost:27017,localhost:27018,localhost:27019/wgeteer', {

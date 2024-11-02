@@ -1,4 +1,4 @@
-process.env.REBROWSER_PATCHES_DEBUG = 1;
+process.env.REBROWSER_PATCHES_DEBUG = 0;
 //process.env.REBROWSER_PATCHES_RUNTIME_FIX_MODE = "enableDisable";
 //const puppeteer = require("puppeteer");
 //const puppeteer = require("puppeteer-extra");
@@ -145,69 +145,70 @@ async function pptrEventSet(client, browser, page) {
       }
     },
   );
-  */
 
   client.on("Network.dataReceived", async ({ requestId, dataLength }) => {
-    logger.debug("[dataReceived]", requestId, dataLength);
+    logger.debug(`[dataReceived] ${requestId} ${dataLength}`);
   });
 
   browser.on("targetchanged", async (tgt) =>
-    logger.debug("[Browser] taget changed: ", tgt),
+    console.log("[Browser] taget changed: ", tgt),
   );
   browser.on("targetcreated", async (tgt) =>
-    logger.debug("[Browser] taget created: ", tgt),
+    console.log("[Browser] taget created: ", tgt),
   );
   browser.on("targetdestroyed", async (tgt) =>
-    logger.debug("[Browser taget destroyed: ", tgt),
+    console.log("[Browser taget destroyed: ", tgt),
   );
 
+  page.on("frameattached", (frm) => console.log("[Frame] attached: ", frm));
+  page.on("framedetached", (frm) => console.log("[Frame] detached: ", frm));
+  page.on("framenavigateed", (frm) => console.log("[Frame] navigated: ", frm));
+  */
+
   page.on("dialog", async (dialog) => {
-    logger.debug("[Page] dialog: ", dialog.type(), dialog.message());
+    console.log("[Page] dialog: ", dialog.type(), dialog.message());
     await dialog.dismiss();
   });
   page.on("console", async (msg) => {
-    logger.debug("[Page] console: ", msg.type(), msg.text());
+    console.log("[Page] console: ", msg.type(), msg.text());
   });
   page.on("error", async (err) => {
-    logger.debug("[Page] error: ", err);
+    console.log("[Page] error: ", err);
   });
   page.on("pageerror", async (perr) => {
-    logger.debug("[Page] page error: ", perr);
+    console.log("[Page] page error: ", perr);
   });
 
-  page.on("workercreated", (wrkr) => logger.debug("[Worker] created: ", wrkr));
+  page.on("workercreated", (wrkr) => console.log("[Worker] created: ", wrkr));
   page.on("workerdestroyed", (wrkr) =>
-    logger.debug("[Worker] destroyed: ", wrkr),
+    console.log("[Worker] destroyed: ", wrkr),
   );
-
-  page.on("frameattached", (frm) => logger.debug("[Frame] attached: ", frm));
-  page.on("framedetached", (frm) => logger.debug("[Frame] detached: ", frm));
-  page.on("framenavigateed", (frm) => logger.debug("[Frame] navigated: ", frm));
 
   page.on("request", async (interceptedRequest) => {
     try {
-      logger.debug(
+      console.log(
         "[Request] ",
-        interceptedRequest._requestId,
+        //interceptedRequest,
+        //interceptedRequest._requestId,
         interceptedRequest.method(),
         interceptedRequest.resourceType(),
         interceptedRequest.url().slice(0, 100),
       );
     } catch (error) {
-      logger.debug(error);
+      console.log(error);
     }
   });
 
   page.on("response", async (interceptedResponse) => {
     try {
-      logger.debug(
+      console.log(
         "[Response] ",
         interceptedResponse.status(),
         interceptedResponse.remoteAddress(),
         interceptedResponse.url().slice(0, 100),
       );
     } catch (error) {
-      logger.debug(error);
+      console.log(error);
     }
   });
 }
@@ -451,8 +452,9 @@ module.exports = {
     }
     const chromiumArgs = [
       "--no-sandbox",
-      "--window-size=1280,720",
       "--disable-setuid-sandbox",
+      "--window-size=1280,720",
+      //"--start-maximized",
       "--disable-gpu",
       "--disable-dev-shm-usage",
       "--disable-web-security",
@@ -498,7 +500,8 @@ module.exports = {
           return { page, browser, setTarget };
         } else if (webpage.option.pptr == "real") {
           process.env.CHROME_PATH = executablePath;
-          const connect = await prbstart();
+          //const connect = await prbstart();
+          const { connect } = await import("puppeteer-real-browser");
           const { page, browser, setTarget } = await connect({
             headless: false,
             args: chromiumArgs,
@@ -524,6 +527,7 @@ module.exports = {
             //headless: false,
             ignoreHTTPSErrors: true,
             //defaultViewport: { width: 1280, height: 720 },
+            defaultViewport: null,
             dumpio: false,
             args: chromiumArgs,
             product: product,
@@ -602,12 +606,14 @@ module.exports = {
               "Network.getResponseBodyForInterception",
               { interceptionId },
             );
+            /*
             console.log(
               "[Intercepted]",
               //requestId,
               response.body.length,
               response.base64Encoded,
             );
+            */
             let newBody = response.base64Encoded
               ? Buffer.from(response.body, "base64")
               : response.body;

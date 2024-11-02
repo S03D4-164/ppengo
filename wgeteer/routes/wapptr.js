@@ -1,7 +1,6 @@
 const wapalyze = async (url, headers, html, cookies) => {
   let result;
-  const { Wappalyzer, technologies, categories } = require("wapalyzer-core");
-  /*
+  //const { Wappalyzer, technologies, categories } = require("wapalyzer-core");
   const path = require("node:path");
   const fs = require("fs");
   const { Wappalyzer } = require("wapalyzer-core");
@@ -9,7 +8,7 @@ const wapalyze = async (url, headers, html, cookies) => {
   const categories = JSON.parse(
     fs.readFileSync(path.resolve(`./webappanalyzer/src/categories.json`)),
   );
-  //console.log(categories)
+  //console.log(categories);
   let technologies = {};
   for (const index of Array(27).keys()) {
     const character = index ? String.fromCharCode(index + 96) : "_";
@@ -22,8 +21,7 @@ const wapalyze = async (url, headers, html, cookies) => {
       ),
     };
   }
-  console.log(technologies)
-  */
+  //console.log(technologies);
   Wappalyzer.setTechnologies(technologies);
   Wappalyzer.setCategories(categories);
   //console.log("[headers]", headers)

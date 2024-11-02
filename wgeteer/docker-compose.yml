@@ -12,12 +12,14 @@ services:
     init: true
     container_name: wgeteer
     volumes:
+      - node_modules:/home/node/node_modules
       - ./routes:/home/node/routes
       - ./IP2LOCATION-LITE-DB1.IPV6.BIN:/tmp/IP2LOCATION-LITE-DB1.IPV6.BIN
       - ./entrypoint.sh:/home/node/entrypoint.sh
       - ./package.json:/home/node/package.json
       - ./ecosystem.config.js:/home/node/ecosystem.config.js
       - ./tmp:/tmp
+      - ./webappanalyzer:/home/node/webappanalyzer
     network_mode: "host"
     ports:
       - 127.0.0.1:5900:5900
@@ -43,3 +45,6 @@ services:
     working_dir: /app
     command: ./bin/sbserver -db "/tmp/gosb/gsbv4.db" -srvaddr "0.0.0.0:3001" -apikey ${GSBKEY}
     mem_limit: 1g
+
+volumes:
+  node_modules:

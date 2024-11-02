@@ -9,14 +9,13 @@ module.exports = {
       autorestart: true,
       env_production: {
         NODE_ENV: "production",
+        MONGO_DATABASE: "mongodb://mongodb:27017/wgeteer",
       },
       env_development: {
         NODE_ENV: "development",
+        MONGO_DATABASE: "mongodb://localhost:27017/wgeteer",
       },
-      watch:
-        process.env.NODE_ENV !== "production"
-          ? path.resolve(__dirname, "routes")
-          : false,
+      watch: path.resolve(__dirname, "routes"),
       ignore_watch: ["node_modules"],
       max_memory_restart: "2G",
     },
