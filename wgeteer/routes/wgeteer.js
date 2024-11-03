@@ -8,10 +8,12 @@ const rebrowserPuppeteer = require("rebrowser-puppeteer");
 const puppeteer = addExtra(rebrowserPuppeteer);
 puppeteer.use(StealthPlugin());
 
+/*
 async function prbstart() {
   const { connect } = await import("puppeteer-real-browser");
   return connect;
 }
+*/
 
 //const antibotbrowser = require("antibotbrowser");
 const antibotbrowser = require("./antibotbrowser");
@@ -454,7 +456,7 @@ module.exports = {
       "--no-sandbox",
       "--disable-setuid-sandbox",
       "--window-size=1280,720",
-      //"--start-maximized",
+      "--start-maximized",
       "--disable-gpu",
       "--disable-dev-shm-usage",
       "--disable-web-security",
@@ -507,6 +509,10 @@ module.exports = {
             args: chromiumArgs,
             tf: true,
             turnstile: true,
+          });
+          await page.setViewport({
+            width: 1280,
+            height: 720,
           });
           return { page, browser, setTarget };
         } else if (webpage.option.pptr == "antibot") {
@@ -569,7 +575,9 @@ module.exports = {
 
     if (product == "chrome") {
       if (webpage.option.userAgent)
-        await page.setUserAgent(webpage.option.userAgent);
+        if (webpage.option.userAgent.length > 1) {
+          await page.setUserAgent(webpage.option.userAgent);
+        }
       if (webpage.option.disableScript) await page.setJavaScriptEnabled(false);
       else await page.setJavaScriptEnabled(true);
       if (exHeaders) await page.setExtraHTTPHeaders(exHeaders);

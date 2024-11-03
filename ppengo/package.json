@@ -7,7 +7,7 @@
     "pm2": "pm2 --no-daemon start ecosystem.config.js",
     "dev": "pm2 --no-daemon start ecosystem.config.js --env development",
     "start:debug": "node --inspect=0.0.0.0:9222 ./bin/www --optimize_for_size --gc_interval=100 --max-old-space-size=2048",
-    "prepare": "cd .. && husky ppengo/.husky"
+    "prepare": "test -d node_modules/husky && cd .. && husky ppengo/.husky || echo \"husky is not installed\""
   },
   "lint-staged": {
     "*.{js,ts,tsx, jsx}": [
@@ -56,7 +56,6 @@
     "pug": ">=3.0.1",
     "save": "^2.3.3",
     "simple-wappalyzer": "^1.1.66",
-    "wappalyzer": "^5.9.34",
     "winston": "^3.2.1",
     "yara": "npm:@automattic/yara@^2.6.0-beta.1"
   },

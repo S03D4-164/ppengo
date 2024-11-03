@@ -1,3 +1,4 @@
+- var puppeteer = '-'
 - var win10Chrome = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
 - var win10Edge = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134'
 - var winFirefox = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:62.0) Gecko/20100101 Firefox/62.0'
@@ -7,7 +8,8 @@
 - var linFirefox = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:125.0) Gecko/20100101 Firefox/125.0'
 - var androidChrome = 'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.6367.54 Mobile Safari/537.36'
 
-option(value=win10Chrome, selected= true) win10-chrome
+option(value=puppeteer, selected= true) default 
+option(value=win10Chrome) win10-chrome
 option(value=winFirefox) win-Firefox
 option(value=winIE11) win-IE11
 option(value=androidChrome) android-chrome
