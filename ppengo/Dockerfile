@@ -1,14 +1,17 @@
 FROM node:20-slim
 
-WORKDIR /home/node
-
+ENV NODE_ENV production
 ENV HUSKY=0
+
+WORKDIR /home/node
 
 COPY package.json ./
 
-RUN apt-get update \
-    && apt-get install --no-install-recommends -y dumb-init yara libyara-dev \
+RUN --mount=type=cache,target=/var/cache/apt \
+    echo 'Acquire::http { Proxy "http://172.17.0.1:3128"; };' > /etc/apt/apt.conf.d/01proxy \
+    && apt update \
+    && apt install --no-install-recommends -y yara libyara-dev \
     && chown -R node:node /home/node \
-    && su node -c yarn install \
     && rm -rf /var/lib/apt/lists/* /src/*.deb 
+
 USER node

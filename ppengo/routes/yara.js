@@ -20,7 +20,7 @@ async function yaraScan(source) {
           rules.push(yararule.rule);
         }
         let rule_string = rules.join("\n");
-        console.log(rule_string);
+        //console.log(rule_string);
         let options = { rules: [{ string: rule_string }] };
         /*
         var options = {
