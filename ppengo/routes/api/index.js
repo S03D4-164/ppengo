@@ -1,8 +1,8 @@
-var express = require('express');
+var express = require("express");
 var router = express.Router();
 
-const wgeteer = require('../wgeteer');
-const agenda = require('../agenda')
+const wgeteer = require("../wgeteer");
+const agenda = require("../agenda");
 
 /*
 const kue = require('kue-scheduler')
@@ -15,10 +15,11 @@ let queue = kue.createQueue({
 });
 */
 
-router.get('/', function(req, res) {
+router.get("/", function (req, res) {
   res.json();
-})
+});
 
+/*
 router.post('/vtpayload/', async function(req, res) {
   async function queJob(id){
     const job = await queue.create('vtPayload', {
@@ -67,75 +68,81 @@ router.post('/vt/', async function(req, res) {
   });
 
 });
+*/
 
-
-router.post('/gsblookupurl/', function(req, res) {
+router.post("/gsblookupurl/", function (req, res) {
   const url = req.body.url;
-  agenda.now('gsblookupUrl', {
-    url:url,
-  })
-
-  agenda.define('gsbUrlResult', (job) => {
-    return res.json(job);
+  agenda.now("gsblookupUrl", {
+    url: url,
   });
 
+  agenda.define("gsbUrlResult", (job) => {
+    return res.json(job);
+  });
 });
 
-router.post('/gsblookup/', async function(req, res) {
+router.post("/gsblookup/", async function (req, res) {
   const id = req.body.id;
-  const job = await agenda.now('gsblookup', {
-    websiteId:id,
-  })
-  
+  const job = await agenda.now("gsblookup", {
+    websiteId: id,
+  });
+
   return res.json(job);
 });
 
-router.post('/register', async function(req, res) {
- 
+router.post("/vtpayload/", async function (req, res) {
+  const id = req.body.id;
+  const job = await agenda.now("vtPayload", {
+    payloadId: id,
+  });
+  return res.json(job);
+});
+
+router.post("/register", async function (req, res) {
   console.log(req.body);
-  const inputUrl = req.body['url'];
-  if(inputUrl){
+  const inputUrl = req.body["url"];
+  if (inputUrl) {
     var option = {
-      timeout:30,
-      delay:5,
-      userAgent:'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'
+      timeout: 30,
+      delay: 5,
+      userAgent:
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36",
     };
-    if (req.body['lang']) option['lang'] = req.body['lang'];
-    if (req.body['userAgent']) option['userAgent'] = req.body['userAgent'];
-    
-    if (req.body['timeout']) option['timeout'] = req.body['timeout'];
-    if (req.body['delay']) option['delay'] = req.body['delay'];
-    if (req.body['referer']) option['referer'] = req.body['referer'];
-    if (req.body['proxy']) option['proxy'] = req.body['proxy'];
-    if (req.body['exHeaders']) option['exHeaders'] = req.body['exHeaders'];
+    if (req.body["lang"]) option["lang"] = req.body["lang"];
+    if (req.body["userAgent"]) option["userAgent"] = req.body["userAgent"];
+
+    if (req.body["timeout"]) option["timeout"] = req.body["timeout"];
+    if (req.body["delay"]) option["delay"] = req.body["delay"];
+    if (req.body["referer"]) option["referer"] = req.body["referer"];
+    if (req.body["proxy"]) option["proxy"] = req.body["proxy"];
+    if (req.body["exHeaders"]) option["exHeaders"] = req.body["exHeaders"];
     if ("disableScript" in req.body) option["disableScript"] = true;
 
-    var track = ("track" in req.body)?req.body['track']:0;
+    var track = "track" in req.body ? req.body["track"] : 0;
 
     console.log(option, track);
 
     const webpage = await wgeteer.registerUrl(inputUrl, option, track);
-    const job = await wgeteer.wgetJob(webpage);
+    await wgeteer.wgetJob(webpage);
     res.json(webpage);
-  }else{
-    res.json({error:"no url"});
+  } else {
+    res.json({ error: "no url" });
   }
-
 });
 
 const jstillery = require("./jstillery/server.js");
-router.use('/jstillery', jstillery);
+router.use("/jstillery", jstillery);
 
 const webpage = require("./webpage");
-router.use('/page', webpage);
+router.use("/page", webpage);
 
 const website = require("./website");
-router.use('/website', website);
+router.use("/website", website);
 
 const response = require("./response");
-router.use('/response', response);
+router.use("/response", response);
 
 const yara = require("./yara");
-router.use('/yara', yara);
+router.use("/yara", yara);
 
 module.exports = router;

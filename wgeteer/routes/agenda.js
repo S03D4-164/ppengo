@@ -37,7 +37,7 @@ const agenda = new Agenda(connectionOpts);
 
 const wgeteer = require("./wgeteer");
 const gsblookup = require("./gsblookup");
-//const vt = require('./vt')
+const vt = require("./vt");
 
 agenda.define("wgeteer", async (job, done) => {
   console.log(job.attrs.data);
@@ -56,6 +56,19 @@ agenda.define("wgeteer", async (job, done) => {
 
 agenda.define("hello world", function (job, done) {
   logger.debug("agenda ready");
+  done();
+});
+
+agenda.define("vtPayload", async (job, done) => {
+  logger.debug(job.attrs);
+  await vt
+    .vtPayload(job.attrs.data.payloadId)
+    .then((success) => {
+      console.log("vtPayload success", success);
+    })
+    .catch((err) => {
+      console.log("vtPayload error", err);
+    });
   done();
 });
 
