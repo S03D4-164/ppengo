@@ -67,6 +67,14 @@ agenda.define("gsblookupUrl", async (job, done) => {
   done();
 });
 
+agenda.define("gsblookup", async (job, done) => {
+  logger.debug(job.attrs);
+  const result = await gsblookup.lookupSite(job.attrs.data.websiteId);
+  logger.debug(result);
+  //await agenda.now("gsbUrlResult", { result: result });
+  done();
+});
+
 agenda.define("psChrome", async function (job, done) {
   await job.setShouldSaveResult(true);
   const ps = await findChrome();

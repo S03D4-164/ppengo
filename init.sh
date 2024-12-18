@@ -11,7 +11,7 @@ NPMDIR="../npm"
 mkdir -p $NPMDIR/cache
 mkdir -p $NPMDIR/ppengo
 mkdir -p $NPMDIR/wgeteer
-chmod -R 777 $NPMDIR
+sudo chown -R 1000:1000 $NPMDIR
 
 wget https://download.ip2location.com/lite/IP2LOCATION-LITE-DB1.IPV6.BIN.ZIP \
 && unzip IP2LOCATION-LITE-DB1.IPV6.BIN.ZIP -x *.TXT \

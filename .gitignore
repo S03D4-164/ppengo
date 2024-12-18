@@ -3,3 +3,4 @@
 *.ZIP
 *.BIN
 package-lock.json
+.env
