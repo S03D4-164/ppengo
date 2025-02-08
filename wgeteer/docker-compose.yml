@@ -13,8 +13,8 @@ services:
     init: true
     container_name: wgeteer
     volumes:
-      - ../npm/cache:/home/node/.npm
-      - ../npm/wgeteer:/home/node/node_modules
+      - ../../npm/cache:/home/node/.npm
+      - ../../npm/wgeteer:/home/node/node_modules
       - ./routes:/home/node/routes
       - ./entrypoint.sh:/home/node/entrypoint.sh
       - ./package.json:/home/node/package.json
