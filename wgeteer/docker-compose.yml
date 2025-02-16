@@ -13,20 +13,16 @@ services:
     init: true
     container_name: wgeteer
     volumes:
-      - ../../npm/cache:/home/node/.npm
-      - ../../npm/wgeteer:/home/node/node_modules
-      - ./routes:/home/node/routes
-      - ./entrypoint.sh:/home/node/entrypoint.sh
-      - ./package.json:/home/node/package.json
-      - ./ecosystem.config.js:/home/node/ecosystem.config.js
-      - ./tmp:/tmp
-      #- ./IP2LOCATION-LITE-DB1.IPV6.BIN:/tmp/IP2LOCATION-LITE-DB1.IPV6.BIN
-      - ./webappanalyzer:/home/node/webappanalyzer
+      - ./app:/home/node/app
+      - ../data/npm/cache:/home/node/.npm
+      - ../data/npm/wgeteer:/home/node/app/node_modules
+      - ../data/webappanalyzer:/home/node/webappanalyzer
+      - ../data/IP2LOCATION-LITE-DB1.IPV6.BIN:/tmp/IP2LOCATION-LITE-DB1.IPV6.BIN
     network_mode: "host"
     ports:
       - 127.0.0.1:5900:5900
-    #working_dir: /home/node/app
-    command: /bin/bash /home/node/entrypoint.sh
+    working_dir: /home/node/app
+    command: /bin/bash /home/node/app/entrypoint.sh
     mem_limit: 2g
     #restart: always
     logging:

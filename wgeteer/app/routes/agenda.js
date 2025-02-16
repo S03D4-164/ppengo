@@ -14,11 +14,11 @@ mongoose
   .then(() => logger.debug("[mongoose] connect completed"))
   .catch((err) => logger.debug("[mongoose] connect error", err));
 mongoose.set("maxTimeMS", 30000);
-require("./models/webpage");
-require("./models/request");
-require("./models/response");
-require("./models/screenshot");
-require("./models/payload");
+require("../models/webpage");
+require("../models/request");
+require("../models/response");
+require("../models/screenshot");
+require("../models/payload");
 
 const Agenda = require("agenda");
 const connectionOpts = {

@@ -5,8 +5,7 @@
   "scripts": {
     "scheduler": "node ./app/scheduler.js",
     "pm2": "pm2 --no-daemon start ecosystem.config.js",
-    "prepare": "test -d node_modules/husky && cd .. && husky ppengo/.husky || echo \"husky is not installed\""
-
+    "prepare": "test -d node_modules/husky && cd ../.. && husky .husky || echo \"husky is not installed\""
   },
   "lint-staged": {
     "*.{js,ts,tsx, jsx}": [

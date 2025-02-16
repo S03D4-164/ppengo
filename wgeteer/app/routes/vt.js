@@ -1,7 +1,7 @@
 var request = require('request-promise');
 var qs = require('querystring');
 
-const Payload = require('./models/payload');
+const Payload = require('../models/payload');
 
 const ak = process.env.VTKEY
 const vtApiEndpoint = 'https://www.virustotal.com/vtapi/v2/';

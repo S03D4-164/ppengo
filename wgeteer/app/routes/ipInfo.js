@@ -5,7 +5,7 @@ const dns = require("dns").promises;
 const ip2loc = require("ip2location-nodejs");
 
 //var redis = require('redis');
-const Response = require("./models/response");
+const Response = require("../models/response");
 const logger = require("./logger");
 
 const getIpinfo = async function (host) {

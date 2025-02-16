@@ -81,7 +81,7 @@ services:
       - ./ppengo/public:/home/node/public
       - ./ppengo/routes:/home/node/routes
       - ./ppengo/controllers:/home/node/controllers
-      - ./wgeteer/routes/models:/home/node/routes/models
+      - ./wgeteer/app/models:/home/node/routes/models
       - ./ppengo/views:/home/node/views
       - ./ppengo/bin:/home/node/bin
       #- ./ppengo/config:/home/node/config
@@ -111,8 +111,8 @@ services:
     ports:
       - "127.0.0.1:9200:9200"
     volumes:
-      - ../share/elasticsearch/data:/usr/share/elasticsearch/data
-      - ../share/elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+      - ./data/elasticsearch/data:/usr/share/elasticsearch/data
+      - ./es/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
     mem_limit: 2g
     environment:
       - JVM_OPTS=-Xmx2g -Xms2g -XX:MaxPermSize=2048m
@@ -186,7 +186,7 @@ services:
     ports:
       - "3128:3128"
     volumes:
-      - "./squid/cache:/var/spool/squid"
+      - "./data/squid/cache:/var/spool/squid"
       - "./squid/squid.conf:/etc/squid/squid.conf:ro"
     environment:
       - "TZ=Asia/Tokyo"

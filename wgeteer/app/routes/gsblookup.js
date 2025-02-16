@@ -1,6 +1,6 @@
 var request = require("request-promise");
 
-const Website = require("./models/website");
+const Website = require("../models/website");
 
 async function gsbLookup(url) {
   var ApiEndpoint = "http://127.0.0.1:3001/v4/threatMatches:find";

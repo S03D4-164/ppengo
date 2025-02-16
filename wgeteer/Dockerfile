@@ -6,9 +6,9 @@ ENV DBUS_SESSION_BUS_ADDRESS autolaunch:
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
 ENV HUSKY=0
 
-WORKDIR /home/node
+ADD app /home/node/app
 
-ADD package.json ./
+WORKDIR /home/node/app
 
 #EXPOSE 5900
 
