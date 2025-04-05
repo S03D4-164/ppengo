@@ -6,7 +6,7 @@ const ip2loc = require("ip2location-nodejs");
 
 //var redis = require('redis');
 const Response = require("../models/response");
-const logger = require("./logger");
+const logger = require("../modules/logger");
 
 const getIpinfo = async function (host) {
   const ip = await whois

@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const logger = require("./logger");
+const logger = require("../modules/logger");
 const findChrome = require("./findproc");
 
 const mongoConnectionString = "mongodb://127.0.0.1:27017/wgeteer";
