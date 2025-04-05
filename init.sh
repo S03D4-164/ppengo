@@ -21,4 +21,4 @@ wget https://download.ip2location.com/lite/IP2LOCATION-LITE-DB1.IPV6.BIN.ZIP \
 && unzip IP2LOCATION-LITE-DB1.IPV6.BIN.ZIP -x *.TXT \
 && mv IP2LOCATION-LITE-DB1.IPV6.BIN $DATADIR
 
-git clone https://github.com/enthec/webappanalyzer && mv webappanalyzer ./wgeteer/app/webappanalyzer
+git clone https://github.com/enthec/webappanalyzer && mv webappanalyzer $DATADIR/webappanalyzer

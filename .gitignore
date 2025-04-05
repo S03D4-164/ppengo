@@ -4,3 +4,4 @@ node_modules
 *.BIN
 package-lock.json
 .env
+data
