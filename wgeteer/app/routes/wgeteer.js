@@ -620,7 +620,7 @@ module.exports = {
               //console.log(req.interceptionId, res.interceptionId);
               if (res.interceptionId === req.interceptionId) {
                 res.request = req;
-                req.response = req;
+                req.response = res;
                 break;
               }
             }
