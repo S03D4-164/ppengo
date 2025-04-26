@@ -16,7 +16,7 @@ const yaraSchema = new mongoose.Schema({
 yaraSchema.plugin(mongoosePaginate);
 
 yaraSchema.index({updatedAt:-1});
-yaraSchema.index({name:1});
+//yaraSchema.index({name:1});
 
 module.exports = mongoose.model('Yara', yaraSchema);
  

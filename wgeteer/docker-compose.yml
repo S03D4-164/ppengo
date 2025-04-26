@@ -3,6 +3,7 @@ services:
     build: .
     environment:
       #- NODE_ENV=development
+      # load from .env
       - VTKEY
       - GSBKEY
       - PPENGO

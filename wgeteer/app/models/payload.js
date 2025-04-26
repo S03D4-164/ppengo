@@ -32,7 +32,7 @@ const payloadSchema = new mongoose.Schema({
 );
 
 payloadSchema.index({createdAt:-1});
-payloadSchema.index({md5:1});
+//payloadSchema.index({md5:1});
 payloadSchema.plugin(mongoosePaginate);
 
 module.exports = mongoose.model('Payload', payloadSchema);

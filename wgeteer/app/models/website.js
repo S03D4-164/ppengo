@@ -30,7 +30,7 @@ const websiteSchema = new mongoose.Schema({
 );
 
 websiteSchema.index({updatedAt:-1});
-websiteSchema.index({url:1});
+//websiteSchema.index({url:1});
 
 websiteSchema.plugin(mongoosePaginate);
 
