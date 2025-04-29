@@ -5,6 +5,8 @@ var router = express.Router();
 //const moment = require("moment");
 const agenda = require("./agenda");
 
+const mongoose = require('mongoose')
+
 router.get("/", async function (req, res) {
   const scheduled = await agenda.jobs({ type: "single" });
   console.log(scheduled);
@@ -53,6 +55,18 @@ router.get("/chrome/:name", async function (req, res) {
   }
   const scheduled = await agenda.jobs({ type: "single" });
   res.render("administration", { scheduled, result: result[0] });
+});
+
+router.get("/mongo", async function (req, res) {
+  const ops = await mongoose.connection.db.admin().command({
+      currentOp: 1
+  }).then((result) => {
+    console.log(result);
+    return result;
+  })
+
+  const scheduled = await agenda.jobs({ type: "single" });
+  res.render("administration", { scheduled, ops });
 });
 
 module.exports = router;

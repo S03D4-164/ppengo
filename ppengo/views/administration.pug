@@ -9,7 +9,7 @@ block content
         li.nav-item
             a.nav-link(data-toggle="tab",href="#crawlweb-tab") CrawlWeb
         li.nav-item
-            a.nav-link(data-toggle="tab",href="#crawladmin-tab") CrawlAdmin
+            a.nav-link(data-toggle="tab",href="#mongo-tab") Mongo
     div.tab-content
         div#pschrome-tab.tab-pane.active
             a.btn.btn-sm.btn-info(href=rootPath + "administration/chrome/ps") Run
@@ -20,6 +20,11 @@ block content
               a.btn.btn-sm.btn-info(href=rootPath + "administration/schedule/" + sched.attrs.name) ▶
               a.btn.btn-sm.btn-danger(href=rootPath + "administration/cancel/" + sched.attrs.name) □ 
               pre#content(style="white-space: pre-wrap")= JSON.stringify(sched.attrs, null, 2)
+        div#mongo-tab.tab-pane
+            a.btn.btn-sm.btn-info(href=rootPath + "administration/mongo") Get
+            a.btn.btn-sm.btn-danger(href=rootPath + "administration/mongokill") Kill All
+            if ops
+              pre#content(style="white-space: pre-wrap")= JSON.stringify(ops, null, 2)
 
     script.
               var apiPath = #{rootPath};
