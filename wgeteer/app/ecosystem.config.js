@@ -4,7 +4,7 @@ module.exports = {
   apps: [
     {
       name: "wgeteer",
-      script: "routes/agenda.js",
+      script: "agenda.js",
       instances: 1,
       autorestart: true,
       env_production: {
