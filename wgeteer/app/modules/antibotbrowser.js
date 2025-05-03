@@ -1,6 +1,7 @@
-const chromium = require("chromium");
+//const chromium = require("chromium");
 const { execFile } = require("child_process");
-var request = require("sync-request");
+//var request = require("sync-request");
+const superagent = require('superagent');
 //const fs = require("fs");
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 async function startbrowser(port, url) {
@@ -13,7 +14,7 @@ async function startbrowser(port, url) {
       port = 9515;
     }
     execFile(
-      chromium.path,
+      "/usr/bin/google-chrome-stable",
       [
         "--no-sandbox",
         "--window-size=1280,720",
@@ -34,7 +35,8 @@ async function startbrowser(port, url) {
       },
     );
     await delay(4000);
-    let res = await request("GET", `http://127.0.0.1:${port}/json/version`);
+    //let res = await request("GET", `http://127.0.0.1:${port}/json/version`);
+    const res = await superagent.get(`http://127.0.0.1:${port}/json/version`);
     let veri = await JSON.parse(res.getBody());
     let useragent = await veri["User-Agent"];
     let websocket = await veri["webSocketDebuggerUrl"];

@@ -1,49 +1,47 @@
-var request = require("request-promise");
+const superagent = require("superagent");
 
 const Website = require("../models/website");
 
 async function gsbLookup(url) {
-  var ApiEndpoint = "http://127.0.0.1:3001/v4/threatMatches:find";
-  var submit = {
+  const ApiEndpoint = "http://127.0.0.1:3001/v4/threatMatches:find";
+  const submit = {
     threatInfo: {
       threatEntries: [{ url: url }],
     },
   };
-  var options = {
-    url: ApiEndpoint,
-    json: true,
-    body: submit,
-    method: "POST",
-  };
-console.log(options)
-  var res = await request(options)
-    .then((body) => {
-      console.log(body);
-      if ("matches" in body) {
-        return body;
-      } else {
-        return { matches: false };
-      }
-    })
-    .catch((err) => {
-      return { error: err.message };
-    });
-  return res;
+
+  try {
+    console.log({ url: ApiEndpoint, body: submit });
+    const res = await superagent
+      .post(ApiEndpoint)
+      .send(submit)
+      .set("Content-Type", "application/json");
+
+    const body = res.body;
+    console.log(body);
+
+    if ("matches" in body) {
+      return body;
+    } else {
+      return { matches: false };
+    }
+  } catch (err) {
+    return { error: err.message };
+  }
 }
 
 module.exports = {
   async lookupSite(id) {
-    var website = await Website.findById(id)
-      .then((doc) => {
-        return doc;
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-    const res = await gsbLookup(website.url);
-    website.gsb.lookup = res;
-    await website.save();
-    return res;
+    try {
+      const website = await Website.findById(id);
+      const res = await gsbLookup(website.url);
+      website.gsb.lookup = res;
+      await website.save();
+      return res;
+    } catch (err) {
+      console.log(err);
+      return { error: err.message };
+    }
   },
   async lookupUrl(url) {
     const res = await gsbLookup(url);
