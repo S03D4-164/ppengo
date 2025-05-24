@@ -8,11 +8,11 @@ var Diff = require("diff");
 
 const Webpage = require("./models/webpage");
 const Request = require("./models/request");
-const Harfile = require('./models/harfile');
+const Harfile = require("./models/harfile");
 const Website = require("./models/website");
 
 const logger = require("./logger");
-//const prediction = require('./prediction')
+const unzipper = require("unzipper");
 
 router.get("/", function (req, res) {
   var search = [];
@@ -211,7 +211,14 @@ router.get("/:id", async function (req, res) {
   const harfile = await Harfile.findOne({ webpage: webpage._id });
   let har;
   if (harfile) {
-    har = Buffer.from(harfile.har).toString("utf-8");
+    try {
+      const zipedHar = Buffer.from(harfile.har);
+      const directory = await unzipper.Open.buffer(zipedHar);
+      const extracted = await directory.files[0].buffer("infected");
+      har = extracted;
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   res.render("page", {
@@ -224,7 +231,7 @@ router.get("/:id", async function (req, res) {
     diff,
     search: req.query,
     title: "Request",
-    har
+    har,
   });
 });
 

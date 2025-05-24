@@ -24,7 +24,6 @@
     "archiver-zip-encrypted": "^2.0.0",
     "base64-to-uint8array": "^1.0.0",
     "bootstrap": "^4.6.0",
-    "canvas": "^2.6.0",
     "cheerio": "^1.0.0-rc.3",
     "connect-mongo": "^5.1.0",
     "cookie-parser": "~1.4.3",
@@ -56,6 +55,7 @@
     "pug": ">=3.0.1",
     "save": "^2.3.3",
     "simple-wappalyzer": "^1.1.66",
+    "unzipper": "^0.12.3",
     "winston": "^3.2.1",
     "yara": "npm:@automattic/yara@^2.6.0-beta.1"
   },

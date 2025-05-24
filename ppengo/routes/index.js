@@ -66,10 +66,17 @@ router.post("/", async function (req, res) {
   var ids = [];
   for (let webpage of webpages) {
     ids.push(webpage._id.toString());
-    agenda.now("wgeteer", {
-      pageId: webpage._id,
-      count: 0,
-    });
+    if (webpage.option.pptr == "playwright") {
+      agenda.now("playwget", {
+        pageId: webpage._id,
+        count: 0,
+      });
+    } else {
+      agenda.now("wgeteer", {
+        pageId: webpage._id,
+        count: 0,
+      });
+    }
   }
 
   res.render("progress", {
@@ -129,7 +136,7 @@ router.use("/yararule", yararule);
 
 //const screenshot = require("./screenshot");
 //router.use("/screenshot", screenshot);
-const {screenshot} = require("../controllers/screenshotController");
+const { screenshot } = require("../controllers/screenshotController");
 router.get("/screenshot/:id", screenshot);
 
 const search = require("./search");
