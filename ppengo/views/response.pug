@@ -17,7 +17,8 @@ block content
      .card
       .card-header
         h5 Request
-          a= " / " + moment(request.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+          if request
+            a= " / " + moment(request.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
 
       .card-body      
          if request
@@ -28,7 +29,11 @@ block content
                 //tr
                   th= "createdAt: "
                   td= moment(request.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
-
+                tr
+                  th= "interceptionId"
+                  td
+                    if request.interceptionId
+                      a= request.interceptionId + " "
                 tr
                   th= "method"
                   td
@@ -135,37 +140,16 @@ block content
                               a= "(" + moment.unix(to).fromNow() + ")"
                       else
                         h6 empty
-  .row
-    .col-6
-     .card
-      .card-header
-              h6 Request Headers:
-      .card-body      
-                if request
-                  if request.headers
-                    pre.prettyprint.linenums(style="white-space: pre-wrap")
-                      each value, key in request.headers
-                        | #{key}: #{value}
-                        |
-    .col-6
-     .card
-      .card-header
-              h6 Response Headers: 
-      .card-body
-              if response 
-                if response.headers
-                  pre.prettyprint.linenums(style="white-space: pre-wrap")
-                    each value, key in response.headers
-                      | #{key}: #{value}
-                      |
 
   ul.nav.nav-tabs
       li.nav-item
+        a.nav-link(data-toggle="tab",href="#header-tab") Headers
+      li.nav-item
         a.nav-link.active(data-toggle="tab",href="#content-tab") Content
       li.nav-item
+        a.nav-link(data-toggle="tab",href="#post-tab") Post
+      li.nav-item
         a.nav-link(data-toggle="tab",href="#diff-tab") Diff
-      //li.nav-item
-        a.nav-link(data-toggle="tab",href="#header-tab") Headers
   div.tab-content
       div#diff-tab.tab-pane
           if diff
@@ -177,6 +161,36 @@ block content
                 pre.prettyprint.linenums(style="white-space: pre-wrap") #{diff}
           else
             h5 No data
+      div#post-tab.tab-pane
+        if request
+          if request.postData
+            pre= JSON.stringify(request.postData, null, " ")
+      div#header-tab.tab-pane
+        .row
+          .col-6
+            button.mr-2.btn.btn-sm.btn-block.btn-outline-primary(data-toggle="collapse" data-target="#reqHeaders") Request Headers ▽
+            div#reqHeaders.collapse.show
+            .card
+              .card-body      
+                if request
+                  if request.headers
+                    pre= JSON.stringify(request.headers, null, " ")
+                    //pre.prettyprint.linenums(style="white-space: pre-wrap")
+                      each value, key in request.headers
+                        | #{key}: #{value}
+                        |
+          .col-6
+            button.mr-2.btn.btn-sm.btn-block.btn-outline-primary(data-toggle="collapse" data-target="#resHeaders") Response Headers ▽
+            div#resHeaders.collapse.show
+            .card
+              .card-body
+                if response 
+                  if response.headers
+                    pre= JSON.stringify(response.headers, null, " ")
+                    //pre.prettyprint.linenums(style="white-space: pre-wrap")
+                      each value, key in response.headers
+                        | #{key}: #{value}
+                        |
       div#content-tab.tab-pane.active
         .row
           div.col-md-11
