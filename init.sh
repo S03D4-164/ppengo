@@ -5,7 +5,7 @@ ESDIR="$DATADIR/elasticsearch"
 mkdir -p $ESDIR/data
 
 SQDIR="$DATADIR/squid"
-mkdir -p $SQDIR/data
+mkdir -p $SQDIR/cache
 
 sudo sysctl -w vm.max_map_count=262144
 sudo sysctl -w vm.swappiness=10

@@ -139,6 +139,8 @@ block content
         a.nav-link(data-toggle="tab",href="#content-tab") Content
       li.nav-item
         a.nav-link(data-toggle="tab",href="#diff-tab") Diff
+      li.nav-item
+        a.nav-link(data-toggle="tab",href="#har-tab") Har
 
     div.tab-content
       div#request-tab.tab-pane.active
@@ -281,6 +283,13 @@ block content
 
               #diff
                 pre.prettyprint.linenums(style="white-space: pre-wrap") #{diff}
+          else
+            div.alert
+              p No data
+      div#har-tab.tab-pane
+          if har
+              #har
+                pre.prettyprint.linenums(style="white-space: pre-wrap") #{har}
           else
             div.alert
               p No data

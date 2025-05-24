@@ -8,7 +8,7 @@ var Diff = require("diff");
 
 const Webpage = require("./models/webpage");
 const Request = require("./models/request");
-//const Response = require('./models/response');
+const Harfile = require('./models/harfile');
 const Website = require("./models/website");
 
 const logger = require("./logger");
@@ -208,6 +208,12 @@ router.get("/:id", async function (req, res) {
       return document;
     });
 
+  const harfile = await Harfile.findOne({ webpage: webpage._id });
+  let har;
+  if (harfile) {
+    har = Buffer.from(harfile.har).toString("utf-8");
+  }
+
   res.render("page", {
     webpage,
     result,
@@ -218,6 +224,7 @@ router.get("/:id", async function (req, res) {
     diff,
     search: req.query,
     title: "Request",
+    har
   });
 });
 
