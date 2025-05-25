@@ -1,6 +1,5 @@
 extends layout
 
-
 block content
   if webpage
     .card
@@ -17,9 +16,7 @@ block content
           h5= "ID: "
             a(href=rootPath + "page/" + webpage._id) #{webpage._id}
           a= moment(webpage.createdAt).format('YYYY-MM-DD HH:mm:ss') + " / " +moment(webpage.createdAt).fromNow()
-
         .col-9
-
           h4
             table
               tr
@@ -66,7 +63,12 @@ block content
                     if webpage.remoteAddress.reverse
                       each reverse in webpage.remoteAddress.reverse
                         a= reverse
-                        br        
+                        br
+              if webpage.payload
+                tr
+                  th= "Download"
+                  td
+                    a(href=rootPath + "payload/" + webpage.payload)= webpage.payload
        .row
         .col-4
           button.btn.btn-block.btn-sm.btn-light(data-toggle="collapse" data-target="#option") Option
@@ -289,7 +291,8 @@ block content
       div#har-tab.tab-pane
           if har
               #har
-                a= "length: " + har.length
+                p= "length: " + har.length
+                a.btn.btn-danger(href=rootPath + "page/download/" + webpage._id) Download
                 pre.prettyprint.linenums(style="white-space: pre-wrap") #{har}
           else
             div.alert

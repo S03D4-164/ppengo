@@ -4,8 +4,12 @@ block content
   h1 Payload
   if payload
     h2
-        a(href=rootPath + "response?payload=" + payload._id) 🔍
         a(href=rootPath + "payload/" + payload._id) id:  #{payload._id} / md5: #{payload.md5}
+        br
+        a= "🔍 Search: "
+        a(href=rootPath + "response?payload=" + payload._id) Response
+        a= " | "
+        a(href=rootPath + "page?payload=" + payload._id) Webpage
     h3
         a.btn.btn-danger(href=rootPath + "payload/download/" + payload._id) Download
         - var type = payload.fileType?payload.fileType:" - "

@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const mongoosePaginate = require('mongoose-paginate-v2');
+const mongoose = require("mongoose");
+const mongoosePaginate = require("mongoose-paginate-v2");
 
 const webpageSchema = new mongoose.Schema({
   input: {
@@ -7,7 +7,7 @@ const webpageSchema = new mongoose.Schema({
     trim: true,
     required: true,
   },
-  option:{
+  option: {
     type: Object,
   },
   url: {
@@ -23,50 +23,57 @@ const webpageSchema = new mongoose.Schema({
   thumbnail: {
     type: String,
   },
+  thumbnails: [
+    {
+      type: String,
+    },
+  ],
   content: {
     type: String,
   },
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   status: {
     type: Number,
   },
   remoteAddress: {
-    ip: {type: String, index: true},
-    port: {type: Number},
-    reverse: {type: [String]},
-    bgp: {type: [Object]},
-    whois: {type: String},
-    geoip: {type: [Object]},
+    ip: { type: String, index: true },
+    port: { type: Number },
+    reverse: { type: [String] },
+    bgp: { type: [Object] },
+    whois: { type: String },
+    geoip: { type: [Object] },
   },
   headers: {
     type: Object,
   },
   securityDetails: {
-    issuer: {type: String},
-    protocol: {type: String},
-    subjectName: {type: String},
-    validFrom: {type: Number},
-    validTo: {type: Number},
+    issuer: { type: String },
+    protocol: { type: String },
+    subjectName: { type: String },
+    validFrom: { type: Number },
+    validTo: { type: Number },
   },
   wappalyzer: {
-    type: [String]
+    type: [String],
   },
-  yara:{
+  yara: {
     type: Object,
   },
-  requests : [{ type: mongoose.Schema.Types.ObjectId, ref: 'Request' }],
-  responses : [{ type: mongoose.Schema.Types.ObjectId, ref: 'Response' }],
-  //response : { type: mongoose.Schema.Types.ObjectId, ref: 'Response' },
-  screenshot : { type: mongoose.Schema.Types.ObjectId, ref: 'Screenshot' },
+  requests: [{ type: mongoose.Schema.Types.ObjectId, ref: "Request" }],
+  responses: [{ type: mongoose.Schema.Types.ObjectId, ref: "Response" }],
+  screenshot: { type: mongoose.Schema.Types.ObjectId, ref: "Screenshot" },
+  screenshots: [{ type: mongoose.Schema.Types.ObjectId, ref: "Screenshot" }],
+  payload: { type: mongoose.Schema.Types.ObjectId, ref: "Payload" },
+  harfile: { type: mongoose.Schema.Types.ObjectId, ref: "Harfile" },
 });
 
-webpageSchema.index({createdAt:-1});
-webpageSchema.index({content:'text'});
-webpageSchema.index({input:1,createdAt:-1});
+webpageSchema.index({ createdAt: -1 });
+webpageSchema.index({ content: "text" });
+webpageSchema.index({ input: 1, createdAt: -1 });
 
 webpageSchema.plugin(mongoosePaginate);
 
-module.exports = mongoose.model('Webpage', webpageSchema);
+module.exports = mongoose.model("Webpage", webpageSchema);

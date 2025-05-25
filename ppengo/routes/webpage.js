@@ -29,6 +29,9 @@ router.get("/", function (req, res) {
   if (typeof req.query.url !== "undefined" && req.query.url) {
     search.push({ url: req.query.url });
   }
+  if (typeof req.query.payload !== "undefined" && req.query.payload) {
+    search.push({ payload: req.query.payload });
+  }
   if (typeof req.query.rurl !== "undefined" && req.query.rurl) {
     search.push({
       url: new RegExp(req.query.rurl.replace(/[\\^$.*+?()[\]{}|]/g, "\\$&")),
@@ -220,19 +223,32 @@ router.get("/:id", async function (req, res) {
       console.log(e);
     }
   }
-
+  //console.log(webpage.payload);
   res.render("page", {
     webpage,
     result,
     pages,
-    //responses,
     website,
     previous: previous,
     diff,
     search: req.query,
-    title: "Request",
+    title: "Page",
     har,
   });
+});
+
+router.get("/download/:id", async function (req, res) {
+  const id = req.params.id;
+  try {
+    const harfile = await Harfile.findOne({ webpage: id });
+    const filename = `${id}.zip`;
+    const buffer = Buffer.from(harfile.har);
+    res.set({ "Content-Disposition": `attachment; filename=${filename}` });
+    res.status(200).send(buffer);
+  } catch (err) {
+    logger.error(`Error downloading HAR file: ${err}`);
+    res.status(500).send({ error: "Failed to download HAR file." });
+  }
 });
 
 module.exports = router;
