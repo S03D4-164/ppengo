@@ -5,7 +5,7 @@ div
             .form-group.row
                 label.col-2(for="proxy") Proxy: 
                 input.col-9.form-control(type="text" name="proxy", id="proxy", placeholder="ip:port")
-            .form-group.row
+            //.form-group.row
                 label.col-2(for="cilck") Click:
                 input.col-9.form-control(type="text" name="click", id="click", placeholder="")
             .form-inline
@@ -19,17 +19,21 @@ div
               select.form-control.col-9(name='pptr' id='pptr')
                 option(value='playwright' selected= true) Playwright
                 option(value='real') Real
-                option(value='stealth') Stealth
-                option(value='antibot') Antibot
+                //option(value='stealth') Stealth
+                //option(value='antibot') Antibot
+            .form-group
+                label(for="actions") Actions: 
+                textarea.form-control(id="actions", name="actions", rows=2)
+            .form-group
+                label(for="exHeaders") Extra Headers: 
+                textarea.form-control(id="exHeaders", name="exHeaders", rows=2)
             .form-inline
                 .form-check-inline
                     label.form-check-label(for="disableScript") disable script:
                     input.form-check-input(type="checkbox", name="disableScript", id="disableScript" value="")
-                    label.form-check-label(for="cf") cloudflare:
-                    input.form-check-input(type="checkbox", name="cf", id="cf" value="")
-            .form-group
-                label(for="exHeaders") Extra Headers: 
-                textarea.form-control(id="exHeaders", name="exHeaders", rows=2)
+                    //label.form-check-label(for="cf") cloudflare:
+                    //input.form-check-input(type="checkbox", name="cf", id="cf" value="")
+
             //label(for="postData") Post Data: 
             //br
             //textarea(id="postData", name="postData", rows=3, cols=50)

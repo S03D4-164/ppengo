@@ -7,16 +7,36 @@ block content
         h4 Page
           a= " from "
           a(href=rootPath + "website/" + website._id) #{webpage.input}
-      .card-body 
-       .row
-        .col-3
-          if webpage.thumbnail
-            a.colorbox(href=rootPath + "screenshot/" + webpage.screenshot)
-              img(width="100%" id="thumbnail" src="data:image/png;base64," + webpage.thumbnail)
-          h5= "ID: "
+      .card-body
+          h5
             a(href=rootPath + "page/" + webpage._id) #{webpage._id}
-          a= moment(webpage.createdAt).format('YYYY-MM-DD HH:mm:ss') + " / " +moment(webpage.createdAt).fromNow()
-        .col-9
+            a= " : " + moment(webpage.createdAt).format('YYYY-MM-DD HH:mm:ss') + " / " +moment(webpage.createdAt).fromNow()
+          .row
+            .col-4
+                if webpage.thumbnail
+                  a.colorbox(href=rootPath + "screenshot/" + webpage.screenshot)
+                    img(width="100%" id="thumbnail" src="data:image/png;base64," + webpage.thumbnail)
+            .col-8
+              .flex
+                if webpage.screenshots
+                  - let cnt = 1
+                  each screenshot in webpage.screenshots
+                    if(screenshot.full && screenshot.thumbnail)
+                      a= cnt
+                      a.colorbox(href=rootPath + "screenshot/" + screenshot.full)
+                        img(width="100%" id="thumbnail_" + screenshot._id src="data:image/png;base64," + screenshot.thumbnail)
+                    - cnt += 1
+      .row
+        .col-4
+          button.btn.btn-block.btn-sm.btn-light(data-toggle="collapse" data-target="#option") Option
+          #option.collapse.show
+                table
+                  each value, key in webpage.option
+                    if value
+                      tr
+                        th= key
+                        td= value
+        .col-8
           h4
             table
               tr
@@ -34,7 +54,6 @@ block content
                   if webpage.url
                     a(href=rootPath + "page?url=" + encodeURIComponent(webpage.url))  🔍
                     a= webpage.url
-
               tr
                 th Title
                 td
@@ -69,24 +88,8 @@ block content
                   th= "Download"
                   td
                     a(href=rootPath + "payload/" + webpage.payload)= webpage.payload
-       .row
-        .col-4
-          button.btn.btn-block.btn-sm.btn-light(data-toggle="collapse" data-target="#option") Option
-          #option.collapse.show
-                table
-                  each value, key in webpage.option
-                    if value
-                      tr
-                        th= key
-                        td= value
-        //.col-6
-          button.btn.btn-block.btn-sm.btn-light(data-toggle="collapse" data-target="#pred") Predictions 
-          #pred.collapse.show
-            button.btn.btn-sm.btn-primary(onclick="mnPredictions()") mobilenet
-            button.btn.btn-sm.btn-primary(onclick="predictions()") retrained
-            pre#predictions
-       hr
-       .row
+      hr
+      .row
         .col-4
           //h6= "Wappalyzer"
           button.btn.btn-block.btn-sm.btn-primary(data-toggle="collapse" data-target="#wappalyzer") Wappalyzer
@@ -289,15 +292,15 @@ block content
             div.alert
               p No data
       div#har-tab.tab-pane
-          if har
+          if webpage.harfile
+            a.btn.btn-danger(href=rootPath + "page/download/" + webpage._id) Download
+            if har
               #har
                 p= "length: " + har.length
-                a.btn.btn-danger(href=rootPath + "page/download/" + webpage._id) Download
+                //a.btn.btn-danger(href=rootPath + "page/download/" + webpage._id) Download
                 pre.prettyprint.linenums(style="white-space: pre-wrap") #{har}
-          else
-            div.alert
-              p No data
-
+            else
+                a.btn.btn-warning(href=rootPath + "page/" + webpage._id + "?har=true") Show HAR
     script.
               var apiPath = #{rootPath};
               function reset(){

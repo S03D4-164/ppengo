@@ -1,38 +1,38 @@
 html {
-  overflow-y:scroll;
+  overflow-y: scroll;
   font-size: 14px;
 }
 
 body {
-   padding-right: 0 !important;
+  padding-right: 0 !important;
 }
 
 table {
-  table-layout:fixed;
+  table-layout: fixed;
 }
 
 td {
-  word-break:break-all;
+  word-break: break-all;
 }
 
-img{
-  border:solid thin lightgrey;
+img {
+  border: solid thin lightgrey;
   display: block;
   margin: 0 auto;
 }
 
 .highlight {
-  background-color: #FFFF88;
+  background-color: #ffff88;
 }
 
 span.flag-icon {
-  border:solid thin lightgrey;
+  border: solid thin lightgrey;
 }
 
 .nav-pills li a {
--webkit-border-radius: 0 !important;
-   -moz-border-radius: 0 !important;
-        border-radius: 0 !important;
+  -webkit-border-radius: 0 !important;
+  -moz-border-radius: 0 !important;
+  border-radius: 0 !important;
 }
 
 /*
@@ -51,7 +51,7 @@ pre {
   white-space: -pre-wrap;
   white-space: -o-pre-wrap;
   word-wrap: break-word;
-  border:solid thin lightgrey;
+  border: solid thin lightgrey;
 }
 
 #toTop {
@@ -75,5 +75,9 @@ pre {
 }
 
 .container {
-  max-width:1280px;
+  max-width: 1280px;
+}
+
+.flex {
+  display: flex;
 }

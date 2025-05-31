@@ -4,14 +4,8 @@ var router = express.Router();
 const Webpage = require("./models/webpage");
 const Website = require("./models/website");
 
-//const wgeteer = require('./wgeteer');
 const agenda = require("./agenda");
-
 const bulkregister = require("./bulkregister");
-
-//const scheduler = require('./scheduler');
-//scheduler.start();
-//const scheduler = require('./agenda');
 
 router.post("/", async function (req, res) {
   const input = req.body["url"];
@@ -41,6 +35,7 @@ router.post("/", async function (req, res) {
           if (req.body["referer"]) option["referer"] = req.body["referer"];
           if (req.body["proxy"]) option["proxy"] = req.body["proxy"];
           if (req.body["click"]) option["click"] = req.body["click"];
+          if (req.body["actions"]) option["actions"] = req.body["actions"];
           if (req.body["exHeaders"])
             option["exHeaders"] = req.body["exHeaders"];
           if ("disableScript" in req.body) option["disableScript"] = true;
@@ -49,13 +44,6 @@ router.post("/", async function (req, res) {
             url: inputUrl,
             option: option,
           });
-
-          /*
-          const webpage = await wgeteer.registerUrl(inputUrl, option, track, req.user);
-          */
-          //await wgeteer.wgetJob(webpage);
-          //await wgeteer.wgetJob(webpage._id);
-          //const job = await wgeteer.wgetJob(webpage);
         }
       }
     }

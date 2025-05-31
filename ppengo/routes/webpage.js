@@ -124,8 +124,6 @@ router.get("/:id", async function (req, res) {
     return document;
   });
 
-  //const pred = await prediction.imgPrediction(webpage.thumbnail);
-
   var previous, diff;
   if (webpage.content) {
     previous = await Webpage.find({
@@ -190,21 +188,6 @@ router.get("/:id", async function (req, res) {
 
   logger.debug(req.query, search);
 
-  /*
-  var responses;
-  if(search.length){
-    const find = await Response.find({"webpage":id}).and(search)
-    .sort("-createdAt")
-    .then((document)=>{return document});
-    responses = find;
-  } else{
-    const find = await Response.find({"webpage":id})
-    .sort("-createdAt")
-    .then((document)=>{return document});
-    responses = find;
-  } 
-*/
-
   var website = await Website.findOne({ url: webpage.input })
     .lean()
     .then((document) => {
@@ -216,14 +199,16 @@ router.get("/:id", async function (req, res) {
   if (harfile) {
     try {
       const zipedHar = Buffer.from(harfile.har);
-      const directory = await unzipper.Open.buffer(zipedHar);
-      const extracted = await directory.files[0].buffer("infected");
-      har = extracted;
+      if (typeof req.query.har !== "undefined" && req.query.har) {
+        const directory = await unzipper.Open.buffer(zipedHar);
+        const extracted = await directory.files[0].buffer("infected");
+        har = extracted;
+      }
     } catch (e) {
       console.log(e);
     }
   }
-  //console.log(webpage.payload);
+  //console.log(webpage.screenshots);
   res.render("page", {
     webpage,
     result,

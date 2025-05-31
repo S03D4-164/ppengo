@@ -5,8 +5,8 @@ block content
   h1 YARA Rule
   form(role='form', action=rootPath + "yararule", method="post" style="width:100%")
     .form-group
-      button.btn-sm.btn-primary(type='submit') Save
-      input.form-control(type='text', name="name", placeholder='Enter rule name')
+      button.btn-sm.btn-primary(id='save' type='submit') Save
+      input.form-control(id='name' type='text', name="name", placeholder='Enter rule name')
     .form-group
       textarea#input.form-control(name="rule" rows=8)
         | rule ExampleRule
