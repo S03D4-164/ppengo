@@ -3,16 +3,22 @@ extends layout
 block content
 
   h1
-    a(href=rootPath + "yararule") YARA Rule
-  h3= yara._id
+    a(href=rootPath + "yararule") << YARA Rule
+  h3
+    a(href=rootPath + "yararule/" + yara._id)= "ID: " + yara._id
   form(role='form', action=rootPath + "yararule/" + yara._id, method="post" style="width:100%")
     .form-group
-      button.btn-sm.btn-primary(type='submit') Save
-      input.form-control(type='text', name="name" value=yara.name)
+      label(for="name") Rule Name:
+      input.form-control(id="name" type='text', name="name" value=yara.name)
     .form-group
-      textarea#input.form-control(name="rule" rows=8)= yara.rule
+      label(for="rule") YARA Rule:
+      textarea.form-control(id="rule" name="rule" rows=8)= yara.rule
+    .form-group
+      label(for="actions") Actions:
+      textarea.form-control(id="actions" name="actions" rows=3)= yara.actions
     input(type="hidden" name="_csrf", value=csrfToken)
     input(type="hidden" name="id", value=yara._id)
+    button.btn-sm.btn-primary(type='submit') Save
   if message
     div.alert.alert-warning
       p= message

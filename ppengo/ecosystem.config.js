@@ -15,7 +15,7 @@ module.exports = {
         NODE_ENV: "development",
         MONGO_DATABASE: "mongodb://localhost:27017/wgeteer",
       },
-      watch: path.resolve(__dirname, "routes"),
+      watch: ["routes", "views"],
       ignore_watch: ["node_modules"],
       max_memory_restart: "2G",
     },

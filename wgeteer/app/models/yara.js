@@ -1,22 +1,24 @@
-const mongoose = require('mongoose');
-const mongoosePaginate = require('mongoose-paginate-v2');
+const mongoose = require("mongoose");
+const mongoosePaginate = require("mongoose-paginate-v2");
 
-const yaraSchema = new mongoose.Schema({
+const yaraSchema = new mongoose.Schema(
+  {
     rule: {
-        type: String,
+      type: String,
     },
     name: {
-        type: String,
-        unique: true,
+      type: String,
+      unique: true,
+    },
+    actions: {
+      type: String,
     },
   },
-  {timestamps:true},
+  { timestamps: true },
 );
 
 yaraSchema.plugin(mongoosePaginate);
 
-yaraSchema.index({updatedAt:-1});
-//yaraSchema.index({name:1});
+yaraSchema.index({ updatedAt: -1 });
 
-module.exports = mongoose.model('Yara', yaraSchema);
- 
+module.exports = mongoose.model("Yara", yaraSchema);

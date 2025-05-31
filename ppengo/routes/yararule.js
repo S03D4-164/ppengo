@@ -2,15 +2,6 @@ var express = require("express");
 var router = express.Router();
 
 const Yara = require("./models/yara");
-const Payload = require("./models/payload");
-const Response = require("./models/response");
-const Webpage = require("./models/webpage");
-const Screenshot = require("./models/screenshot");
-
-var archiver = require("archiver");
-//archiver.registerFormat("zip-encrypted", require("archiver-zip-encrypted"));
-
-//const yara = require("./yara");
 
 var paginate = require("express-paginate");
 const { Parser } = require("@json2csv/plainjs");
@@ -72,34 +63,6 @@ router.get("/", function (req, res) {
   }
 });
 
-router.get("/download/:id", function (req, res) {
-  const id = req.params.id;
-  Payload.findById(id)
-    .lean()
-    .then(async (payload) => {
-      //console.log(payload._id);
-
-      var archive = archiver.create("zip-encrypted", {
-        zlib: { level: 8 },
-        encryptionMethod: "aes256",
-        password: "infected",
-      });
-      archive.on("error", function (err) {
-        res.status(500).send({ error: err.message });
-      });
-      archive.on("end", function () {
-        logger.debug("Archive wrote %d bytes", archive.pointer());
-      });
-
-      res.attachment(payload.md5 + ".zip");
-      archive.pipe(res);
-      //var buffer = Buffer.from(payload.payload);
-      var buffer = Buffer.from(payload.payload.buffer);
-      archive.append(buffer, { name: payload.md5 });
-      archive.finalize();
-    });
-});
-
 router.get("/:id", function (req, res) {
   const id = req.params.id;
   Yara.findById(id).then(async (yara) => {
@@ -117,6 +80,7 @@ router.post("/:id", function (req, res) {
       try {
         yara.name = req.body["name"];
         yara.rule = req.body["rule"];
+        yara.actions = req.body["actions"];
         await yara.save();
         message = "Update succeeded.";
       } catch (err) {
@@ -134,12 +98,13 @@ router.post("/:id", function (req, res) {
 });
 
 router.post("/", async function (req, res) {
-  console.log(req.body);
+  //console.log(req.body);
   let saveError;
   try {
     const newrule = new Yara({
       name: req.body["name"],
       rule: req.body["rule"],
+      actions: req.body["actions"],
     });
     await newrule.save();
   } catch (err) {

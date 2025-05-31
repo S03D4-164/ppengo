@@ -8,23 +8,26 @@ block content
           a= " from "
           a(href=rootPath + "website/" + website._id) #{webpage.input}
       .card-body
-          h5
-            a(href=rootPath + "page/" + webpage._id) #{webpage._id}
-            a= " : " + moment(webpage.createdAt).format('YYYY-MM-DD HH:mm:ss') + " / " +moment(webpage.createdAt).fromNow()
           .row
             .col-4
                 if webpage.thumbnail
-                  a.colorbox(href=rootPath + "screenshot/" + webpage.screenshot)
+                  a= "Result"
+                  a.gallery(href=rootPath + "screenshot/" + webpage.screenshot)
                     img(width="100%" id="thumbnail" src="data:image/png;base64," + webpage.thumbnail)
             .col-8
+              h4
+                a= "Webpage id: "
+                a(href=rootPath + "page/" + webpage._id)=  webpage._id
+                br
+                a= moment(webpage.createdAt).format('YYYY-MM-DD HH:mm:ss') + " / " +moment(webpage.createdAt).fromNow()
               .flex
                 if webpage.screenshots
                   - let cnt = 1
                   each screenshot in webpage.screenshots
                     if(screenshot.full && screenshot.thumbnail)
                       a= cnt
-                      a.colorbox(href=rootPath + "screenshot/" + screenshot.full)
-                        img(width="100%" id="thumbnail_" + screenshot._id src="data:image/png;base64," + screenshot.thumbnail)
+                      a.gallery(href=rootPath + "screenshot/" + screenshot.full)
+                        img(width="90%" id="thumbnail_" + screenshot._id src="data:image/png;base64," + screenshot.thumbnail)
                     - cnt += 1
       .row
         .col-4
@@ -303,6 +306,7 @@ block content
                 a.btn.btn-warning(href=rootPath + "page/" + webpage._id + "?har=true") Show HAR
     script.
               var apiPath = #{rootPath};
+              jQuery('a.gallery').colorbox({'photo':true, rel:'group'});
               function reset(){
                 var content=$("pre#tmp").text();
                 $('pre#content').text(content);
