@@ -172,9 +172,9 @@ block content
                   //th.col-2 createdAt
                   th.col-2 request
                   th.col-4 url
-                  th.col-2 response
+                  th.col-3 response
                   th.col-2 securityDetails
-                  th.col-2 yara
+                  th.col-1 yara
                 - var seq = 0
                 each request in requests
                   tr.d-flex(class={
@@ -205,7 +205,7 @@ block content
                           a #{request.url}
                     if request.response
                         - var response = request.response
-                        td.col-2(class={
+                        td.col-3(class={
                           "table-default":response.status>=200&&response.status<300,
                           "table-secondary":response.status>=400,
                           "table-warning":response.status>=300&&response.status<400,
@@ -214,10 +214,15 @@ block content
                           if response.status
                             a(href=rootPath + "response/" + response._id) #{response.status}
                           br
+                          if response.statusText
+                            a= response.statusText
+                          br
                           a= " size: "
                           if response.text
-                            a= response.text.length + " -> "
-                            a(href=rootPath + "payload/" + response.payload)= "payload"
+                            a= response.text.length
+                            if response.payload
+                              a= " -> "
+                              a(href=rootPath + "payload/" + response.payload)= "payload"
                           else
                             a -
                           br
@@ -231,7 +236,7 @@ block content
                             if response.securityDetails.issuer
                               a= response.securityDetails.issuer
                         - var response = request.response
-                        td.col-2
+                        td.col-1
                           if response.yara
                             if response.yara.rules
                               each rule in response.yara.rules

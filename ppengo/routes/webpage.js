@@ -174,7 +174,8 @@ router.get("/:id", async function (req, res) {
       lean: true,
       populate: {
         path: "response",
-        select: "_id remoteAddress status securityDetails yara payload text",
+        select:
+          "_id remoteAddress status statusText securityDetails yara payload text",
       },
     },
     function (err, result) {
