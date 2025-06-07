@@ -12,40 +12,43 @@ const moment = require("moment");
 var Diff = require("diff");
 const logger = require("./logger");
 
-router.get("/es/index", function (req, res) {
-  //Response.esTruncate(function(err){console.log(err)});
-  Response.esCreateMapping({
-    settings: {
-      analysis: {
-        filter: {
-          pos_filter: {
-            type: "kuromoji_part_of_speech",
-            stoptags: ["助詞-格助詞-一般", "助詞-終助詞"],
-          },
-          greek_lowercase_filter: { type: "lowercase", language: "greek" },
+router.get("/es/index", async function (req, res) {
+  try {
+    await Response.esTruncate(async function (err) {
+      console.log(err);
+    });
+  } catch (e) {
+    console.error(e);
+  }
+  await Response.createMapping({
+    analysis: {
+      filter: {
+        pos_filter: {
+          type: "kuromoji_part_of_speech",
+          stoptags: ["助詞-格助詞-一般", "助詞-終助詞"],
         },
-        analyzer: {
-          kuromoji_analyzer: {
-            type: "custom",
-            tokenizer: "kuromoji_tokenizer",
-            filter: [
-              "kuromoji_baseform",
-              "pos_filter",
-              "greek_lowercase_filter",
-              "cjk_width",
-            ],
-          },
+        greek_lowercase_filter: { type: "lowercase", language: "greek" },
+      },
+      analyzer: {
+        kuromoji_analyzer: {
+          type: "custom",
+          tokenizer: "kuromoji_tokenizer",
+          filter: [
+            "kuromoji_baseform",
+            "pos_filter",
+            "greek_lowercase_filter",
+            "cjk_width",
+          ],
         },
       },
     },
   });
 
-  agenda.now("esIndex");
-  //esIndex(Response);
+  agenda.now("mongoosasticSync");
   res.redirect(req.baseUrl);
 });
 
-router.get("/es", function (req, res) {
+router.get("/es", async function (req, res) {
   var size = req.query.size ? Number(req.query.size) : 10;
   var page = req.query.page ? Number(req.query.page) : 1;
   var from = (page - 1) * size;
@@ -67,22 +70,26 @@ router.get("/es", function (req, res) {
     hydrateOptions: { lean: true },
     hydrateWithESResults: { source: true },
   };
-  Response.esSearch(rawQuery, hidrate, function (err, results) {
-    console.log(JSON.stringify(results, null, " "));
-    var result, total;
-    if (results) {
-      //result = results.hits?{"docs":results.hits.hits}:{"docs":[]};
-      result = results.hits ? results.hits.hits : [];
-      total = results.hits ? results.hits.total.value : 0;
-    }
-    res.render("es_responses", {
-      result,
-      query: req.query.query,
-      total: total,
-      from,
-      size,
-      //pagenum,
+  let results = await Response.esSearch(rawQuery, hidrate)
+    .then((results) => {
+      return results;
+    })
+    .catch((err) => {
+      console.error(err);
     });
+  //console.log(JSON.stringify(results, null, "    "));
+  let total, result;
+  if (results) {
+    total = results.body.hits.total;
+    if (total > 0) result = results.body.hits.hydrated;
+  }
+  res.render("es_responses", {
+    result,
+    query: req.query.query,
+    total,
+    from,
+    size,
+    //pagenum,
   });
 });
 
@@ -296,7 +303,7 @@ router.get("/remove/:id", async function (req, res) {
     rawQuery,
     hidrate,
     function (err, results) {
-      let result
+      let result;
       if (results) {
         result = results.hits ? results.hits.hits : [];
       }

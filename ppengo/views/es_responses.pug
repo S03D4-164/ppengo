@@ -14,15 +14,15 @@ block content
           option(value=10, selected= true) 10
           option(value=50) 50 
           option(value=100) 100
-      //label(for="size") page:
-      //select.form-control(name='page' id='page')
+      label(for="size") page:
+      select.form-control(name='page' id='page')
           option(value=1, selected= true) 1
 
   br
   if responses
     h2= "query : " + query + " => " + total  + " hits"
 
-    //if search
+    if search
           h4= "Search: " + JSON.stringify(search) + " - Total: " + responses.length
     if responses.length >= 0 
       table.table.table-bordered.table-sm
@@ -34,14 +34,14 @@ block content
           tr.d-flex 
             td.col-2= moment(response.createdAt).format('YYYY-MM-DD HH:mm:ss.SSS')
             td.col-4
-              a(href=rootPath + "response?url=" + encodeURIComponent(response.doc.url))= "🔍 "
-              a(href=rootPath + "response/" +response._id) #{response.doc.url}
+              a(href=rootPath + "response?url=" + encodeURIComponent(response.url))= "🔍 "
+              a(href=rootPath + "response/" +response._id) #{response.url}
             td.col-6
-              if response.doc.text
-                - var matched = response.doc.text.toLowerCase().indexOf(query.toLowerCase());
+              if response.text
+                - var matched = response.text.toLowerCase().indexOf(query.toLowerCase());
                 - var start = matched<=100?0:matched-100
-                a= matched + " / " + response.doc.text.length
-                pre= response.doc.text.slice(start ,matched+100)
+                a= matched + " / " + response.text.length
+                pre= response.text.slice(start ,matched+100)
   else
     div.alert.alert-warning
       p No data

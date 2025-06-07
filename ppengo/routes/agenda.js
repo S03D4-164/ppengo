@@ -28,29 +28,26 @@ const connectionOpts = {
 const agenda = new Agenda(connectionOpts);
 
 agenda.define(
-  "esIndex",
+  "mongoosasticSync",
   {
     concurrency: 1,
     lockLimit: 1,
     priority: "low",
   },
   async () => {
-    Response.on("es-bulk-sent", function () {
-      logger.debug("buffer sent");
+    const stream = await Response.synchronize();
+    let count = 0;
+
+    stream.on("data", function (err, doc) {
+      count++;
     });
 
-    /*
-  Response.on('es-bulk-data', function (doc) {
-    logger.debug('Adding ' + doc.title);
-  });
-  */
-
-    Response.on("es-bulk-error", function (err) {
-      logger.error(err);
+    stream.on("close", function () {
+      console.log("indexed " + count + " documents!");
     });
 
-    Response.esSynchronize().then(function () {
-      logger.debug("sync end.");
+    stream.on("error", function (err) {
+      console.log(err);
     });
   },
 );

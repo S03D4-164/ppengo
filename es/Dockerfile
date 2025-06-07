@@ -1,3 +1,3 @@
-FROM docker.elastic.co/elasticsearch/elasticsearch:7.3.0 
+FROM docker.elastic.co/elasticsearch/elasticsearch:7.17.28-amd64
 
-RUN bin/elasticsearch-plugin  install analysis-kuromoji
+RUN bin/elasticsearch-plugin  install analysis-kuromoji analysis-icu

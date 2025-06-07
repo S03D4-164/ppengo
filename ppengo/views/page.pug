@@ -142,16 +142,16 @@ block content
 
     ul.nav.nav-pills
       li.nav-item
-        a.nav-link.active(data-toggle="tab",href="#request-tab") Request
+        a.nav-link(class=(har == undefined ? "active" : undefined) data-toggle="tab",href="#request-tab") Request
       li.nav-item
         a.nav-link(data-toggle="tab",href="#content-tab") Content
       li.nav-item
         a.nav-link(data-toggle="tab",href="#diff-tab") Diff
       li.nav-item
-        a.nav-link(data-toggle="tab",href="#har-tab") Har
+        a.nav-link(class=(har == undefined ? undefined : "active") data-toggle="tab",href="#har-tab") Har
 
     div.tab-content
-      div#request-tab.tab-pane.active
+      div#request-tab.tab-pane(class=(har == undefined ? "active" : undefined))
             if result
               - var requests = result.docs
               include include/pagination.pug
@@ -299,7 +299,7 @@ block content
           else
             div.alert
               p No data
-      div#har-tab.tab-pane
+      div#har-tab.tab-pane(class=(har == undefined ? undefined : "active"))
           if webpage.harfile
             a.btn.btn-danger(href=rootPath + "page/download/" + webpage._id) Download
             if har

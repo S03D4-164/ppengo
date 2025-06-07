@@ -1,7 +1,10 @@
 const mongoose = require("mongoose");
 const mongoosePaginate = require("mongoose-paginate-v2");
-//const mongoosastic = require('mongoosastic')
-const mexp = require("mongoose-elasticsearch-xp").v7;
+const mongoosastic = require("mongoosastic");
+
+const { Client: Client7 } = require("es7");
+const esClient = new Client7({ node: "http://elasticsearch:9200" });
+esClient.info().then(console.log, console.log);
 
 const responseSchema = new mongoose.Schema({
   url: {
@@ -56,6 +59,12 @@ const responseSchema = new mongoose.Schema({
   interceptionId: {
     type: String,
   },
+  mimeType: {
+    type: String,
+  },
+  encoding: {
+    type: String,
+  },
   webpage: { type: mongoose.Schema.Types.ObjectId, ref: "Webpage" },
   request: { type: mongoose.Schema.Types.ObjectId, ref: "Request" },
   payload: { type: mongoose.Schema.Types.ObjectId, ref: "Payload" },
@@ -69,12 +78,12 @@ responseSchema.index({ webpage: 1 });
 responseSchema.index({ "remoteAddress.ip": 1 });
 
 responseSchema.plugin(mongoosePaginate);
-//responseSchema.plugin(mongoosastic,{
-responseSchema.plugin(mexp, {
-  hosts: ["elasticsearch:9200", "127.0.0.1:9200"],
-  //hydrate:true,
-  //hydrateOptions: {lean: true},
-  //hydrateWithESResults: {source: false},
+responseSchema.plugin(mongoosastic, {
+  esClient: esClient,
+  bulk: {
+    size: 10, // preferred number of docs to bulk index
+    delay: 100, //milliseconds to wait for enough docs to meet size constraint
+  },
 });
 
 module.exports = mongoose.model("Response", responseSchema);
