@@ -49,7 +49,7 @@ router.get("/es/index", async function (req, res) {
 });
 
 router.get("/es", async function (req, res) {
-  var size = req.query.size ? Number(req.query.size) : 10;
+  var size = req.query.size ? Number(req.query.size) : 100;
   var page = req.query.page ? Number(req.query.page) : 1;
   var from = (page - 1) * size;
   //var from = req.query.from?Number(req.query.from):0;
@@ -75,7 +75,7 @@ router.get("/es", async function (req, res) {
       return results;
     })
     .catch((err) => {
-      console.error(err);
+      console.error(err.message);
     });
   //console.log(JSON.stringify(results, null, "    "));
   let total, result;
@@ -87,9 +87,8 @@ router.get("/es", async function (req, res) {
     result,
     query: req.query.query,
     total,
-    from,
     size,
-    //pagenum,
+    page,
   });
 });
 
@@ -180,15 +179,15 @@ router.get("/", function (req, res) {
         lean: true,
       },
       function (err, result) {
+        var pages = result
+          ? paginate.getArrayPages(req)(5, result.totalPages, req.query.page)
+          : undefined;
         res.render("responses", {
           title: "Responses",
-          search: req.query,
           result,
-          pages: paginate.getArrayPages(req)(
-            5,
-            result.totalPages,
-            req.query.page,
-          ),
+          pages,
+          search: req.query,
+          err: err,
         });
       },
     );

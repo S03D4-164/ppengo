@@ -1,55 +1,89 @@
-//const { Wappalyzer, technologies, categories } = require("wapalyzer-core");
-const wappalyzer = require("simple-wappalyzer");
-
+const { Wappalyzer, technologies, categories } = require("wapalyzer-core");
+const path = require("path");
+const fs = require("fs");
+const logger = require("./logger");
 const Webpage = require("./models/webpage");
 const Response = require("./models/response");
 
-const logger = require("./logger");
+const wapalyze = async (url, headers, html, cookies) => {
+  try {
+    const jscategories = JSON.parse(
+      fs.readFileSync(
+        path.resolve(__dirname, `./webappanalyzer/src/categories.json`),
+        "utf-8",
+      ),
+    );
+    let jstechnologies = {};
+    for (const index of Array(27).keys()) {
+      const character = index ? String.fromCharCode(index + 96) : "_";
+      jstechnologies = {
+        ...technologies,
+        ...JSON.parse(
+          fs.readFileSync(
+            path.resolve(
+              __dirname,
+              `./webappanalyzer/src/technologies/${character}.json`,
+            ),
+            "utf-8",
+          ),
+        ),
+      };
+    }
+    Wappalyzer.setTechnologies(jstechnologies);
+    Wappalyzer.setCategories(jscategories);
+  } catch (err) {
+    console.log(err);
+  }
 
-const wappalyze = async function (url, headers, text, status) {
   let wapps = [];
   try {
-    const results = await wappalyzer({ url, text, status, headers });
+    const detections = await Wappalyzer.analyze({
+      url: url,
+      headers: headers,
+      cookies: cookies,
+      html: html,
+    });
+    results = Wappalyzer.resolve(detections);
+    console.log(results);
     for (let result of results) {
       if (result.confidence == 100) {
         wapps.push(result.name);
       }
     }
-  } catch (err) {
-    console.log(err);
+  } catch (error) {
+    console.error("Error analyzing website:", error);
   }
-  console.log(url, wapps);
   return wapps;
 };
 
 const parseHeaders = async function (headers) {
   let parsedHeaders = {};
   for (let header of headers) {
-    parsedHeaders[header.name] = header.value;
+    parsedHeaders[header.name.toLowerCase()] = [header.value];
   }
-  console.log(parsedHeaders);
+  //console.log(parsedHeaders);
   return parsedHeaders;
 };
 
 module.exports = {
   async analyze(id) {
-    logger.debug(`wappalyze ${id}`);
+    logger.debug(`wapalyze ${id}`);
     let playwright = false;
     await Webpage.findById(id).then(async (webpage) => {
       try {
         let headers;
-        //let cookies;
+        let cookies;
         if (webpage.option.pptr == "playwright") {
           playwright = true;
           headers = await parseHeaders(webpage.headers);
         }
         if (webpage.url) {
-          let wapps = await wappalyze(
+          let wapps = await wapalyze(
             webpage.url,
             headers,
             webpage.content,
-            webpage.status,
-            //cookies,
+            //webpage.status,
+            cookies,
           );
           if (wapps.length > 0) {
             await Webpage.findOneAndUpdate(
@@ -57,45 +91,43 @@ module.exports = {
               { wappalyzer: wapps },
             );
           }
-          //wapps = null;
         }
       } catch (err) {
         logger.error(err);
       }
     });
     let newResponses = [];
-    await Response.find({ webpage: id }).then(async (responses) => {
-      //logger.debug(responses.length);
-      for (let response of responses) {
-        try {
-          if (response.url) {
-            //let cookies = null;
-            let headers;
-            if ((playwright = true)) {
-              headers = await parseHeaders(response.headers);
-            }
-            let wapps = await wappalyze(
-              response.url,
-              headers,
-              response.text,
-              response.status,
-              //cookies,
-            );
-            //console.log(wapps);
-            if (wapps.length > 0) {
-              //await Response.findOneAndUpdate(
-              //  {_id: response._id}, {wappalyzer: wapps}
-              //);
-              response.wappalyzer = wapps;
-              newResponses.push(response);
-            }
-            wapps = null;
+    const responses = await Response.find({ webpage: id });
+    //logger.debug(responses.length);
+    for (let response of responses) {
+      try {
+        if (response.url) {
+          let cookies;
+          let headers;
+          if ((playwright = true)) {
+            headers = await parseHeaders(response.headers);
           }
-        } catch (err) {
-          logger.debug(err);
+          let wapps = await wapalyze(
+            response.url,
+            headers,
+            response.text,
+            cookies,
+            //response.status,
+          );
+          //console.log(wapps);
+          if (wapps.length > 0) {
+            //await Response.findOneAndUpdate(
+            //  {_id: response._id}, {wappalyzer: wapps}
+            //);
+            response.wappalyzer = wapps;
+            newResponses.push(response);
+          }
         }
+      } catch (err) {
+        console.error(err);
       }
-    });
+    }
+
     //console.log(newResponses);
     await Response.bulkSave(newResponses);
     return;

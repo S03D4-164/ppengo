@@ -1,27 +1,26 @@
 extends layout
 
 block content
-  h2.p-2 Responses - ElasticSearch
+  h1.p-1 Responses - ElasticSearch
   if result
     - var responses = result
-    //include include/pagination.pug
   form.form-inline(method="get" action=rootPath + "response/es")
       input.form-control.mr-2.btn.btn-sm.btn-danger(type="submit" value="search")
       label.mr-2(for="source") query:  
       input.form-control.mr-2(type="text" name="query", id="query" value=query?query:"")
-      label(for="size") size:
-      select.form-control(name='size' id='size')
-          option(value=10, selected= true) 10
-          option(value=50) 50 
-          option(value=100) 100
-      label(for="size") page:
-      select.form-control(name='page' id='page')
-          option(value=1, selected= true) 1
-
-  br
   if responses
-    h2= "query : " + query + " => " + total  + " hits"
-
+    - let to = size * page > total ? total : size * page
+    - let from = to - size + 1 > 0 ? to - size + 1 : 1
+    - let last = Math.trunc(total / size + 1)
+    - let previous = page - 1 > 0 ? page - 1 : 1
+    - let next = page + 1 < last ? page + 1 : last
+    h2
+      - let link = rootPath + "response/es?query=" + query + "&size=" + size + "&page="
+      a.btn.m-1.btn-primary(href=link + "1")= "<<"
+      a.btn.m-1.btn-light(href=link + previous)= "<"
+      a.btn.m-1.btn-light(href=link + next)= ">"
+      a.btn.m-1.btn-primary(href=link + last)= ">>"
+      a= "query : " + query + " => " + total  + " hits | " + from + " ~ " + to
     if search
           h4= "Search: " + JSON.stringify(search) + " - Total: " + responses.length
     if responses.length >= 0 

@@ -11,7 +11,7 @@ const { Parser } = require("@json2csv/plainjs");
 router.get("/", function (req, res) {
   if (!req.user) res.redirect(req.baseUrl + "/auth/");
   var search = [];
-  if (!req.user.admin) search.push({ group: { $in: req.user.group } });
+  if (!req.user?.admin) search.push({ group: { $in: req.user.group } });
   let elem;
   if (typeof req.query.tagkey !== "undefined" && req.query.tagkey) {
     elem = {};
@@ -88,6 +88,7 @@ router.get("/", function (req, res) {
           result,
           pages,
           search: req.query,
+          err: err,
         });
       },
     );

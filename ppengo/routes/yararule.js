@@ -47,16 +47,17 @@ router.get("/", function (req, res) {
         limit: req.query.limit,
         lean: false,
       },
+
       function (err, result) {
+        var pages = result
+          ? paginate.getArrayPages(req)(5, result.totalPages, req.query.page)
+          : undefined;
         res.render("yararules", {
           title: "YARA rules",
-          search: req.query,
           result,
-          pages: paginate.getArrayPages(req)(
-            5,
-            result.totalPages,
-            req.query.page,
-          ),
+          pages,
+          search: req.query,
+          err: err,
         });
       },
     );

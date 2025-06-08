@@ -57,17 +57,15 @@ router.get("/", function (req, res) {
         lean: false,
       },
       function (err, result) {
-        //console.log(result)
-        //console.log(paginate)
+        var pages = result
+          ? paginate.getArrayPages(req)(5, result.totalPages, req.query.page)
+          : undefined;
         res.render("payloads", {
           title: "Payloads",
-          search: req.query,
           result,
-          pages: paginate.getArrayPages(req)(
-            5,
-            result.totalPages,
-            req.query.page,
-          ),
+          pages,
+          search: req.query,
+          err: err,
         });
       },
     );

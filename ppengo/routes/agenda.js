@@ -7,7 +7,6 @@ const Response = require("./models/response");
 
 //const mail = require("./mail");
 const yara = require("./yara");
-//const wappalyze = require("./wappalyze");
 const wappalyze = require("./wapalyze");
 
 const mongoConnectionString = process.env.MONGO_DATABASE;
