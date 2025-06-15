@@ -5,36 +5,38 @@ const logger = require("./logger");
 const Webpage = require("./models/webpage");
 const Response = require("./models/response");
 
-const wapalyze = async (url, headers, html, cookies) => {
-  try {
-    const jscategories = JSON.parse(
-      fs.readFileSync(
-        path.resolve(__dirname, `./webappanalyzer/src/categories.json`),
-        "utf-8",
-      ),
-    );
-    let jstechnologies = {};
-    for (const index of Array(27).keys()) {
-      const character = index ? String.fromCharCode(index + 96) : "_";
-      jstechnologies = {
-        ...technologies,
-        ...JSON.parse(
-          fs.readFileSync(
-            path.resolve(
-              __dirname,
-              `./webappanalyzer/src/technologies/${character}.json`,
-            ),
-            "utf-8",
+try {
+  const jscategories = JSON.parse(
+    fs.readFileSync(
+      path.resolve(__dirname, `./webappanalyzer/src/categories.json`),
+      "utf-8",
+    ),
+  );
+  let jstechnologies = {};
+  for (const index of Array(27).keys()) {
+    const character = index ? String.fromCharCode(index + 96) : "_";
+    jstechnologies = {
+      ...technologies,
+      ...JSON.parse(
+        fs.readFileSync(
+          path.resolve(
+            __dirname,
+            `./webappanalyzer/src/technologies/${character}.json`,
           ),
+          "utf-8",
         ),
-      };
-    }
-    Wappalyzer.setTechnologies(jstechnologies);
-    Wappalyzer.setCategories(jscategories);
-  } catch (err) {
-    console.log(err);
+      ),
+    };
   }
+  Wappalyzer.setTechnologies(jstechnologies);
+  Wappalyzer.setCategories(jscategories);
+} catch (err) {
+  console.log(err);
+  Wappalyzer.setTechnologies(technologies);
+  Wappalyzer.setCategories(categories);
+}
 
+const wapalyze = async (url, headers, html, cookies) => {
   let wapps = [];
   try {
     const detections = await Wappalyzer.analyze({
@@ -68,16 +70,21 @@ const parseHeaders = async function (headers) {
 module.exports = {
   async analyze(id) {
     logger.debug(`wapalyze ${id}`);
+    const webpage = await Webpage.findById(id);
     let playwright = false;
-    await Webpage.findById(id).then(async (webpage) => {
+    if (webpage.option.pptr == "playwright") {
+      playwright = true;
+    }
+    if (!webpage.wappalyzer) {
       try {
         let headers;
         let cookies;
-        if (webpage.option.pptr == "playwright") {
-          playwright = true;
+        if (playwright) {
           headers = await parseHeaders(webpage.headers);
+        } else {
+          headers = webpage.headers;
         }
-        if (webpage.url) {
+        if (webpage.url && webpage.content) {
           let wapps = await wapalyze(
             webpage.url,
             headers,
@@ -95,39 +102,43 @@ module.exports = {
       } catch (err) {
         logger.error(err);
       }
-    });
+    }
+
     let newResponses = [];
     const responses = await Response.find({ webpage: id });
     //logger.debug(responses.length);
     for (let response of responses) {
-      try {
-        if (response.url) {
-          let cookies;
-          let headers;
-          if ((playwright = true)) {
-            headers = await parseHeaders(response.headers);
+      if (!response.wappalyzer) {
+        try {
+          if (response.url && response.text) {
+            let cookies;
+            let headers;
+            if ((playwright = true)) {
+              headers = await parseHeaders(response.headers);
+            } else {
+              headers = response.headers;
+            }
+            let wapps = await wapalyze(
+              response.url,
+              headers,
+              response.text,
+              cookies,
+              //response.status,
+            );
+            //console.log(wapps);
+            if (wapps.length > 0) {
+              //await Response.findOneAndUpdate(
+              //  {_id: response._id}, {wappalyzer: wapps}
+              //);
+              response.wappalyzer = wapps;
+              newResponses.push(response);
+            }
           }
-          let wapps = await wapalyze(
-            response.url,
-            headers,
-            response.text,
-            cookies,
-            //response.status,
-          );
-          //console.log(wapps);
-          if (wapps.length > 0) {
-            //await Response.findOneAndUpdate(
-            //  {_id: response._id}, {wappalyzer: wapps}
-            //);
-            response.wappalyzer = wapps;
-            newResponses.push(response);
-          }
+        } catch (err) {
+          console.error(err);
         }
-      } catch (err) {
-        console.error(err);
       }
     }
-
     //console.log(newResponses);
     await Response.bulkSave(newResponses);
     return;
