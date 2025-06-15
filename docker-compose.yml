@@ -17,7 +17,7 @@ services:
     container_name: mongodb
     #command: --wiredTigerCacheSizeGB 1 --setParameter logLevel=1
     command: --config /etc/mongo/mongod.conf
-    mem_limit: 1g
+    mem_limit: 4g
     #restart: always
     networks:
       - default
@@ -76,7 +76,7 @@ services:
       - "127.0.0.1:9222:9222"
     depends_on:
       - mongodb
-      - elasticsearch
+      #- elasticsearch
     volumes:
       - ./ppengo/public:/home/node/public
       - ./ppengo/routes:/home/node/routes
@@ -99,7 +99,7 @@ services:
         max-size: "10m"
         max-file: "10"
     #restart: always
-    mem_limit: 2g
+    mem_limit: 4g
     networks:
       - default
 
@@ -111,13 +111,15 @@ services:
     volumes:
       - ./data/elasticsearch/data:/usr/share/elasticsearch/data
       - ./es/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
-    mem_limit: 2g
+    mem_limit: 4g
     environment:
       - JVM_OPTS=-Xmx2g -Xms2g -XX:MaxPermSize=2048m
       - ES_HEAP_SIZE=2g
     container_name: elasticsearch
     networks:
       - default
+    profiles:
+      - extra
 
   kibana:
     image: docker.elastic.co/kibana/kibana:7.3.0

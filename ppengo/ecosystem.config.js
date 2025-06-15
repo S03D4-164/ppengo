@@ -17,7 +17,7 @@ module.exports = {
       },
       watch: ["routes", "views"],
       ignore_watch: ["node_modules"],
-      max_memory_restart: "2G",
+      max_memory_restart: "4G",
     },
   ],
 };
