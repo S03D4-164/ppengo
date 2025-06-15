@@ -12,15 +12,9 @@ div
                 label.col-2.mr-2(for="timeout") Timeout(s): 
                 input.col-2.mr-2.form-control(type="number" name="timeout", id="timeout", max="300", min="30", step="30", value="60")
                 label.col-2.mr-2(for="delay") Delay(s): 
-                input.col-2.mr-2.form-control(type="number" name="delay", id="delay", max="60", min="0", step="5", value="10")
+                input.col-2.mr-2.form-control(type="number" name="delay", id="delay", max="60", min="0", step="5", value="5")
             br
-            .form-group.row
-              label.col-2(for="pptr") pptr:
-              select.form-control.col-9(name='pptr' id='pptr')
-                option(value='playwright' selected= true) Playwright
-                option(value='real') Real
-                //option(value='stealth') Stealth
-                //option(value='antibot') Antibot
+
             .form-group
                 label(for="actions") Actions: 
                 textarea.form-control(id="actions", name="actions", rows=2)
@@ -28,11 +22,15 @@ div
                 label(for="exHeaders") Extra Headers: 
                 textarea.form-control(id="exHeaders", name="exHeaders", rows=2)
             .form-inline
-                .form-check-inline
-                    label.form-check-label(for="disableScript") disable script:
-                    input.form-check-input(type="checkbox", name="disableScript", id="disableScript" value="")
+              .form-check-inline
+                    label.mr-2.form-check-label(for="disableScript")= "disable script: "
+                    input.mr-2.form-check-input(type="checkbox", name="disableScript", id="disableScript" value="")
                     //label.form-check-label(for="cf") cloudflare:
                     //input.form-check-input(type="checkbox", name="cf", id="cf" value="")
+                    label.mr-2.form-check-label(for="dom")= " wait until dom: "
+                    input.mr-2.form-check-input(type="checkbox", name="dom", id="dom" value="" checked)
+                    label.mr-2.form-check-label(for="dom")= " bulk save: "
+                    input.mr-2.form-check-input(type="checkbox", name="bulksave", id="bulksave" value="" checked)
 
             //label(for="postData") Post Data: 
             //br

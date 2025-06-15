@@ -39,6 +39,9 @@ router.post("/", async function (req, res) {
           if (req.body["exHeaders"])
             option["exHeaders"] = req.body["exHeaders"];
           if ("disableScript" in req.body) option["disableScript"] = true;
+          if ("dom" in req.body) option["dom"] = true;
+          if ("bulksave" in req.body) option["bulksave"] = true;
+
           if ("pptr" in req.body) option["pptr"] = req.body["pptr"];
           urls.push({
             url: inputUrl,
