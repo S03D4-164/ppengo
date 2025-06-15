@@ -2,6 +2,9 @@ var express = require("express");
 var router = express.Router();
 
 const Response = require("./models/response");
+//const Webpage = require("./models/webpage");
+//const Request = require("./models/request");
+
 const agenda = require("./agenda");
 
 var paginate = require("express-paginate");
@@ -214,16 +217,25 @@ router.get("/", function (req, res) {
 
 router.get("/:id", async function (req, res) {
   const id = req.params.id;
-  const response = await Response.findById(id)
-    .populate("request")
-    .populate("webpage")
-    .then((document) => {
-      //console.log(document);
-      return document;
-    });
-  const webpage = response.webpage;
-  const request = response.request;
+  let response;
+  let webpage;
+  let request;
+  let error;
+  try {
+    response = await Response.findById(id)
+      .populate("request")
+      .populate("webpage");
 
+    webpage = response.webpage;
+    request = response.request; /* ||
+      (await Request.findOne({
+        webpage,
+        interceptionId: response.interceptionId,
+      }));*/
+  } catch (err) {
+    logger.error(err);
+    error = err.message;
+  }
   var previous, diff;
   if (response.text) {
     previous = await Response.find({
@@ -261,7 +273,7 @@ router.get("/:id", async function (req, res) {
         return document;
       });
     */
-
+  //console.log(response);
   res.render("response", {
     title: "Response",
     webpage: webpage,

@@ -185,18 +185,19 @@ block content
                     - seq += 1
                     td.col-2
                       a.btn.btn-sm.btn-primary(href=rootPath + "request/" + request._id)= seq
-                      if request.response
-                        a   #{request.method}
-                      else
-                        a= request.method
+                      if request.method
+                        a #{request.method}
                       if request.resourceType
-                        a= " / " + request.resourceType
-                      if request.redirectChain
-                        br
-                        a= "chain:" +request.redirectChain.length
+                        a= " type: " + request.resourceType
+                      br
                       if request.failure
+                        a= "failure: " + request.failure.errorText
                         br
-                        a= request.failure.errorText
+                      if request.redirectChain
+                        a= "chain:" +request.redirectChain.length
+                        br
+                      if request.interceptionId
+                        a= "intercept: "  + request.interceptionId
                     td.col-4
                         a(href=rootPath + "response?url=" + encodeURIComponent(request.url))= "🔍 "
                         if request.url.length > 100
@@ -210,27 +211,32 @@ block content
                           "table-secondary":response.status>=400,
                           "table-warning":response.status>=300&&response.status<400,
                         })
-                          a= "status: "
                           if response.status
+                            a= "status: "
                             a(href=rootPath + "response/" + response._id) #{response.status}
-                          br
                           if response.statusText
-                            a= response.statusText
-                          br
-                          a= " size: "
+                            a= " " + response.statusText
                           if response.text
-                            a= response.text.length
-                            if response.payload
-                              a= " -> "
-                              a(href=rootPath + "payload/" + response.payload)= "payload"
-                          else
-                            a -
+                            a= " | size: " + response.text.length
+                          if response.payload
+                            a= " -> "
+                            a(href=rootPath + "payload/" + response.payload)= "payload"
                           br
-                          a= "ip:"
-                          a(href=rootPath + "response?ip=" + response.remoteAddress.ip)= response.remoteAddress.ip
-                          if response.remoteAddress.geoip
-                            if response.remoteAddress.geoip[0]
-                              a= " - " + response.remoteAddress.geoip[0].country
+                          if response.mimeType
+                            a= response.mimeType
+                            br
+                          if response.encoding
+                            a= "encoding: " + response.encoding
+                            br
+                          if response.remoteAddress
+                            a= "ip: "
+                            a(href=rootPath + "response?ip=" + response.remoteAddress.ip)= response.remoteAddress.ip
+                            if response.remoteAddress.geoip
+                              if response.remoteAddress.geoip[0]
+                                a= " - " + response.remoteAddress.geoip[0].country
+                            br
+                          if response.interceptionId
+                            a= "intercept: " + response.interceptionId
                         td.col-2
                           if response.securityDetails
                             if response.securityDetails.issuer

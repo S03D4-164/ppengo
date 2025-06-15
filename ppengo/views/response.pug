@@ -10,8 +10,9 @@ block content
         p No data
   h3
     - var url = response?response.url:request.url
-    a(href=rootPath + "response?url=" + encodeURIComponent(url)) 🔍
-    a= url
+    pre
+      a(href=rootPath + "response?url=" + encodeURIComponent(url)) 🔍
+      a= url
   .row
     .col-6
      .card
@@ -74,8 +75,21 @@ block content
                 th= "urlHash"
                 td= response.urlHash
               tr
+                th= "interceptionId"
+                td= response.interceptionId
+              tr
                 th= "status"
-                td= response.status + " " + response.statusText
+                td
+                  if response.status
+                    a= response.status
+                  if response.statusText
+                    a= " " + response.statusText
+              tr
+                th= "mimeType"
+                td= response.mimeType
+              tr
+                th= "encoding"
+                td= response.encoding
               if response.remoteAddress
                 - var remoteAddress = response.remoteAddress
                 tr
@@ -101,7 +115,7 @@ block content
                 button.mr-2.btn.btn-sm.btn-block.btn-outline-primary(data-toggle="collapse" data-target="#cymruBgp") Cymru BGP ▽
                 div#cymruBgp.collapse.show
                   //h6 Cymru BGP
-                  if remoteAddress.bgp
+                  if remoteAddress
                     if remoteAddress.bgp.length  
                       each bgp in remoteAddress.bgp
                         pre=JSON.stringify(bgp, null, ' ')

@@ -120,9 +120,14 @@ router.get("/", function (req, res) {
 
 router.get("/:id", async function (req, res) {
   const id = req.params.id;
-  var webpage = await Webpage.findById(id).then((document) => {
-    return document;
-  });
+  let webpage;
+  let error;
+  try {
+    webpage = await Webpage.findById(id);
+  } catch (err) {
+    logger.error(err);
+    error = err.message;
+  }
 
   var previous, diff;
   if (webpage.content) {
@@ -168,14 +173,14 @@ router.get("/:id", async function (req, res) {
   const result = await Request.paginate(
     { webpage: id },
     {
-      sort: { createdAt: 1 },
+      //sort: { createdAt: 1 },
       page: req.query.page,
       limit: req.query.limit,
       lean: true,
       populate: {
         path: "response",
-        select:
-          "_id remoteAddress status statusText securityDetails yara payload text",
+        //select:
+        //  "_id remoteAddress status statusText securityDetails yara payload text",
       },
     },
     function (err, result) {
