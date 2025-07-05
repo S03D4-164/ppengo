@@ -38,8 +38,7 @@ mixin webpages-include(webpages, title, website, search, result, err)
         tr.thead-light.d-flex
           th.col-2 createdAt
           th.col-5 result
-          th.col-1 status
-          th.col-1 size
+          th.col-2 info
           th.col-2 ip
           th.col-1 capture
         each webpage in webpages
@@ -58,6 +57,10 @@ mixin webpages-include(webpages, title, website, search, result, err)
                       a= " / status: " + webpage.status
                   if webpage.requests || webpage.responses
                     a= " / req:" + webpage.requests.length + " / res:" + webpage.responses.length
+                  if webpage.status
+                    a= " / status: " + webpage.status
+                  if webpage.content
+                    a= " / length: " + webpage.content.length
               .row
                   .col-2 url
                   .col-10
@@ -70,12 +73,34 @@ mixin webpages-include(webpages, title, website, search, result, err)
                       a= webpage.error
                     else
                       a none
-            td.col-1
-              if webpage.status
-                a= webpage.status
-            td.col-1
-              if webpage.content
-                a= webpage.content.length
+            td.col-2
+              a= "GSB: "
+              if webpage.gsb && webpage.gsb.lookup
+                -var matches = webpage.gsb.lookup.matches
+                if matches
+                  each match in matches
+                    span.badge.badge-danger
+                      a= match.threatType
+                else
+                  span.badge.badge-info
+                    a none
+              br
+              a= "YARA: " 
+              if webpage.yara && webpage.yara.rules
+                each rule in webpage.yara.rules
+                  if rule.id
+                    span.badge.badge-warning
+                      a.text-light(href=rootPath + "page?yara=" + rule.id)=rule.id
+              br
+              a= "Tag: "
+              if webpage.tag
+                each tag in webpage.tag
+                  each val, key in tag
+                    span.badge.badge-primary
+                      a.text-light(href=rootPath + "website/?tagkey=" + key)= key
+                      a.text-light= ":"
+                      a.text-light(href=rootPath + "website/?tagkey=" + key + "&tagval=" + val)= val
+              br
             td.col-2
               if webpage.remoteAddress
                 a(href=rootPath + "page?ip=" + webpage.remoteAddress.ip)= " 🔍" 

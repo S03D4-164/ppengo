@@ -116,7 +116,43 @@ mixin webpages-include(webpages, title, website, search)
                   if webpage.remoteAddress.geoip
                     if webpage.remoteAddress.geoip[0]
                       a= " (" + webpage.remoteAddress.geoip[0].country + ")"
-
+              .row
+                .col-2 gsb
+                .col-10
+                  if webpage.gsb && webpage.gsb.lookup
+                    -var matches = webpage.gsb.lookup.matches
+                    if matches
+                      each match in matches
+                        span.badge.badge-danger
+                          a= match.threatType
+                    else
+                      span.badge.badge-info
+                        a none
+              .row
+                .col-2 yara
+                .col-10
+                  if webpage.yara && webpage.yara.rules
+                    each rule in webpage.yara.rules
+                      if rule.id
+                        span.badge.badge-warning
+                          a.text-light(href=rootPath + "page?verbose=on&yara=" + rule.id)=rule.id
+              .row
+                .col-2 tag
+                .col-10
+                  if webpage.tag
+                    each tag in webpage.tag
+                      each val, key in tag
+                        span.badge.badge-primary
+                          a.text-light(href=rootPath + "website/?tagkey=" + key)= key
+                          a.text-light= ":"
+                          a.text-light(href=rootPath + "website/?tagkey=" + key + "&tagval=" + val)= val
+              //.row
+                .col-2 wapp
+                .col-10                          
+                  if webpage.wappalyzer
+                    each wapp in webpage.wappalyzer
+                      span.badge.badge-info.m-1
+                        a.text-light(href=rootPath + "page?wappalyzer=" + wapp)= wapp + " "
             td.col-3
               if webpage.thumbnail
                 a.colorbox(href=rootPath + "screenshot/" +webpage.screenshot)

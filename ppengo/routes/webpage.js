@@ -49,6 +49,11 @@ router.get("/", function (req, res) {
       "remoteAddress.geoip.country": new RegExp(req.query.country),
     });
   }
+  if (typeof req.query.yara !== "undefined" && req.query.yara) {
+    search.push({
+      "yara.rules.id": new RegExp(req.query.yara),
+    });
+  }
   if (typeof req.query.status !== "undefined" && req.query.status) {
     //search.push({"$where": `/${req.query.status}/.test(this.status)`});
     search.push({ status: req.query.status });
@@ -214,7 +219,7 @@ router.get("/:id", async function (req, res) {
       console.log(e);
     }
   }
-  //console.log(webpage.screenshots);
+  console.log(webpage.yara);
   res.render("page", {
     webpage,
     result,

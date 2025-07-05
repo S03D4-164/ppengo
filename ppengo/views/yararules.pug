@@ -29,17 +29,26 @@ block content
       if yararules.length
           table.table.table-striped.table-bordered.table-hover.table-sm
             tr.thead-light.d-flex
-              th.col-3 name
-              th.col-9 rule
-
+              th.col-2 name
+              th.col-6 rule
+              th.col-4 actions
             each yararule in yararules
-                tr.d-flex
-                  td.col-3
-                    p= moment(yararule.createdAt).format('YYYY-MM-DD HH:mm:ss.SSS')
-                    p= yararule.name
-                    a(href=rootPath + "yararule/" + yararule._id)= yararule._id
-                  td.col-9
-                    p= yararule.rule
+              tr.d-flex
+                td.col-2
+                  a= moment(yararule.createdAt).format('YYYY-MM-DD HH:mm:ss.SSS')
+                  br
+                  a(href=rootPath + "yararule/" + yararule._id)= yararule._id
+                  br
+                  a= yararule.name
+                  br
+                  span.badge.badge-primary.m-1
+                    a.text-light(href=rootPath + "page?yara=" + yararule.name)= "🔍webpage"
+                  span.badge.badge-secondary.m-1
+                    a.text-light(href=rootPath + "response?yara=" + yararule.name)= "🔍response"
+                td.col-6
+                  pre= yararule.rule.slice(0,100)
+                td.col-4
+                  pre= yararule.actions
   else 
     div.alert.alert-warning
       p No data

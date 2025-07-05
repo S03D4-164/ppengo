@@ -70,11 +70,18 @@ const webpageSchema = new mongoose.Schema({
   ],
   payload: { type: mongoose.Schema.Types.ObjectId, ref: "Payload" },
   harfile: { type: mongoose.Schema.Types.ObjectId, ref: "Harfile" },
+  favicon: [
+    {
+      url: String,
+      favicon: String,
+    },
+  ],
 });
 
 webpageSchema.index({ createdAt: -1 });
 webpageSchema.index({ content: "text" });
 webpageSchema.index({ input: 1, createdAt: -1 });
+webpageSchema.index({ "yara.rules.id": 1 });
 
 webpageSchema.plugin(mongoosePaginate);
 

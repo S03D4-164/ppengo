@@ -14,6 +14,7 @@ const moment = require("moment");
 
 var Diff = require("diff");
 const logger = require("./logger");
+const { flexSearch } = require("./flexsearch");
 
 router.get("/es/index", async function (req, res) {
   try {
@@ -73,6 +74,7 @@ router.get("/es", async function (req, res) {
     hydrateOptions: { lean: true },
     hydrateWithESResults: { source: true },
   };
+  /*
   let results = await Response.esSearch(rawQuery, hidrate)
     .then((results) => {
       return results;
@@ -86,12 +88,15 @@ router.get("/es", async function (req, res) {
     total = results.body.hits.total;
     if (total > 0) result = results.body.hits.hydrated;
   }
+  */
+  let result = await flexSearch(req.query.query);
+  console.log(result);
   res.render("es_responses", {
     result,
     query: req.query.query,
-    total,
-    size,
-    page,
+    //total,
+    //size,
+    //page,
   });
 });
 
@@ -115,6 +120,12 @@ router.get("/", function (req, res) {
       "remoteAddress.geoip.country": new RegExp(req.query.country),
     });
   }
+  if (typeof req.query.yara !== "undefined" && req.query.yara) {
+    search.push({
+      "yara.rules.id": new RegExp(req.query.yara),
+    });
+  }
+
   if (typeof req.query.status !== "undefined" && req.query.status) {
     //search.push({"$where": `/${req.query.status}/.test(this.status)`});
     search.push({ status: req.query.status });

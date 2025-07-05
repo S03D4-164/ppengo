@@ -91,29 +91,39 @@ block content
                       a error: #{webpage.last.error||"none"}
                       br
                   td.col-2
+                    a= "GSB: "
                     if webpage.gsb.lookup
-                        a gsb:
-                        br
-                        -var matches = webpage.gsb.lookup.matches
-                        if matches
-                          each match in matches
-                            span.badge.badge-danger
-                              a= match.threatType
-                            br
-                        else
-                          span.badge.badge-info
-                            a none
-                    hr
-                    a tag:
+                      -var matches = webpage.gsb.lookup.matches
+                      if matches
+                        each match in matches
+                          span.badge.badge-danger
+                            a= match.threatType
+                          br
+                      else
+                        span.badge.badge-info
+                          a none
                     br
+                    a= "Wappalyzer: "
+                    if webpage.last.wappalyzer
+                      each wapp in webpage.last.wappalyzer
+                        span.badge.badge-info.m-1
+                          a.text-light(href=rootPath + "page?wappalyzer=" + wapp)= wapp + " "
+                    br
+                    a= "YARA: " 
+                    if webpage.last.yara && webpage.last.yara.rules
+                        each rule in webpage.last.yara.rules
+                          if rule.id
+                            span.badge.badge-warning
+                              a.text-light(href=rootPath + "page?yara=" + rule.id)=rule.id
+                    br
+                    a= "Tag: "
                     each tag in webpage.tag
                       each val, key in tag
                         span.badge.badge-primary
                           a.text-light(href=rootPath + "website/?tagkey=" + key)= key
                           a.text-light= ":"
                           a.text-light(href=rootPath + "website/?tagkey=" + key + "&tagval=" + val)= val
-                        br
-
+                    br
   else
     div.alert.alert-warning
       p No data

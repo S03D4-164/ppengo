@@ -7,6 +7,7 @@ var User = require("./models/user");
 router.get("/", async function (req, res) {
   res.render("auth", {
     user: req.user,
+    title: "ppengo authentication",
   });
 });
 

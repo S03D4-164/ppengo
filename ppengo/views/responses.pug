@@ -49,11 +49,29 @@ block content
                   -var country=remoteAddress.geoip[0].country
                   a= " / Country: "
                   a(href=rootPath + "response?country=" + country)= country
+              a= " / GSB: " 
+              if response.gsb && response.gsb.lookup
+                -var matches = response.gsb.lookup.matches
+                if matches
+                  each match in matches
+                    span.badge.badge-danger
+                      a= match.threatType
+                else
+                  span.badge.badge-info
+                    a none                
+              a= " / YARA: " 
+              if response.yara
+                if response.yara.rules
+                  each rule in response.yara.rules
+                    if rule.id
+                      span.badge.badge-warning
+                        a(style={ color: "white"} href=rootPath + "response?yara=" + rule.id)=rule.id
               br
               if response.wappalyzer
                 a= "Wappalyzer: "
-                  each wapp in response.wappalyzer
-                    a(href=rootPath + "response?wappalyzer=" + wapp)= wapp + " "
+                each wapp in response.wappalyzer
+                  span.badge.badge-info.m-1
+                    a(style={ color: "white"} href=rootPath + "response?wappalyzer=" + wapp)= wapp + " "
                 br
               if response.securityDetails
                 a= "Issuer: "

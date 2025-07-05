@@ -76,6 +76,7 @@ responseSchema.index({ payload: 1 });
 responseSchema.index({ text: "text" });
 responseSchema.index({ webpage: 1 });
 responseSchema.index({ "remoteAddress.ip": 1 });
+responseSchema.index({ "yara.rules.id": 1 });
 
 responseSchema.plugin(mongoosePaginate);
 responseSchema.plugin(mongoosastic, {
