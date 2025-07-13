@@ -34,7 +34,7 @@
     "escodegen": "^1.11.1",
     "esmangle": "^1.0.1",
     "esprima": "^4.0.1",
-    "express": ">=4.19.2",
+    "express": "4.21.2",
     "express-paginate": "^1.0.0",
     "express-session": "^1.16.1",
     "flexsearch": "^0.8.205",
