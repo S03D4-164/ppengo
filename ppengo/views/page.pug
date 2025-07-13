@@ -170,11 +170,11 @@ block content
               table.table.table-bordered.table-sm
                 tr.thead-light.d-flex
                   //th.col-2 createdAt
-                  th.col-2 request
+                  th.col-1 request
                   th.col-4 url
                   th.col-3 response
                   th.col-2 securityDetails
-                  th.col-1 yara
+                  th.col-2 yara
                 - var seq = 0
                 each request in requests
                   tr.d-flex(class={
@@ -183,7 +183,7 @@ block content
                       "table-warning":request.failure,
                     })
                     - seq += 1
-                    td.col-2
+                    td.col-1
                       a.btn.btn-sm.btn-primary(href=rootPath + "request/" + request._id)= seq
                       if request.method
                         a #{request.method}
@@ -242,13 +242,13 @@ block content
                             if response.securityDetails.issuer
                               a= response.securityDetails.issuer
                         - var response = request.response
-                        td.col-1
+                        td.col-2
                           if response.yara
                             if response.yara.rules
                               each rule in response.yara.rules
                                 if rule.id
                                   span.badge.badge-warning
-                                    a= rule.id
+                                    a.text-dark(href=rootPath + "response?yara=" + rule.id)=rule.id
                     else
                         td.col-6 no response
       div#content-tab.tab-pane
@@ -306,6 +306,8 @@ block content
             div.alert
               p No data
       div#har-tab.tab-pane(class=(har == undefined ? undefined : "active"))
+          //if webpage.favicon
+            pre.prettyprint.linenums(style="white-space: pre-wrap") #{webpage.favicon}
           if webpage.harfile
             a.btn.btn-danger(href=rootPath + "page/download/" + webpage._id) Download
             if har
