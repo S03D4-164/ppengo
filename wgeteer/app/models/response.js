@@ -1,11 +1,11 @@
 const mongoose = require("mongoose");
 const mongoosePaginate = require("mongoose-paginate-v2");
 const mongoosastic = require("mongoosastic");
-
+/*
 const { Client: Client7 } = require("es7");
 const esClient = new Client7({ node: "http://elasticsearch:9200" });
 esClient.info().then(console.log, console.log);
-
+*/
 const responseSchema = new mongoose.Schema({
   url: {
     type: String,
@@ -79,6 +79,7 @@ responseSchema.index({ "remoteAddress.ip": 1 });
 responseSchema.index({ "yara.rules.id": 1 });
 
 responseSchema.plugin(mongoosePaginate);
+/*
 responseSchema.plugin(mongoosastic, {
   esClient: esClient,
   bulk: {
@@ -86,5 +87,6 @@ responseSchema.plugin(mongoosastic, {
     delay: 100, //milliseconds to wait for enough docs to meet size constraint
   },
 });
+*/
 
 module.exports = mongoose.model("Response", responseSchema);
