@@ -12,7 +12,7 @@ div
                 label.col-2.mr-2(for="timeout") Timeout(s): 
                 input.col-2.mr-2.form-control(type="number" name="timeout", id="timeout", max="300", min="30", step="30", value="60")
                 label.col-2.mr-2(for="delay") Delay(s): 
-                input.col-2.mr-2.form-control(type="number" name="delay", id="delay", max="60", min="0", step="5", value="5")
+                input.col-2.mr-2.form-control(type="number" name="delay", id="delay", max="60", min="0", step="5", value="10")
             br
 
             .form-group
@@ -25,12 +25,12 @@ div
               .form-check-inline
                     label.mr-2.form-check-label(for="disableScript")= "disable script: "
                     input.mr-2.form-check-input(type="checkbox", name="disableScript", id="disableScript" value="")
-                    //label.form-check-label(for="cf") cloudflare:
-                    //input.form-check-input(type="checkbox", name="cf", id="cf" value="")
                     label.mr-2.form-check-label(for="dom")= " wait until dom: "
-                    input.mr-2.form-check-input(type="checkbox", name="dom", id="dom" value="" checked)
-                    label.mr-2.form-check-label(for="dom")= " bulk save: "
+                    input.mr-2.form-check-input(type="checkbox", name="dom", id="dom" value="")
+                    label.mr-2.form-check-label(for="bulksave")= " bulk save: "
                     input.mr-2.form-check-input(type="checkbox", name="bulksave", id="bulksave" value="" checked)
+                    label.mr-2.form-check-label(for="afp")= " anti fingerprint: "
+                    input.mr-2.form-check-input(type="checkbox", name="afp", id="afp" value="")
 
             //label(for="postData") Post Data: 
             //br

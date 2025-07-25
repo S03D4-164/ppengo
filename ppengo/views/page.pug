@@ -170,10 +170,10 @@ block content
               table.table.table-bordered.table-sm
                 tr.thead-light.d-flex
                   //th.col-2 createdAt
-                  th.col-1 request
+                  th.col-2 request
                   th.col-4 url
                   th.col-3 response
-                  th.col-2 securityDetails
+                  th.col-1 securityDetails
                   th.col-2 yara
                 - var seq = 0
                 each request in requests
@@ -183,7 +183,7 @@ block content
                       "table-warning":request.failure,
                     })
                     - seq += 1
-                    td.col-1
+                    td.col-2
                       a.btn.btn-sm.btn-primary(href=rootPath + "request/" + request._id)= seq
                       if request.method
                         a #{request.method}
@@ -237,7 +237,7 @@ block content
                             br
                           if response.interceptionId
                             a= "intercept: " + response.interceptionId
-                        td.col-2
+                        td.col-1
                           if response.securityDetails
                             if response.securityDetails.issuer
                               a= response.securityDetails.issuer

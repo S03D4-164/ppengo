@@ -41,6 +41,7 @@ router.post("/", async function (req, res) {
           if ("disableScript" in req.body) option["disableScript"] = true;
           if ("dom" in req.body) option["dom"] = true;
           if ("bulksave" in req.body) option["bulksave"] = true;
+          if ("afp" in req.body) option["afp"] = true;
 
           if ("pptr" in req.body) option["pptr"] = req.body["pptr"];
           urls.push({
