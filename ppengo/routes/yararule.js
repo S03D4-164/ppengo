@@ -39,19 +39,26 @@ router.get("/", function (req, res) {
     const query = search.length
       ? { $and: search }
       : { createdAt: { $lte: now } };
+    let page = req.query.page ? req.query.page : 1;
+    let limit = req.query.limit ? req.query.limit : 100;
     Yara.paginate(
       query,
       {
         sort: { createdAt: -1 },
-        page: req.query.page,
-        limit: req.query.limit,
+        page,
+        limit,
         lean: false,
       },
-
       function (err, result) {
         var pages = result
-          ? paginate.getArrayPages(req)(5, result.totalPages, req.query.page)
+          ? paginate.getArrayPages(req)(5, result.totalPages, page)
           : undefined;
+        let pageArray = [];
+        for (let page of pages) {
+          page.url = page.url.replace("NaN", page.number);
+          pageArray.push(page);
+        }
+        pages = pageArray;
         res.render("yararules", {
           title: "YARA rules",
           result,

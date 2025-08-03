@@ -3,7 +3,8 @@ mixin pagination-include(title, result, pages)
           h3.mr-3= title + ": " + result.totalDocs
           li.page-item
             if result.prevPage
-              a.page-link(href=paginate.href(true, null)) Previous
+              - prev = pages[0].url.replace(/[0-9]*$/, result.prevPage);
+              a.page-link(href=prev) Previous
             else
               a.page-link Previous
           if pages
@@ -16,7 +17,8 @@ mixin pagination-include(title, result, pages)
                   a.page-link(href=page.url)= page.number
           li.page-item
             if result.nextPage
-              a.page-link(href=paginate.href()) Next
+              - next = pages[0].url.replace(/[0-9]*$/, result.nextPage);
+              a.page-link(href=next) Next
             else
               a.page-link Next
 
