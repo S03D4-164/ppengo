@@ -22,7 +22,6 @@ services:
     networks:
       - default
       - mongo-express
-
   mongo_express:
     image: mongo-express
     ports:
@@ -65,7 +64,10 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - MONGO_DATABASE=mongodb://mongodb/wgeteer
-        #- REDIS_URL=redis://cache
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_URL=redis://redis:6379
+      #- REDIS_URL=redis://cache
       - TZ=Asia/Tokyo
       - ME_CONFIG_MONGODB_URL=mongodb://mongodb/wgeteer
       #- NODE_OPTIONS="--optimize_for_size --gc_interval=100 --max-old-space-size=1024"
@@ -76,6 +78,7 @@ services:
       - "127.0.0.1:9222:9222"
     depends_on:
       - mongodb
+      - redis
       #- elasticsearch
     volumes:
       - ./ppengo/public:/home/node/public
@@ -100,6 +103,14 @@ services:
         max-file: "10"
     #restart: always
     mem_limit: 4g
+    networks:
+      - default
+
+  redis:
+    container_name: redis
+    image: redis:latest
+    ports:
+      - "127.0.0.1:6379:6379"
     networks:
       - default
 

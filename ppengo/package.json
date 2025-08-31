@@ -23,6 +23,7 @@
     "archiver-zip-encrypted": "^2.0.0",
     "base64-to-uint8array": "^1.0.0",
     "bootstrap": "^4.6.0",
+    "bullmq": "^5.58.4",
     "cheerio": "^1.0.0-rc.3",
     "connect-mongo": "^5.1.0",
     "cookie-parser": "~1.4.3",

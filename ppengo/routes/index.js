@@ -6,10 +6,32 @@ const Website = require("./models/website");
 
 const agenda = require("./agenda");
 const bulkregister = require("./bulkregister");
+//const queue = require("./bullmq");
 
+const { Queue, QueueEvents } = require("bullmq");
+const connection = {
+  host: "redis",
+  port: 6379,
+};
+const queue = new Queue("ppengo", {
+  connection,
+});
+
+const queueEvents = new QueueEvents("ppengo", {
+  connection,
+});
+
+queueEvents.on("completed", ({ jobId }) => {
+  console.log(`completed ${jobId}`);
+});
+
+queueEvents.on("failed", ({ jobId, failedReason }) => {
+  console.error(`error ${jobId}: ${failedReason}`);
+});
+
+// register url
 router.post("/", async function (req, res) {
   const input = req.body["url"];
-
   //var webpages = [];
   var urls = [];
   for (let inputUrl of input.split("\r\n")) {
@@ -39,10 +61,13 @@ router.post("/", async function (req, res) {
           if (req.body["exHeaders"])
             option["exHeaders"] = req.body["exHeaders"];
           if ("disableScript" in req.body) option["disableScript"] = true;
+          // wait until dom loaded
           if ("dom" in req.body) option["dom"] = true;
           if ("bulksave" in req.body) option["bulksave"] = true;
+          // anti finger print
           if ("afp" in req.body) option["afp"] = true;
-
+          // chrome stable
+          if ("stable" in req.body) option["stable"] = true;
           if ("pptr" in req.body) option["pptr"] = req.body["pptr"];
           urls.push({
             url: inputUrl,
@@ -60,6 +85,11 @@ router.post("/", async function (req, res) {
     ids.push(webpage._id.toString());
     if (webpage.option.pptr == "playwright") {
       agenda.now("playwget", {
+        pageId: webpage._id,
+        count: 0,
+      });
+    } else if (webpage.option.pptr == "playwright-bull") {
+      queue.add("playwget", {
         pageId: webpage._id,
         count: 0,
       });
