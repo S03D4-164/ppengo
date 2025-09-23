@@ -92,31 +92,34 @@ router.get("/", function (req, res) {
     });
   } else {
     var query = search.length ? { $and: search } : {};
-
+    let page = req.query.page ? req.query.page : 1;
+    let limit = req.query.limit ? req.query.limit : 100;
     Webpage.paginate(
       query,
       {
         sort: { createdAt: -1 },
-        page: req.query.page,
-        limit: req.query.limit,
+        page,
+        limit,
         lean: true,
       },
       function (err, result) {
         //console.log(query, err, result)
-        let pages = {};
-        if (result)
-          pages = paginate.getArrayPages(req)(
-            5,
-            result.totalPages,
-            req.query.page,
-          );
+        var pages = result
+          ? paginate.getArrayPages(req)(5, result.totalPages, page)
+          : undefined;
+        let pageArray = [];
+        for (let page of pages) {
+          page.url = page.url.replace("NaN", page.number);
+          pageArray.push(page);
+        }
+        pages = pageArray;
         res.render("pages", {
           title: "Pages",
           search: req.query,
           result,
           verbose,
-          pages: pages,
-          err: err,
+          pages,
+          err,
         });
       },
     );
@@ -174,13 +177,15 @@ router.get("/:id", async function (req, res) {
   if (typeof req.query.status !== "undefined" && req.query.status) {
     search.push({ $where: `/${req.query.status}/.test(this.status)` });
   }
-
+  let pages;
+  let page = req.query.page ? req.query.page : 1;
+  let limit = req.query.limit ? req.query.limit : 100;
   const result = await Request.paginate(
     { webpage: id },
     {
       //sort: { createdAt: 1 },
-      page: req.query.page,
-      limit: req.query.limit,
+      page,
+      limit,
       lean: true,
       populate: {
         path: "response",
@@ -189,16 +194,17 @@ router.get("/:id", async function (req, res) {
       },
     },
     function (err, result) {
-      return result;
-      //return paginate.getArrayPages(req)(5, result.totalPages, req.query.page)
+      if (err) {
+        console.log(err);
+      } else if (result) {
+        return result;
+      }
+      return;
     },
   );
-  //console.log(result.docs)
 
-  var pages = paginate.getArrayPages(req)(5, result.totalPages, req.query.page);
-
-  logger.debug(req.query, search);
-
+  if (result) pages = paginate.getArrayPages(req)(5, result.totalPages, page);
+  //logger.debug(search);
   var website = await Website.findOne({ url: webpage.input })
     .lean()
     .then((document) => {

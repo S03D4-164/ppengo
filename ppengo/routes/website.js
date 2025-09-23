@@ -71,18 +71,26 @@ router.get("/", function (req, res) {
       });
   } else {
     var query = search.length ? { $and: search } : {};
+    let page = req.query.page ? req.query.page : 1;
+    let limit = req.query.limit ? req.query.limit : 100;
     Website.paginate(
       query,
       {
         sort: { updatedAt: -1 },
         populate: "last",
-        page: req.query.page,
-        limit: req.query.limit,
+        page,
+        limit,
       },
       function (err, result) {
         var pages = result
-          ? paginate.getArrayPages(req)(5, result.totalPages, req.query.page)
+          ? paginate.getArrayPages(req)(5, result.totalPages, page)
           : undefined;
+        let pageArray = [];
+        for (let page of pages) {
+          page.url = page.url.replace("NaN", page.number);
+          pageArray.push(page);
+        }
+        pages = pageArray;
         res.render("websites", {
           title: "Sites",
           result,
@@ -95,13 +103,13 @@ router.get("/", function (req, res) {
   }
 });
 
-async function paginatedPage(query, req) {
+async function paginatedPage(query, page, limit) {
   const webpages = await Webpage.paginate(
     query,
     {
       sort: { createdAt: -1 },
-      page: req.query.page,
-      limit: req.query.limit,
+      page,
+      limit,
     },
     function (err, result) {
       if (result) return result;
@@ -150,31 +158,20 @@ router.get("/:id", async function (req, res) {
   if (typeof req.query.status !== "undefined" && req.query.status) {
     search.push({ $where: `/${req.query.status}/.test(this.status)` });
   }
-  let result, pages, query;
+  let result, pages;
+  let query = {
+    input: website.url,
+  };
   if (search.length) {
     query = {
       input: website.url,
       $and: search,
     };
-    result = await paginatedPage(query, req);
-    /*
-      const findPage = await Webpage.find().where({"input":website.url}).and(search).sort("-createdAt")
-      .then((document)=>{return document});
-      webpages = findPage
-      */
-  } else {
-    query = {
-      input: website.url,
-    };
-    result = await paginatedPage(query, req);
-    /*
-      const findPage = await Webpage.find().where({"input":website.url}).sort("-createdAt")
-      .then((document)=>{return document});
-      webpages = findPage
-      */
   }
-  if (result)
-    pages = paginate.getArrayPages(req)(5, result.totalPages, req.query.page);
+  let page = req.query.page ? req.query.page : 1;
+  let limit = req.query.limit ? req.query.limit : 100;
+  result = await paginatedPage(query, page, limit);
+  if (result) pages = paginate.getArrayPages(req)(5, result.totalPages, page);
 
   if (typeof req.query.rmtag !== "undefined" && req.query.rmtag !== null) {
     var key = req.query.rmtag.split(":")[0];
@@ -253,13 +250,11 @@ router.post("/:id", async function (req, res) {
   }
 
   await website.save();
-  /*
-    const webpages = await Webpage.find()
-      .where({"input":website.url}).sort("-createdAt")
-      .then((document)=>{return document});
-    */
-  var result = await paginatedPage({ input: website.url }, req);
-  var pages = paginate.getArrayPages(req)(5, result.totalPages, req.query.page);
+  let pages;
+  let page = req.query.page ? req.query.page : 1;
+  let limit = req.query.limit ? req.query.limit : 100;
+  var result = await paginatedPage({ input: website.url }, page, limit);
+  if (result) pages = paginate.getArrayPages(req)(5, result.totalPages, page);
 
   tag = await Tag.find().sort({ key: 1, value: 1 });
 
