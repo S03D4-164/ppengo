@@ -1,4 +1,4 @@
 #!/bin/bash
 
 echo "starting node server"
-npm install --loglevel=verbose --foreground-scripts && npm run pm2
+pnpm install --loglevel=verbose && pnpm run pm2

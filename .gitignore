@@ -6,3 +6,5 @@ package-lock.json
 .env
 data
 gsbv4.db
+nginx/prod
+.pnpm-store

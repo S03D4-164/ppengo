@@ -1,0 +1,8 @@
+ignoredBuiltDependencies:
+  - msgpackr-extract
+  - simple-wappalyzer
+
+onlyBuiltDependencies:
+  - "@automattic/yara"
+
+minimumReleaseAge: 10080
