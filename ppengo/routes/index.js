@@ -156,9 +156,11 @@ router.use("/payload", payload);
 const yararule = require("./yararule");
 router.use("/yararule", yararule);
 
-//const screenshot = require("./screenshot");
-//router.use("/screenshot", screenshot);
-const { screenshot } = require("../controllers/screenshotController");
+const {
+  screenshot,
+  screenshots,
+} = require("../controllers/screenshotController");
+router.get("/screenshot", screenshots);
 router.get("/screenshot/:id", screenshot);
 
 const search = require("./search");

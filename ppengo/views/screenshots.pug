@@ -1,20 +1,44 @@
 extends layout
 
 block content
-  if payloads
-      if payloads.length
-          h3= title + " - total: "+payloads.length 
+  if result
+    - var screenshots = result.docs
+    include include/pagination.pug
+  if screenshots
+    form.form-inline(method="get" action=rootPath + "screenshot")
+        input.form-control.mr-2.btn.btn-sm.btn-danger(type="submit" value="search")
+        //label.mr-2(for="rurl") url:  
+        //input.form-control.mr-2(type="text" name="rurl", id="rurl" placeholder='regex value' value=search?search.rurl:"")
+        label.mr-2(for="tagkey") tag: 
+        input.form-control.mr-2(type="text" name="tagkey", id="tagkey" placeholder='key' value=search?search.tagkey:"")
+        label.mr-2(for="tagval") : 
+        input.form-control.mr-5(type="text" name="tagval", id="tagval" placeholder='value' value=search?search.tagval:"")
+        label.mr-2(for="start") start:  
+        input.form-control.mr-2(type="text" name="start", id="start" placeholder='yyyymmdd' value=search?search.start:"")
+        label.mr-2(for="end") end:  
+        input.form-control.mr-5(type="text" name="end", id="end" placeholder='yyyymmdd' value=search?search.end:"")
+        .checkbox-inline
+          label.form-check-label export
+            input.form-check-input(type="checkbox" name="export" id="export")
+    if search
+          h4= "Search: " + JSON.stringify(search) + " - Total: " + screenshots.length
+    if screenshots.length
           table.table.table-striped.table-bordered.table-hover.table-sm
             tr.thead-light.d-flex
               th.col-3 createdAt
-              th.col-8 md5  
+              th.col-4 md5
+              th.col-4 tag
               th.col-1 size
-            each payload in payloads
+            each screenshot in screenshots
                 tr.d-flex
-                  td.col-3= moment(payload.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
-                  td.col-8= payload.md5
+                  td.col-3= moment(screenshot.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+                  td.col-4= screenshot.md5
+                  td.col-4
+                    each tag in screenshot.tag
+                      each val, key in tag
+                        a= key + ": " + val
                   td.col-1
-                    a(href=rootPath + "screenshot/" + payload._id)= payload.screenshot.length
+                    a(href=rootPath + "screenshot/" + screenshot._id)= screenshot.screenshot.length
   else 
     div.alert.alert-warning
       p No data
