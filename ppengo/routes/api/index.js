@@ -139,6 +139,9 @@ router.use("/js-deobfuscator", jsdeobfuscator);
 const obfIoDeobfuscator = require("./obf-io.deobfuscate.js");
 router.use("/obf-io.deobfuscate", obfIoDeobfuscator);
 
+const restringer = require("./restringer.js");
+router.use("/restringer", restringer);
+
 const webpage = require("./webpage");
 router.use("/page", webpage);
 
