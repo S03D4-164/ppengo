@@ -133,6 +133,12 @@ router.post("/register", async function (req, res) {
 const jstillery = require("./jstillery/server.js");
 router.use("/jstillery", jstillery);
 
+const jsdeobfuscator = require("./js-deobfuscate.js");
+router.use("/js-deobfuscator", jsdeobfuscator);
+
+const obfIoDeobfuscator = require("./obf-io.deobfuscate.js");
+router.use("/obf-io.deobfuscate", obfIoDeobfuscator);
+
 const webpage = require("./webpage");
 router.use("/page", webpage);
 

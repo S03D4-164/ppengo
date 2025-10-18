@@ -7,15 +7,18 @@ block content
             textarea#input.form-control(rows=10 style="width:100%")
             pre#content.prettyprint.linenums(style="white-space: pre-wrap") result
         div.col-md-1
-          a Beautify
-          .btn-group-vertical
+          p Beautify
+            .btn-group-vertical
               button.btn.btn-sm.btn-outline-primary(id="js" onclick="beautify(\"script\")") JS
               button.btn.btn-sm.btn-outline-primary(id="css" onclick="beautify(\"stylesheet\")") CSS
               button.btn.btn-sm.btn-outline-primary(id="html" onclick="beautify(\"html\")") HTML
               button.btn.btn-sm.btn-outline-primary(id="pretty" onclick="prettyPrint()") prettyPrint
           hr
           p Deobfuscate
-            button.btn.btn-sm.btn-primary(onclick="jstillery()") JStillery
+            .btn-group-vertical
+              button.btn.btn-sm.btn-outline-primary(onclick="deobfuscate('js-deobfuscator')") js
+              button.btn.btn-sm.btn-outline-primary(onclick="deobfuscate('obf-io.deobfuscate')") obf-io
+              button.btn.btn-sm.btn-outline-primary(onclick="deobfuscate('jstillery')") JStillery
           hr
           p
             button.btn.btn-sm.btn-primary(onclick="yara()") yara
@@ -27,11 +30,11 @@ block content
                 $('pre#content').text("result");
                 $('pre#content').removeClass("prettyprinted");
               };
-              function jstillery(){
+              function deobfuscate(module){
                 var content=$("#input").val();
                 $.ajax({
                   type: "post",
-                  url: apiPath + "api/jstillery",
+                  url: apiPath + "api/" + module,
                   data:JSON.stringify({"source":content}),
                   contentType: 'application/json',
                   dataType: "json",            
