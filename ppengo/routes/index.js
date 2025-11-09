@@ -89,7 +89,13 @@ router.post("/", async function (req, res) {
         count: 0,
       });
     } else if (webpage.option.pptr == "playwright-bull") {
+      //bullmq
       queue.add("playwget", {
+        pageId: webpage._id,
+        count: 0,
+      });
+    } else if (webpage.option.pptr == "camoufox") {
+      agenda.now("camoufox", {
         pageId: webpage._id,
         count: 0,
       });
