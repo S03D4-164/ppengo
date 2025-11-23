@@ -225,16 +225,20 @@ block content
                           if response.mimeType
                             a= response.mimeType
                             br
+                            if response.mimeType == "websocket"
+                              a= response.text
+                              br
                           if response.encoding
                             a= "encoding: " + response.encoding
                             br
                           if response.remoteAddress
-                            a= "ip: "
-                            a(href=rootPath + "response?ip=" + response.remoteAddress.ip)= response.remoteAddress.ip
-                            if response.remoteAddress.geoip
-                              if response.remoteAddress.geoip[0]
-                                a= " - " + response.remoteAddress.geoip[0].country
-                            br
+                            if response.remoteAddress.ip
+                              a= "ip: "
+                              a(href=rootPath + "response?ip=" + response.remoteAddress.ip)= response.remoteAddress.ip
+                              if response.remoteAddress.geoip
+                                if response.remoteAddress.geoip[0]
+                                  a= " - " + response.remoteAddress.geoip[0].country
+                              br
                           if response.interceptionId
                             a= "intercept: " + response.interceptionId
                         td.col-1
