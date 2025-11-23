@@ -1,5 +1,5 @@
 #register_form.modal.col-12(role="dialog")
-  .modal-dialog.modal-dialog-centered(style="max-width:600px;")
+  .modal-dialog.modal-dialog-centered(style="max-width:800px;")
     .modal-content
       .modal-body
         form.form-group(method="post" action=rootPath)
@@ -7,33 +7,29 @@
             label(for="url") URL: 
             a#paste= ""
             textarea.form-control(id="url", name="url", rows=2) http://
-          .row
-            .col-6
-              .form-group.row
+          .form-group.row
+            .col-4
+              label(for="userAgent") User-Agent: 
+              select.form-control(name='userAgent' id='userAgent' multiple)
+                include ua.pug
+            .col-4
+              label(for="lang") Browser Language: 
+              select.form-control(name='lang' id='lang' multiple)
+                option(value='ja', selected= true) ja
+                option(value='en') en
+                option(value='zh') zh
+            .col-4
                 label.col-3(for="pptr") pptr:
                 select.form-control.col-8(name='pptr' id='pptr')
                   option(value='playwright' selected= true) Playwright
                   option(value='playwright-bull') Playwright (bullmq)
                   option(value='camoufox') Camoufox
                   option(value='pptr') Puppeteer
-            .col-6
-              .form-group.row
                 label.col-3(for="track") Track:
                 select.form-control.col-8(name='track' id='track')
                   option(value=0, selected= true) -
                   option(value=1) 1hx24 (no overwrite) 
                   option(value=2) 1hx24 (overwrite)
-          .form-group.row
-            div.col-6
-              label(for="userAgent") User-Agent: 
-              select.form-control(name='userAgent' id='userAgent' multiple)
-                include ua.pug
-            div.col-6
-              label(for="lang") Browser Language: 
-              select.form-control(name='lang' id='lang' multiple)
-                option(value='ja', selected= true) ja
-                option(value='en') en
-                option(value='zh') zh
           include form.pug
   script.
     document.getElementById("url").addEventListener("paste", function (e) {
